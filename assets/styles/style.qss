@@ -1,0 +1,67 @@
+/* ===== Global Styles ===== */
+QWidget {
+    font-family: "Segoe UI", sans-serif;
+    color: #e2e8f0;
+}
+
+/* Rounded container with softer background */
+#loginContainer {
+    background-color: #1e293b;  /* softer navy */
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* Title Label */
+QLabel#titleLabel {
+    font-size: 22px;
+    font-weight: bold;
+    color: #38bdf8; /* cyan accent */
+    margin-bottom: 20px;
+}
+
+/* Line Edits */
+QLineEdit {
+    background-color: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #f8fafc;
+}
+
+QLineEdit:focus {
+    border: 2px solid #38bdf8; /* cyan glow on focus */
+    background-color: #1e293b;
+}
+
+/* Buttons (Login + Exit look the same) */
+QPushButton {
+    background: qlineargradient(
+        spread:pad, x1:0, y1:0, x2:1, y2:0,
+        stop:0 #38bdf8, stop:1 #0ea5e9
+    );
+    border: none;
+    border-radius: 14px;
+    padding: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+QPushButton:hover {
+    background: qlineargradient(
+        spread:pad, x1:0, y1:0, x2:1, y2:0,
+        stop:0 #0ea5e9, stop:1 #38bdf8
+    );
+}
+
+QPushButton:pressed {
+    background-color: #0c4a6e;
+}
+
+/* Error Label */
+#errorLabel {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
