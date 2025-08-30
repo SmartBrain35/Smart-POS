@@ -1,6 +1,4 @@
-# ui/admin_dashboard.py
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 
 class Ui_AdminDashboard(object):
@@ -8,136 +6,150 @@ class Ui_AdminDashboard(object):
         AdminDashboard.setObjectName("AdminDashboard")
         AdminDashboard.resize(1200, 800)
 
-        # Main window central widget
+        # ===== Central Widget =====
         self.centralwidget = QtWidgets.QWidget(AdminDashboard)
         self.centralwidget.setObjectName("centralwidget")
 
-        # Horizontal layout (Sidebar + Main content)
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setSpacing(0)
 
-        # ================= Sidebar =================
+        # ===== Sidebar =====
         self.sidebar = QtWidgets.QFrame(self.centralwidget)
-        self.sidebar.setFixedWidth(200)
-        self.sidebar.setStyleSheet("background-color: #2C3E50;")
+        self.sidebar.setFixedWidth(220)
+        self.sidebar.setStyleSheet("background-color: #1e1e2f; color: white;")
         self.sidebar.setObjectName("sidebar")
 
         self.sidebarLayout = QtWidgets.QVBoxLayout(self.sidebar)
-        self.sidebarLayout.setContentsMargins(0, 0, 0, 0)
+        self.sidebarLayout.setContentsMargins(10, 20, 10, 20)
+        self.sidebarLayout.setSpacing(10)
+        self.sidebarLayout.setAlignment(QtCore.Qt.AlignTop)
 
-        # Sidebar buttons
-        self.btn_dashboard = self._create_sidebar_button("Dashboard")
-        self.btn_stock = self._create_sidebar_button("Stock")
-        self.btn_sales = self._create_sidebar_button("Sales")
-        self.btn_report = self._create_sidebar_button("Report")
-        self.btn_employees = self._create_sidebar_button("Employees")
-        self.btn_return = self._create_sidebar_button("Return")
-        self.btn_damage = self._create_sidebar_button("Damage")
-        self.btn_expenditure = self._create_sidebar_button("Expenditure")
-        self.btn_account = self._create_sidebar_button("Account")
+        # Sidebar Title
+        self.logo = QtWidgets.QLabel("SMART POS")
+        self.logo.setAlignment(QtCore.Qt.AlignCenter)
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        font.setBold(True)
+        self.logo.setFont(font)
+        self.logo.setStyleSheet("color: #00c2ff; margin-bottom: 20px;")
+        self.sidebarLayout.addWidget(self.logo)
+
+        # Sidebar Buttons
+        self.buttons = {}
+        button_names = [
+            "Dashboard", "Stock", "Sales", "Report", "Employees",
+            "Return", "Damage", "Expenditure", "Account", "Settings", "Logout"
+        ]
+
+        for name in button_names:
+            btn = QtWidgets.QPushButton(name)
+            btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: transparent;
+                    color: white;
+                    padding: 12px;
+                    text-align: left;
+                    border: none;
+                    font-size: 15px;
+                }
+                QPushButton:hover {
+                    background-color: #00c2ff;
+                    color: black;
+                    border-radius: 5px;
+                }
+            """)
+            btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+            self.sidebarLayout.addWidget(btn)
+            self.buttons[name] = btn
 
         self.sidebarLayout.addStretch()
-        self.btn_logout = self._create_sidebar_button("Logout")
-        self.sidebarLayout.addWidget(self.btn_logout)
-
-        # Add sidebar to main layout
         self.horizontalLayout.addWidget(self.sidebar)
 
-        # ================= Main Content =================
+        # ===== Main Content =====
         self.mainContent = QtWidgets.QFrame(self.centralwidget)
-        self.mainContent.setStyleSheet("background-color: #ECF0F1;")
         self.mainContent.setObjectName("mainContent")
-
         self.mainLayout = QtWidgets.QVBoxLayout(self.mainContent)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setSpacing(0)
 
         # Header
         self.header = QtWidgets.QFrame(self.mainContent)
         self.header.setFixedHeight(60)
-        self.header.setStyleSheet("background-color: #34495E; color: white;")
+        self.header.setStyleSheet("background-color: #2e4053;")
         self.headerLayout = QtWidgets.QHBoxLayout(self.header)
-        self.lbl_title = QtWidgets.QLabel("Admin Dashboard")
+        self.headerLayout.setContentsMargins(20, 0, 20, 0)
+
+        self.lbl_title = QtWidgets.QLabel("Dashboard")
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)
         self.lbl_title.setFont(font)
         self.lbl_title.setStyleSheet("color: white;")
         self.headerLayout.addWidget(self.lbl_title)
+
         self.headerLayout.addStretch()
+
+        self.userLabel = QtWidgets.QLabel("Welcome, Admin")
+        self.userLabel.setStyleSheet("color: #ecf0f1; font-size: 13px;")
+        self.headerLayout.addWidget(self.userLabel)
+
         self.mainLayout.addWidget(self.header)
 
-        # Stacked Widget (Pages)
+        # Stacked Pages
         self.stackedWidget = QtWidgets.QStackedWidget(self.mainContent)
-        self.stackedWidget.setObjectName("stackedWidget")
 
-        # Pages
-        self.page_dashboard = QtWidgets.QWidget()
-        self.page_dashboard.setObjectName("page_dashboard")
-        self.stackedWidget.addWidget(self.page_dashboard)
+        self.page_dashboard = QtWidgets.QLabel("Welcome to Smart POS Dashboard", alignment=QtCore.Qt.AlignCenter)
+        self.page_dashboard.setStyleSheet("font-size: 24px; font-weight: bold;")
 
-        self.page_stock = QtWidgets.QWidget()
-        self.page_stock.setObjectName("page_stock")
-        self.stackedWidget.addWidget(self.page_stock)
+        self.page_stock = QtWidgets.QLabel("📦 Stock Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_sales = QtWidgets.QLabel("🛒 Sales Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_report = QtWidgets.QLabel("📊 Report Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_employees = QtWidgets.QLabel("👥 Employees Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_return = QtWidgets.QLabel("↩ Return Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_damage = QtWidgets.QLabel("💥 Damage Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_expenditure = QtWidgets.QLabel("💵 Expenditure Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_account = QtWidgets.QLabel("⚙ Account Page", alignment=QtCore.Qt.AlignCenter)
+        self.page_settings = QtWidgets.QLabel("🔧 Settings Page", alignment=QtCore.Qt.AlignCenter)
 
-        self.page_sales = QtWidgets.QWidget()
-        self.page_sales.setObjectName("page_sales")
-        self.stackedWidget.addWidget(self.page_sales)
-
-        self.page_report = QtWidgets.QWidget()
-        self.page_report.setObjectName("page_report")
-        self.stackedWidget.addWidget(self.page_report)
-
-        self.page_employees = QtWidgets.QWidget()
-        self.page_employees.setObjectName("page_employees")
-        self.stackedWidget.addWidget(self.page_employees)
-
-        self.page_return = QtWidgets.QWidget()
-        self.page_return.setObjectName("page_return")
-        self.stackedWidget.addWidget(self.page_return)
-
-        self.page_damage = QtWidgets.QWidget()
-        self.page_damage.setObjectName("page_damage")
-        self.stackedWidget.addWidget(self.page_damage)
-
-        self.page_expenditure = QtWidgets.QWidget()
-        self.page_expenditure.setObjectName("page_expenditure")
-        self.stackedWidget.addWidget(self.page_expenditure)
-
-        self.page_account = QtWidgets.QWidget()
-        self.page_account.setObjectName("page_account")
-        self.stackedWidget.addWidget(self.page_account)
+        # Add pages to stacked widget
+        self.stackedWidget.addWidget(self.page_dashboard)    # index 0
+        self.stackedWidget.addWidget(self.page_stock)        # index 1
+        self.stackedWidget.addWidget(self.page_sales)        # index 2
+        self.stackedWidget.addWidget(self.page_report)       # index 3
+        self.stackedWidget.addWidget(self.page_employees)    # index 4
+        self.stackedWidget.addWidget(self.page_return)       # index 5
+        self.stackedWidget.addWidget(self.page_damage)       # index 6
+        self.stackedWidget.addWidget(self.page_expenditure)  # index 7
+        self.stackedWidget.addWidget(self.page_account)      # index 8
+        self.stackedWidget.addWidget(self.page_settings)     # index 9
 
         self.mainLayout.addWidget(self.stackedWidget)
-
         self.horizontalLayout.addWidget(self.mainContent)
 
         AdminDashboard.setCentralWidget(self.centralwidget)
-
         self.retranslateUi(AdminDashboard)
         QtCore.QMetaObject.connectSlotsByName(AdminDashboard)
 
-    # Helper function to make sidebar buttons consistent
-    def _create_sidebar_button(self, text):
-        btn = QtWidgets.QPushButton(text)
-        btn.setFixedHeight(40)
-        btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #2C3E50;
-                color: white;
-                border: none;
-                text-align: left;
-                padding-left: 15px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #34495E;
-            }
-            """
-        )
-        self.sidebarLayout.addWidget(btn)
-        return btn
+        # ===== Page Switching Connections =====
+        self.buttons["Dashboard"].clicked.connect(lambda: self.switch_page(0, "Dashboard"))
+        self.buttons["Stock"].clicked.connect(lambda: self.switch_page(1, "Stock"))
+        self.buttons["Sales"].clicked.connect(lambda: self.switch_page(2, "Sales"))
+        self.buttons["Report"].clicked.connect(lambda: self.switch_page(3, "Report"))
+        self.buttons["Employees"].clicked.connect(lambda: self.switch_page(4, "Employees"))
+        self.buttons["Return"].clicked.connect(lambda: self.switch_page(5, "Return"))
+        self.buttons["Damage"].clicked.connect(lambda: self.switch_page(6, "Damage"))
+        self.buttons["Expenditure"].clicked.connect(lambda: self.switch_page(7, "Expenditure"))
+        self.buttons["Account"].clicked.connect(lambda: self.switch_page(8, "Account"))
+        self.buttons["Settings"].clicked.connect(lambda: self.switch_page(9, "Settings"))
+        self.buttons["Logout"].clicked.connect(AdminDashboard.close)  # Close app on logout
+
+    def switch_page(self, index, title):
+        """Switch stacked page and update header title"""
+        self.stackedWidget.setCurrentIndex(index)
+        self.lbl_title.setText(title)
 
     def retranslateUi(self, AdminDashboard):
         _translate = QtCore.QCoreApplication.translate
-        AdminDashboard.setWindowTitle(_translate("AdminDashboard", "Admin Dashboard"))
+        AdminDashboard.setWindowTitle(_translate("AdminDashboard", "Dashboard"))

@@ -5,49 +5,26 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-
 class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("POS System - Login")
-        self.resize(400, 250)
+        self.setWindowTitle("Login - Smart POS")
+        self.setGeometry(500, 200, 400, 250)
 
-        # Main layout
-        main_layout = QVBoxLayout(self)
-        main_layout.setAlignment(Qt.AlignCenter)
+        layout = QVBoxLayout(self)
 
-        # Title
-        title = QLabel("Login")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
-        main_layout.addWidget(title)
+        self.lbl_title = QLabel("Login to Smart POS")
+        self.lbl_title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(self.lbl_title)
 
-        # Username
-        username_layout = QHBoxLayout()
-        lbl_username = QLabel("Username:")
-        self.txt_username = QLineEdit()
-        self.txt_username.setPlaceholderText("Enter username")
-        username_layout.addWidget(lbl_username)
-        username_layout.addWidget(self.txt_username)
-        main_layout.addLayout(username_layout)
+        self.username_input = QLineEdit()
+        self.username_input.setPlaceholderText("Username")
+        layout.addWidget(self.username_input)
 
-        # Password
-        password_layout = QHBoxLayout()
-        lbl_password = QLabel("Password:")
-        self.txt_password = QLineEdit()
-        self.txt_password.setEchoMode(QLineEdit.Password)
-        self.txt_password.setPlaceholderText("Enter password")
-        password_layout.addWidget(lbl_password)
-        password_layout.addWidget(self.txt_password)
-        main_layout.addLayout(password_layout)
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.setPlaceholderText("Password")
+        layout.addWidget(self.password_input)
 
-        # Login Button
-        self.btn_login = QPushButton("Login")
-        self.btn_login.setFixedHeight(40)
-        main_layout.addWidget(self.btn_login)
-
-        # Message label (for errors or info)
-        self.lbl_message = QLabel("")
-        self.lbl_message.setAlignment(Qt.AlignCenter)
-        self.lbl_message.setStyleSheet("color: red; font-size: 12px;")
-        main_layout.addWidget(self.lbl_message)
+        self.login_button = QPushButton("Login")
+        layout.addWidget(self.login_button)
