@@ -1,6 +1,5 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
-
 class Ui_AdminDashboard(object):
     def setupUi(self, AdminDashboard):
         AdminDashboard.setObjectName("AdminDashboard")
@@ -143,7 +142,20 @@ class Ui_AdminDashboard(object):
         self.buttons["Expenditure"].clicked.connect(lambda: self.switch_page(7, "Expenditure"))
         self.buttons["Account"].clicked.connect(lambda: self.switch_page(8, "Account"))
         self.buttons["Settings"].clicked.connect(lambda: self.switch_page(9, "Settings"))
-        self.buttons["Logout"].clicked.connect(AdminDashboard.close)  # Close app on logout
+        self.buttons["Logout"].clicked.connect(self.logout)
+
+
+    # add this method inside AdminDashboard class
+    def logout(self):
+        from controllers.login import LoginController
+        # Close the parent window (the QMainWindow that loaded this UI)
+        self.centralwidget.window().close()
+        
+        # Show login window again
+        self.login_controller = LoginController()
+        self.login_controller.login_view.show()
+
+
 
     def switch_page(self, index, title):
         """Switch stacked page and update header title"""

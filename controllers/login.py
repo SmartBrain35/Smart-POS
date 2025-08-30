@@ -28,6 +28,3 @@ class LoginController:
             self.login_view.close()
         else:
             QMessageBox.warning(self.login_view, "Login Failed", "Invalid credentials")
-
-
-
