@@ -109,7 +109,144 @@ class Ui_AdminDashboard(object):
         self.page_return = QtWidgets.QLabel("↩ Return Page", alignment=QtCore.Qt.AlignCenter)
         self.page_damage = QtWidgets.QLabel("💥 Damage Page", alignment=QtCore.Qt.AlignCenter)
         self.page_expenditure = QtWidgets.QLabel("💵 Expenditure Page", alignment=QtCore.Qt.AlignCenter)
-        self.page_account = QtWidgets.QLabel("⚙ Account Page", alignment=QtCore.Qt.AlignCenter)
+
+
+        # === Account Page UI ===
+        self.page_account = QtWidgets.QWidget()
+        account_layout = QtWidgets.QVBoxLayout(self.page_account)
+        account_layout.setContentsMargins(20, 20, 20, 20)
+        account_layout.setSpacing(20)
+
+        # === Form Section (Grid Layout, labels on top with tight spacing) ===
+        form_container = QtWidgets.QWidget()
+        form_container.setFixedWidth(850)   # wider form
+        form_layout = QtWidgets.QGridLayout(form_container)
+        form_layout.setContentsMargins(20, 20, 20, 20)
+        form_layout.setHorizontalSpacing(35)   # space between columns
+        form_layout.setVerticalSpacing(25)     # space between field groups
+
+        # Common label styling
+        label_style = "color: black; font-weight: bold;"
+
+        def create_field(label_text, widget):
+            """Helper: stack label + widget vertically with small spacing"""
+            wrapper = QtWidgets.QWidget()
+            vbox = QtWidgets.QVBoxLayout(wrapper)
+            vbox.setContentsMargins(0, 0, 0, 0)
+            vbox.setSpacing(4)   # << reduce gap label-input here
+            lbl = QtWidgets.QLabel(label_text)
+            lbl.setStyleSheet(label_style)
+            vbox.addWidget(lbl)
+            vbox.addWidget(widget)
+            return wrapper
+
+        # Name
+        self.input_name = QtWidgets.QLineEdit()
+        self.input_name.setPlaceholderText("Enter name")
+        self.input_name.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Name:", self.input_name), 0, 0, 1, 2)
+
+        # Phone
+        self.input_phone = QtWidgets.QLineEdit()
+        self.input_phone.setPlaceholderText("Enter phone number")
+        self.input_phone.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Phone:", self.input_phone), 0, 2, 1, 2)
+
+        # Town
+        self.input_town = QtWidgets.QLineEdit()
+        self.input_town.setPlaceholderText("Enter town")
+        self.input_town.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Town:", self.input_town), 1, 0, 1, 2)
+
+        # Email
+        self.input_email = QtWidgets.QLineEdit()
+        self.input_email.setPlaceholderText("Enter email")
+        self.input_email.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Email:", self.input_email), 1, 2, 1, 2)
+
+        # Password
+        self.input_password = QtWidgets.QLineEdit()
+        self.input_password.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.input_password.setPlaceholderText("Enter password")
+        self.input_password.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Password:", self.input_password), 2, 0, 1, 2)
+
+        # Role
+        self.input_role = QtWidgets.QComboBox()
+        self.input_role.addItems(["Admin", "Manager", "Cashier", "Sales Person"])
+        self.input_role.setMinimumWidth(int(form_container.width() * 0.4))
+        form_layout.addWidget(create_field("Role:", self.input_role), 2, 2, 1, 2)
+
+        # Register Button (centered, extended)
+        self.btn_register = QtWidgets.QPushButton("Register User")
+        self.btn_register.setObjectName("primaryButton")
+        self.btn_register.setFixedWidth(int(form_container.width() * 0.5))
+        form_layout.addWidget(self.btn_register, 3, 0, 1, 4, alignment=QtCore.Qt.AlignCenter)
+        # Center the form
+        form_wrapper = QtWidgets.QHBoxLayout()
+        form_wrapper.addStretch()
+        form_wrapper.addWidget(form_container)
+        form_wrapper.addStretch()
+        account_layout.addLayout(form_wrapper)
+
+        # === Table Section ===
+        self.table_users = QtWidgets.QTableWidget()
+        self.table_users.setColumnCount(7)  # Removed Ghana Card column
+        self.table_users.setHorizontalHeaderLabels([
+            "ID", "Name", "Phone", "Email", "Role", "Status", "Actions"
+        ])
+        self.table_users.horizontalHeader().setStretchLastSection(True)
+        self.table_users.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table_users.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.table_users.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.table_users.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table_users.setAlternatingRowColors(True)
+        self.table_users.verticalHeader().setVisible(False)
+
+        # Sample data (without Ghana Card)
+        users_data = [
+            (1, "Admin User", "0244000001", "admin@pos.com", "Admin", "Active"),
+            (2, "Cashier One", "0244000002", "cashier@pos.com", "Cashier", "Active"),
+            (3, "Manager One", "0244000003", "manager@pos.com", "Manager", "Inactive")
+        ]
+
+        self.table_users.setRowCount(len(users_data))
+
+        for row, (uid, name, phone, email, role, status) in enumerate(users_data):
+            self.table_users.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
+            self.table_users.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
+            self.table_users.setItem(row, 2, QtWidgets.QTableWidgetItem(phone))
+            self.table_users.setItem(row, 3, QtWidgets.QTableWidgetItem(email))
+            self.table_users.setItem(row, 4, QtWidgets.QTableWidgetItem(role))
+            self.table_users.setItem(row, 5, QtWidgets.QTableWidgetItem(status))
+
+            # Actions cell (Edit + Delete together in one cell)
+            action_widget = QtWidgets.QWidget()
+            action_layout = QtWidgets.QHBoxLayout(action_widget)
+            action_layout.setContentsMargins(0, 0, 0, 0)
+            action_layout.setSpacing(45)
+
+            btn_edit = QtWidgets.QPushButton()
+            btn_edit.setObjectName("iconButton")
+            btn_edit.setIcon(QtGui.QIcon("assets/icons/edit.png"))
+            btn_edit.setToolTip("Edit User")
+            btn_edit.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+            btn_delete = QtWidgets.QPushButton()
+            btn_delete.setObjectName("iconButton")
+            btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
+            btn_delete.setToolTip("Delete User")
+            btn_delete.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+            action_layout.addWidget(btn_edit)
+            action_layout.addWidget(btn_delete)
+            action_layout.addStretch()
+
+            self.table_users.setCellWidget(row, 6, action_widget)
+
+        account_layout.addWidget(self.table_users)
+
+
         self.page_settings = QtWidgets.QLabel("🔧 Settings Page", alignment=QtCore.Qt.AlignCenter)
 
         # Add pages to stacked widget

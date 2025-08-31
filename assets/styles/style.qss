@@ -65,3 +65,95 @@ QPushButton:pressed {
     font-size: 12px;
     margin-top: 5px;
 }
+
+
+/* ===== Input Fields ===== */
+QLineEdit {
+    background-color: #1e293b;   /* slightly brighter than dashboard bg */
+    border: 2px solid #64748b;   /* neutral gray border */
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #f1f5f9;              /* light text */
+}
+QLineEdit:focus {
+    border: 2px solid #38bdf8;   /* cyan accent */
+    background-color: #0f172a;   /* deep navy focus bg */
+}
+
+/* ===== Buttons (Global Style - except Register) ===== */
+QPushButton#primaryButton {
+    background-color: #38bdf8;   /* cyan accent */
+    color: #0f172a;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 8px;
+}
+QPushButton#primaryButton:hover {
+    background-color: #0ea5e9;   /* slightly darker hover */
+}
+
+/* ===== Keep Register Button Original ===== */
+QPushButton#registerButton {
+    background-color: #00c2ff;  /* unchanged */
+    color: black;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 6px;
+}
+QPushButton#registerButton:hover {
+    background-color: #0099cc;  /* unchanged */
+}
+
+/* ====== ComboBox for Role ====== */
+QComboBox {
+    background-color: #1e293b;      /* dark background */
+    color: #ffffff;                 /* white text */
+    padding: 6px 10px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+QComboBox QAbstractItemView {
+    background-color: #1e293b;
+    color: #ffffff;
+    selection-background-color: #3b82f6;  /* blue highlight */
+    selection-color: #ffffff;
+}
+
+/* ====== Account Page Table ====== */
+QTableWidget {
+    background-color: #ffffff;      /* white table */
+    color: #000000;                 /* black text */
+    gridline-color: #cbd5e1;
+    border-radius: 8px;
+}
+QHeaderView::section {
+    background-color: #1e293b;      /* dark header */
+    color: #ffffff;
+    padding: 6px;
+    border: none;
+}
+QTableWidget::item:selected {
+    background-color: #bfdbfe;      /* light blue selected row */
+    color: #000000;
+}
+
+/* ====== Table Buttons ====== */
+QPushButton#iconButton {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 6px;
+}
+QPushButton#iconButton:hover {
+    background-color: rgba(59, 130, 246, 0.1); /* soft blue */
+}
+
+
+
+
+
