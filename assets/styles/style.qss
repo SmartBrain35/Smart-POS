@@ -1,4 +1,4 @@
-/* ===== Global Styles ===== */
+/* ===== syle.qss ===== */
 QWidget {
     font-family: "Segoe UI", sans-serif;
     color: #e2e8f0;
@@ -153,7 +153,19 @@ QPushButton#iconButton:hover {
     background-color: rgba(59, 130, 246, 0.1); /* soft blue */
 }
 
-
-
-
-
+/* Calendar / DateEdit */
+QDateEdit {
+    background-color: #ffffff;
+    border: 2px solid #a2b2c7;
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: black;
+}
+QDateEdit:disabled {
+    background-color: #e5e7eb;
+    color: #9ca3af;
+    border: 2px solid #d1d5db;
+}
+QDateEdit:focus {
+    border: 2px solid #38bdf8;
+}

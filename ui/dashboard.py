@@ -102,7 +102,254 @@ class Ui_AdminDashboard(object):
         self.page_dashboard = QtWidgets.QLabel("Welcome to Smart POS Dashboard", alignment=QtCore.Qt.AlignCenter)
         self.page_dashboard.setStyleSheet("font-size: 24px; font-weight: bold;")
 
-        self.page_stock = QtWidgets.QLabel("📦 Stock Page", alignment=QtCore.Qt.AlignCenter)
+
+        # === Stock Page UI ===
+        self.page_stock = QtWidgets.QWidget()
+        stock_layout = QtWidgets.QVBoxLayout(self.page_stock)
+        stock_layout.setContentsMargins(20, 20, 20, 20)
+        stock_layout.setSpacing(16)
+
+        # --- Form container (top) ---
+        form_container = QtWidgets.QWidget()
+        form_container.setFixedWidth(820)
+        form_layout = QtWidgets.QGridLayout(form_container)
+        form_layout.setContentsMargins(12, 12, 12, 12)
+        form_layout.setHorizontalSpacing(24)
+        form_layout.setVerticalSpacing(12)
+
+        label_style = "color: black; font-weight: bold;"
+
+        def vfield(label_text, widget):
+            wrapper = QtWidgets.QWidget()
+            vbox = QtWidgets.QVBoxLayout(wrapper)
+            vbox.setContentsMargins(0, 0, 0, 0)
+            vbox.setSpacing(4)  # tighter gap
+            lbl = QtWidgets.QLabel(label_text)
+            lbl.setStyleSheet(label_style)
+            vbox.addWidget(lbl)
+            vbox.addWidget(widget)
+            return wrapper
+
+        # ID
+        self.stock_id_input = QtWidgets.QLineEdit()
+        self.stock_id_input.setPlaceholderText("Auto / Enter ID")
+        form_layout.addWidget(vfield("ID:", self.stock_id_input), 0, 0)
+
+        # Item Name
+        self.stock_name_input = QtWidgets.QLineEdit()
+        self.stock_name_input.setPlaceholderText("Enter item name")
+        form_layout.addWidget(vfield("Item Name:", self.stock_name_input), 0, 1)
+
+        # Quantity
+        self.stock_qty_input = QtWidgets.QLineEdit()
+        self.stock_qty_input.setPlaceholderText("Enter quantity (integer)")
+        form_layout.addWidget(vfield("Quantity:", self.stock_qty_input), 0, 2)
+
+        # Cost Price
+        self.stock_cost_input = QtWidgets.QLineEdit()
+        self.stock_cost_input.setPlaceholderText("Unit cost price")
+        form_layout.addWidget(vfield("Cost Price:", self.stock_cost_input), 1, 0)
+
+        # Selling Price
+        self.stock_selling_input = QtWidgets.QLineEdit()
+        self.stock_selling_input.setPlaceholderText("Unit selling price")
+        form_layout.addWidget(vfield("Selling Price:", self.stock_selling_input), 1, 1)
+
+        # Expiry date + checkbox
+        expire_widget = QtWidgets.QWidget()
+        expire_h = QtWidgets.QHBoxLayout(expire_widget)
+        expire_h.setContentsMargins(0, 0, 0, 0)
+        expire_h.setSpacing(0)
+        self.stock_expiry_checkbox = QtWidgets.QCheckBox("")
+        self.stock_expiry_checkbox.setFixedWidth(18)
+        self.stock_expiry_date = QtWidgets.QDateEdit()
+        self.stock_expiry_date.setCalendarPopup(True)
+        self.stock_expiry_date.setDate(QtCore.QDate.currentDate())
+        self.stock_expiry_date.setEnabled(False)
+
+        # FIX: calendar now enables correctly
+        def toggle_expiry(state):
+            self.stock_expiry_date.setEnabled(state == QtCore.Qt.Checked)
+
+        self.stock_expiry_checkbox.stateChanged.connect(toggle_expiry)
+
+        expire_h.addWidget(self.stock_expiry_checkbox)
+        expire_h.addWidget(self.stock_expiry_date)
+        form_layout.addWidget(vfield("Expire Date:", expire_widget), 1, 2)
+
+        # Buttons: Add, Update, Delete, Clear
+        btn_widget = QtWidgets.QWidget()
+        btn_h = QtWidgets.QHBoxLayout(btn_widget)
+        btn_h.setContentsMargins(0, 0, 0, 0)
+        btn_h.setSpacing(12)
+
+        self.stock_add_btn = QtWidgets.QPushButton("Add Item")
+        self.stock_update_btn = QtWidgets.QPushButton("Update")
+        self.stock_delete_btn = QtWidgets.QPushButton("Delete")
+        self.stock_clear_btn = QtWidgets.QPushButton("Clear")
+
+        for b in (self.stock_add_btn, self.stock_update_btn, self.stock_delete_btn, self.stock_clear_btn):
+            b.setObjectName("primaryButton")
+
+        btn_h.addStretch()
+        btn_h.addWidget(self.stock_add_btn)
+        btn_h.addWidget(self.stock_update_btn)
+        btn_h.addWidget(self.stock_delete_btn)
+        btn_h.addWidget(self.stock_clear_btn)
+        btn_h.addStretch()
+
+        form_layout.addWidget(btn_widget, 2, 0, 1, 3)
+
+        # center the form horizontally
+        form_wrapper = QtWidgets.QHBoxLayout()
+        form_wrapper.addStretch()
+        form_wrapper.addWidget(form_container)
+        form_wrapper.addStretch()
+        stock_layout.addLayout(form_wrapper)
+
+        # === Filter Section (Filter button first, then input) ===
+        filter_container = QtWidgets.QHBoxLayout()
+        filter_container.setSpacing(10)
+
+        self.btn_filter = QtWidgets.QPushButton("Filter")
+        self.btn_filter.setObjectName("primaryButton")
+        self.filter_input = QtWidgets.QLineEdit()
+        self.filter_input.setPlaceholderText("Filter by item name...")
+
+        filter_container.addWidget(self.btn_filter)
+        filter_container.addWidget(self.filter_input)
+        stock_layout.addLayout(filter_container)
+
+        # --- Table (middle) ---
+        self.table_stock = QtWidgets.QTableWidget()
+        self.table_stock.setColumnCount(9)
+        self.table_stock.setHorizontalHeaderLabels([
+            "ID", "Item Name", "Quantity", "Cost Price", "Selling Price", "Expiry",
+            "Total Cost", "Total Selling", "Profit"
+        ])
+        self.table_stock.horizontalHeader().setStretchLastSection(True)
+        self.table_stock.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table_stock.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.table_stock.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.table_stock.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table_stock.setAlternatingRowColors(True)
+        self.table_stock.verticalHeader().setVisible(False)
+
+        def create_quantity_progress(qty: int):
+            bar = QtWidgets.QProgressBar()
+            bar.setRange(0, 100)
+            if qty <= 0:
+                val, color = 0, "#ff4d4d"
+            elif qty <= 5:
+                val, color = 50, "#ffae42"
+            else:
+                val, color = 100, "#4caf50"
+            bar.setValue(val)
+            bar.setStyleSheet(f"QProgressBar::chunk {{ background-color: {color}; }}")
+            bar.setTextVisible(True)
+            bar.setFormat(str(qty))
+            return bar
+
+        # sample data
+        sample_rows = [
+            ("1", "Milk 1L", 3, 1.20, 1.80, "N/A"),
+            ("2", "Sugar 2kg", 25, 2.00, 3.00, "N/A"),
+            ("3", "Yogurt", 1, 0.80, 1.50, "2025-10-01")
+        ]
+        self.table_stock.setRowCount(len(sample_rows))
+        for r, (pk, name, qty, cost, sell, expiry) in enumerate(sample_rows):
+            self.table_stock.setItem(r, 0, QtWidgets.QTableWidgetItem(pk))
+            self.table_stock.setItem(r, 1, QtWidgets.QTableWidgetItem(name))
+            self.table_stock.setCellWidget(r, 2, create_quantity_progress(int(qty)))
+            self.table_stock.setItem(r, 3, QtWidgets.QTableWidgetItem(f"{cost:.2f}"))
+            self.table_stock.setItem(r, 4, QtWidgets.QTableWidgetItem(f"{sell:.2f}"))
+            self.table_stock.setItem(r, 5, QtWidgets.QTableWidgetItem(expiry))
+            total_cost = qty * cost
+            total_sell = qty * sell
+            profit = total_sell - total_cost
+            self.table_stock.setItem(r, 6, QtWidgets.QTableWidgetItem(f"{total_cost:.2f}"))
+            self.table_stock.setItem(r, 7, QtWidgets.QTableWidgetItem(f"{total_sell:.2f}"))
+            self.table_stock.setItem(r, 8, QtWidgets.QTableWidgetItem(f"{profit:.2f}"))
+
+        stock_layout.addWidget(self.table_stock)
+
+        # --- Totals area (bottom) ---
+        totals_widget = QtWidgets.QWidget()
+        totals_h = QtWidgets.QHBoxLayout(totals_widget)
+        totals_h.setContentsMargins(0, 0, 0, 0)
+        totals_h.setSpacing(20)
+
+        self.lbl_total_cost = QtWidgets.QLabel("Total Cost Price: 0.00")
+        self.lbl_total_selling = QtWidgets.QLabel("Total Selling Price: 0.00")
+        self.lbl_total_profit = QtWidgets.QLabel("Total Profit: 0.00")
+
+        totals_h.addStretch()
+        totals_h.addWidget(self.lbl_total_cost)
+        totals_h.addWidget(self.lbl_total_selling)
+        totals_h.addWidget(self.lbl_total_profit)
+        stock_layout.addWidget(totals_widget)
+
+        # ====== Behavior ======
+        def recalc_totals():
+            total_cost = 0.0
+            total_sell = 0.0
+            for r in range(self.table_stock.rowCount()):
+                try:
+                    total_cost += float(self.table_stock.item(r, 6).text())
+                    total_sell += float(self.table_stock.item(r, 7).text())
+                except Exception:
+                    pass
+            profit = total_sell - total_cost
+            self.lbl_total_cost.setText(f"Total Cost Price: {total_cost:.2f}")
+            self.lbl_total_selling.setText(f"Total Selling Price: {total_sell:.2f}")
+            self.lbl_total_profit.setText(f"Total Profit: {profit:.2f}")
+
+        # --- Filtering (fixed: auto-updates properly) ---
+        def filter_table():
+            keyword = self.filter_input.text().strip().lower()
+            for r in range(self.table_stock.rowCount()):
+                item = self.table_stock.item(r, 1)  # Item Name column
+                self.table_stock.setRowHidden(r, keyword not in item.text().lower() if item else True)
+
+        # --- Fill form from selected row ---
+        def load_selected_row():
+            selected = self.table_stock.currentRow()
+            if selected >= 0:
+                self.stock_id_input.setText(self.table_stock.item(selected, 0).text())
+                self.stock_name_input.setText(self.table_stock.item(selected, 1).text())
+                self.stock_qty_input.setText(self.table_stock.cellWidget(selected, 2).text())  # qty from progress bar
+                self.stock_cost_input.setText(self.table_stock.item(selected, 3).text())
+                self.stock_selling_input.setText(self.table_stock.item(selected, 4).text())
+                expiry_val = self.table_stock.item(selected, 5).text()
+                if expiry_val != "N/A":
+                    self.stock_expiry_checkbox.setChecked(True)
+                    self.stock_expiry_date.setDate(QtCore.QDate.fromString(expiry_val, "yyyy-MM-dd"))
+                else:
+                    self.stock_expiry_checkbox.setChecked(False)
+
+        # --- Clear form ---
+        def clear_form():
+            self.stock_id_input.clear()
+            self.stock_name_input.clear()
+            self.stock_qty_input.clear()
+            self.stock_cost_input.clear()
+            self.stock_selling_input.clear()
+            self.stock_expiry_checkbox.setChecked(False)
+            self.stock_expiry_date.setDate(QtCore.QDate.currentDate())
+            self.stock_expiry_date.setEnabled(False)
+
+        # connect signals
+        self.btn_filter.clicked.connect(filter_table)
+        self.filter_input.textChanged.connect(filter_table)  # auto filter
+        self.stock_clear_btn.clicked.connect(clear_form)
+        self.table_stock.itemSelectionChanged.connect(load_selected_row)
+
+        recalc_totals()
+
+
+
+
+
         self.page_sales = QtWidgets.QLabel("🛒 Sales Page", alignment=QtCore.Qt.AlignCenter)
         self.page_report = QtWidgets.QLabel("📊 Report Page", alignment=QtCore.Qt.AlignCenter)
 
