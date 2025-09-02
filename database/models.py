@@ -24,25 +24,20 @@ class User(Base):
 class Employee(Base):
     __tablename__ = 'employees'
     id = Column(Integer, primary_key=True)
-    first_name = Column(String(50))
-    last_name = Column(String(50))
+    full_name = Column(String(50))
     position = Column(String(50))
     salary = Column(Float, default=0.0)
     date_hired = Column(DateTime, default=datetime.utcnow)
-    active = Column(Boolean, default=True)
+
 
 # Stock Model
 class Stock(Base):
     __tablename__ = 'stock'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    category = Column(String(100))
-    stock_type = Column(Enum(StockType), nullable=False)
     cost_price = Column(Float, nullable=False)
     selling_price = Column(Float, nullable=False)
     quantity = Column(Integer, default=0)
-    min_quantity_alert = Column(Integer, default=5)  # for low stock alert
-    created_at = Column(DateTime, default=datetime.utcnow)
 
     def is_low_stock(self):
         return self.quantity <= self.min_quantity_alert

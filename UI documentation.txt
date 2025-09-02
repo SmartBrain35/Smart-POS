@@ -1,0 +1,26 @@
+UI DOCUMENTATION
+
+       ======Account UI======
+1. fill forms to register new account. Use (name/ phone/ email) and (password) to login
+2. on the table, click delete icon to delete a row
+3. double click on a particular dataset to edit
+4. name, phone, email, password & role are compulsory
+
+       ======Employee UI======
+1. fill form to add employees (name, phone & Ghana card are compulsory)
+2. no need to delete employee(s)
+3. filter records by phone or Ghana card (auto filter as you type in the filter input)
+4. double-click any column to edit it from the table
+
+       ======Stock UI======
+1. fill forms to save to stock (all fields are compulsory)
+2. click any row to fill back all dataset into thier respective inputs for quick delete & update 
+3. mistakenly click on wrong row, use "CLEAR" button to clear all inputs
+4. filter records by "item name" (auto filter as you type in the filter input)
+5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
+  
+
+       ======Account UI======
+
+
+       ======Account UI======

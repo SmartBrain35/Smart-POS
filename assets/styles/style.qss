@@ -155,11 +155,11 @@ QPushButton#iconButton:hover {
 
 /* Calendar / DateEdit */
 QDateEdit {
-    background-color: #ffffff;
+    background-color: #1e293b;
     border: 2px solid #a2b2c7;
     border-radius: 6px;
     padding: 4px 8px;
-    color: black;
+    color: white;
 }
 QDateEdit:disabled {
     background-color: #e5e7eb;
@@ -168,4 +168,21 @@ QDateEdit:disabled {
 }
 QDateEdit:focus {
     border: 2px solid #38bdf8;
+}
+
+QTabBar::tab {
+    min-width: 150px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #0f172a;
+    padding: 6px 12px;
+    margin: 4px;
+    border-radius: 8px;
+}
+QTabBar::tab:selected {
+    background-color: #00c2ff;
+    color: black;
+}
+QTabWidget::pane {
+    border: none;
 }

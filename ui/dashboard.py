@@ -103,13 +103,49 @@ class Ui_AdminDashboard(object):
         self.page_dashboard.setStyleSheet("font-size: 24px; font-weight: bold;")
 
 
-        # === Stock Page UI ===
+     # === Stock Page UI with Tabs ===
         self.page_stock = QtWidgets.QWidget()
         stock_layout = QtWidgets.QVBoxLayout(self.page_stock)
         stock_layout.setContentsMargins(20, 20, 20, 20)
-        stock_layout.setSpacing(16)
+        stock_layout.setSpacing(12)  # reduced spacing
 
-        # --- Form container (top) ---
+        # --- Centered Tabs ---
+        tabs_wrapper = QtWidgets.QHBoxLayout()
+        tabs_wrapper.addStretch()
+        self.stock_tabs = QtWidgets.QTabWidget()
+        self.stock_tabs.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)  # ✅ keep centered
+        tabs_wrapper.addWidget(self.stock_tabs)
+        tabs_wrapper.addStretch()
+        stock_layout.addLayout(tabs_wrapper)
+
+        # Apply tab styling
+        self.stock_tabs.setStyleSheet("""
+            QTabBar::tab {
+                min-width: 150px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #0f172a;
+                padding: 6px 12px;
+                margin: 4px;
+                border-radius: 8px;
+            }
+            QTabBar::tab:selected {
+                background-color: #00c2ff;
+                color: black;
+            }
+            QTabWidget::pane {
+                border: none;
+            }
+        """)
+
+        # === Retail Tab ===
+        self.tab_retail = QtWidgets.QWidget()
+        retail_layout = QtWidgets.QVBoxLayout(self.tab_retail)
+        retail_layout.setContentsMargins(20, 20, 20, 20)
+        retail_layout.setSpacing(12)  # reduced spacing
+        self.stock_tabs.addTab(self.tab_retail, "Retail")
+
+        # --- Retail Page UI (inserted here) ---
         form_container = QtWidgets.QWidget()
         form_container.setFixedWidth(820)
         form_layout = QtWidgets.QGridLayout(form_container)
@@ -159,7 +195,7 @@ class Ui_AdminDashboard(object):
         expire_widget = QtWidgets.QWidget()
         expire_h = QtWidgets.QHBoxLayout(expire_widget)
         expire_h.setContentsMargins(0, 0, 0, 0)
-        expire_h.setSpacing(0)
+        expire_h.setSpacing(4)
         self.stock_expiry_checkbox = QtWidgets.QCheckBox("")
         self.stock_expiry_checkbox.setFixedWidth(18)
         self.stock_expiry_date = QtWidgets.QDateEdit()
@@ -167,17 +203,13 @@ class Ui_AdminDashboard(object):
         self.stock_expiry_date.setDate(QtCore.QDate.currentDate())
         self.stock_expiry_date.setEnabled(False)
 
-        # FIX: calendar now enables correctly
-        def toggle_expiry(state):
-            self.stock_expiry_date.setEnabled(state == QtCore.Qt.Checked)
-
-        self.stock_expiry_checkbox.stateChanged.connect(toggle_expiry)
+        self.stock_expiry_checkbox.toggled.connect(self.stock_expiry_date.setEnabled)
 
         expire_h.addWidget(self.stock_expiry_checkbox)
         expire_h.addWidget(self.stock_expiry_date)
         form_layout.addWidget(vfield("Expire Date:", expire_widget), 1, 2)
 
-        # Buttons: Add, Update, Delete, Clear
+        # Buttons
         btn_widget = QtWidgets.QWidget()
         btn_h = QtWidgets.QHBoxLayout(btn_widget)
         btn_h.setContentsMargins(0, 0, 0, 0)
@@ -197,30 +229,31 @@ class Ui_AdminDashboard(object):
         btn_h.addWidget(self.stock_delete_btn)
         btn_h.addWidget(self.stock_clear_btn)
         btn_h.addStretch()
-
         form_layout.addWidget(btn_widget, 2, 0, 1, 3)
 
-        # center the form horizontally
+        # center form
         form_wrapper = QtWidgets.QHBoxLayout()
         form_wrapper.addStretch()
         form_wrapper.addWidget(form_container)
         form_wrapper.addStretch()
-        stock_layout.addLayout(form_wrapper)
+        retail_layout.addLayout(form_wrapper)
 
-        # === Filter Section (Filter button first, then input) ===
+        # === Filter Section ===
         filter_container = QtWidgets.QHBoxLayout()
-        filter_container.setSpacing(10)
+        filter_container.setSpacing(8)  # reduced spacing
 
         self.btn_filter = QtWidgets.QPushButton("Filter")
         self.btn_filter.setObjectName("primaryButton")
         self.filter_input = QtWidgets.QLineEdit()
         self.filter_input.setPlaceholderText("Filter by item name...")
+        self.filter_input.setFixedWidth(int(form_container.width() * 0.3))
 
         filter_container.addWidget(self.btn_filter)
         filter_container.addWidget(self.filter_input)
-        stock_layout.addLayout(filter_container)
+        filter_container.addStretch()
+        retail_layout.addLayout(filter_container)
 
-        # --- Table (middle) ---
+        # --- Table ---
         self.table_stock = QtWidgets.QTableWidget()
         self.table_stock.setColumnCount(9)
         self.table_stock.setHorizontalHeaderLabels([
@@ -234,27 +267,46 @@ class Ui_AdminDashboard(object):
         self.table_stock.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table_stock.setAlternatingRowColors(True)
         self.table_stock.verticalHeader().setVisible(False)
+        self.table_stock.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)  # ✅ extend table
 
+        # ✅ click-row to fill inputs
+        def on_stock_row_click():
+            row = self.table_stock.currentRow()
+            if row >= 0:
+                self.stock_id_input.setText(self.table_stock.item(row, 0).text())
+                self.stock_name_input.setText(self.table_stock.item(row, 1).text())
+                self.stock_qty_input.setText(self.table_stock.cellWidget(row, 2).text()) if self.table_stock.cellWidget(row, 2) else None
+                self.stock_cost_input.setText(self.table_stock.item(row, 3).text())
+                self.stock_selling_input.setText(self.table_stock.item(row, 4).text())
+                expiry_val = self.table_stock.item(row, 5).text()
+                if expiry_val != "N/A":
+                    self.stock_expiry_checkbox.setChecked(True)
+                    self.stock_expiry_date.setDate(QtCore.QDate.fromString(expiry_val, "yyyy-MM-dd"))
+                else:
+                    self.stock_expiry_checkbox.setChecked(False)
+
+        self.table_stock.itemSelectionChanged.connect(on_stock_row_click)
+
+        # sample rows
         def create_quantity_progress(qty: int):
             bar = QtWidgets.QProgressBar()
             bar.setRange(0, 100)
-            if qty <= 0:
-                val, color = 0, "#ff4d4d"
-            elif qty <= 5:
-                val, color = 50, "#ffae42"
+            bar.setValue(min(qty, 100))
+            if qty <= 10:
+                color = "#ff4d4d"        # red
+            elif qty >= 11 and qty < 20:
+                color = "#ffae42"        # sunset yellow
             else:
-                val, color = 100, "#4caf50"
-            bar.setValue(val)
+                color = "#4caf50"        # green
             bar.setStyleSheet(f"QProgressBar::chunk {{ background-color: {color}; }}")
             bar.setTextVisible(True)
             bar.setFormat(str(qty))
             return bar
 
-        # sample data
         sample_rows = [
             ("1", "Milk 1L", 3, 1.20, 1.80, "N/A"),
             ("2", "Sugar 2kg", 25, 2.00, 3.00, "N/A"),
-            ("3", "Yogurt", 1, 0.80, 1.50, "2025-10-01")
+            ("3", "Yogurt", 50, 0.80, 1.50, "2025-10-01")
         ]
         self.table_stock.setRowCount(len(sample_rows))
         for r, (pk, name, qty, cost, sell, expiry) in enumerate(sample_rows):
@@ -271,9 +323,9 @@ class Ui_AdminDashboard(object):
             self.table_stock.setItem(r, 7, QtWidgets.QTableWidgetItem(f"{total_sell:.2f}"))
             self.table_stock.setItem(r, 8, QtWidgets.QTableWidgetItem(f"{profit:.2f}"))
 
-        stock_layout.addWidget(self.table_stock)
+        retail_layout.addWidget(self.table_stock, stretch=1)  # ✅ extend downwards
 
-        # --- Totals area (bottom) ---
+        # Totals
         totals_widget = QtWidgets.QWidget()
         totals_h = QtWidgets.QHBoxLayout(totals_widget)
         totals_h.setContentsMargins(0, 0, 0, 0)
@@ -287,64 +339,16 @@ class Ui_AdminDashboard(object):
         totals_h.addWidget(self.lbl_total_cost)
         totals_h.addWidget(self.lbl_total_selling)
         totals_h.addWidget(self.lbl_total_profit)
-        stock_layout.addWidget(totals_widget)
+        retail_layout.addWidget(totals_widget)
 
-        # ====== Behavior ======
-        def recalc_totals():
-            total_cost = 0.0
-            total_sell = 0.0
-            for r in range(self.table_stock.rowCount()):
-                try:
-                    total_cost += float(self.table_stock.item(r, 6).text())
-                    total_sell += float(self.table_stock.item(r, 7).text())
-                except Exception:
-                    pass
-            profit = total_sell - total_cost
-            self.lbl_total_cost.setText(f"Total Cost Price: {total_cost:.2f}")
-            self.lbl_total_selling.setText(f"Total Selling Price: {total_sell:.2f}")
-            self.lbl_total_profit.setText(f"Total Profit: {profit:.2f}")
+        # === Wholesale Tab (placeholder for now) ===
+        self.tab_wholesale = QtWidgets.QWidget()
+        wholesale_layout = QtWidgets.QVBoxLayout(self.tab_wholesale)
+        wholesale_layout.addWidget(QtWidgets.QLabel("Wholesale stock management coming soon..."))
+        self.stock_tabs.addTab(self.tab_wholesale, "Wholesale")
 
-        # --- Filtering (fixed: auto-updates properly) ---
-        def filter_table():
-            keyword = self.filter_input.text().strip().lower()
-            for r in range(self.table_stock.rowCount()):
-                item = self.table_stock.item(r, 1)  # Item Name column
-                self.table_stock.setRowHidden(r, keyword not in item.text().lower() if item else True)
 
-        # --- Fill form from selected row ---
-        def load_selected_row():
-            selected = self.table_stock.currentRow()
-            if selected >= 0:
-                self.stock_id_input.setText(self.table_stock.item(selected, 0).text())
-                self.stock_name_input.setText(self.table_stock.item(selected, 1).text())
-                self.stock_qty_input.setText(self.table_stock.cellWidget(selected, 2).text())  # qty from progress bar
-                self.stock_cost_input.setText(self.table_stock.item(selected, 3).text())
-                self.stock_selling_input.setText(self.table_stock.item(selected, 4).text())
-                expiry_val = self.table_stock.item(selected, 5).text()
-                if expiry_val != "N/A":
-                    self.stock_expiry_checkbox.setChecked(True)
-                    self.stock_expiry_date.setDate(QtCore.QDate.fromString(expiry_val, "yyyy-MM-dd"))
-                else:
-                    self.stock_expiry_checkbox.setChecked(False)
 
-        # --- Clear form ---
-        def clear_form():
-            self.stock_id_input.clear()
-            self.stock_name_input.clear()
-            self.stock_qty_input.clear()
-            self.stock_cost_input.clear()
-            self.stock_selling_input.clear()
-            self.stock_expiry_checkbox.setChecked(False)
-            self.stock_expiry_date.setDate(QtCore.QDate.currentDate())
-            self.stock_expiry_date.setEnabled(False)
-
-        # connect signals
-        self.btn_filter.clicked.connect(filter_table)
-        self.filter_input.textChanged.connect(filter_table)  # auto filter
-        self.stock_clear_btn.clicked.connect(clear_form)
-        self.table_stock.itemSelectionChanged.connect(load_selected_row)
-
-        recalc_totals()
 
 
 
@@ -433,14 +437,20 @@ class Ui_AdminDashboard(object):
         filter_container = QtWidgets.QHBoxLayout()
         filter_container.setSpacing(10)
 
-        self.filter_input = QtWidgets.QLineEdit()
-        self.filter_input.setPlaceholderText("Filter by Phone or Ghana Card ID...")
         self.btn_filter = QtWidgets.QPushButton("Filter")
         self.btn_filter.setObjectName("primaryButton")
 
-        filter_container.addWidget(self.filter_input)
+        self.filter_input = QtWidgets.QLineEdit()
+        self.filter_input.setPlaceholderText("Filter by Phone or Ghana Card ID...")
+        self.filter_input.setFixedWidth(int(form_container.width() * 0.3))  # 30% width of form
+
+        # Add button first, then input, aligned to left
         filter_container.addWidget(self.btn_filter)
+        filter_container.addWidget(self.filter_input)
+        filter_container.addStretch()  # pushes everything to the left
+
         employees_layout.addLayout(filter_container)
+
 
         # === Table Section ===
         self.table_employees = QtWidgets.QTableWidget()
