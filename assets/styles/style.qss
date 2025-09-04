@@ -167,7 +167,7 @@ QDateEdit:disabled {
     border: 2px solid #d1d5db;
 }
 QDateEdit:focus {
-    border: 2px solid #38bdf8;
+    border: 2px solid #0b181dff;
 }
 
 QTabBar::tab {
@@ -186,3 +186,14 @@ QTabBar::tab:selected {
 QTabWidget::pane {
     border: none;
 }
+
+QLCDNumber {
+    color: white;                /* White digits */
+    background-color: #1e293b;    /* Dark slate background */
+    border: 2px solid #38bdf8;    /*  border */
+    border-radius: 8px;
+    padding: 6px;
+    font-weight: bold;            /* Bold digits */
+    font-size: 20px;              /* Larger font */
+}
+
