@@ -1,9 +1,15 @@
-# main.py
+from dotenv import load_dotenv
+load_dotenv()
+
 import os, sys
+
+from backend.storage.database import init_db
 from PySide6.QtWidgets import QApplication
 from controllers.login import LoginController   # or your entry controller
 
 def main():
+    init_db()
+
     app = QApplication(sys.argv)
 
     # Load QSS globally so ALL windows (dashboard, account page, etc.) use it

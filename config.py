@@ -1,42 +1,19 @@
-# config.py
-
 import os
-from dotenv import load_dotenv
+from functools import lru_cache
 
-# Load environment variables from .env file
-load_dotenv()
 
-# ================= General App Settings =================
-APP_NAME = "Smart POS"
-DEBUG = os.getenv("DEBUG", "True") == "True"
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
-DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY", "USD")
+class Settings:
+    secret_key: str = os.getenv("SECRET_KEY")
+    database_uri: str = os.getenv("DATABASE_URI", "sqlite:///app.db")
+    config: str = os.getenv("CONFIG", "development")
+    app_name: str = "Smart POS"
+    debug: str = os.getenv("DEBUG", "True") == "True"
+    default_currency: str = os.getenv("DEFAULT_CURRENCY", "USD")
+    default_min_quantity_alert: int = int(os.getenv("DEFAULT_MIN_QUANTITY_ALERT", 5))
+    default_category: str = os.getenv("DEFAULT_CATEGORY", "general")
+    date_format: str = "%Y-%m-%d %H:%M:%S"
 
-# ================= Database Configuration =================
-DB_ENGINE = os.getenv("DB_ENGINE", "sqlite")  # Options: sqlite, postgresql, mysql
-DB_NAME = os.getenv("DB_NAME", "smart_pos.db")
-DB_USER = os.getenv("DB_USER", "")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "")
 
-if DB_ENGINE.lower() == "sqlite":
-    DATABASE_URL = f"sqlite:///{DB_NAME}"
-elif DB_ENGINE.lower() == "postgresql":
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-elif DB_ENGINE.lower() == "mysql":
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-else:
-    raise ValueError("Unsupported DB_ENGINE. Use sqlite, postgresql, or mysql.")
-
-# ================= Default Stock Settings =================
-DEFAULT_MIN_QUANTITY_ALERT = int(os.getenv("DEFAULT_MIN_QUANTITY_ALERT", 5))
-DEFAULT_CATEGORY = os.getenv("DEFAULT_CATEGORY", "general")
-
-# ================= Other Constants =================
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-# ================= Helper Functions =================
-def get_database_url():
-    """Return the configured database URL."""
-    return DATABASE_URL
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
