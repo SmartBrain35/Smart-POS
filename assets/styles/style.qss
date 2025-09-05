@@ -197,3 +197,25 @@ QLCDNumber {
     font-size: 20px;              /* Larger font */
 }
 
+/* Form labels */
+QLabel#formLabel {
+    color: black;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* LCD labels */
+QLabel#lcdLabel {
+    color: black;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+/* Action Buttons (Add/Edit/Delete/Clear) */
+QPushButton#actionButton {
+    min-width: 100px;
+    padding: 8px 15px;
+    font-weight: bold;
+    text-align: center;
+    color: black;
+}

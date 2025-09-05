@@ -7,7 +7,6 @@ class Ui_AdminDashboard(object):
         AdminDashboard.setMinimumSize(1200, 800)
         AdminDashboard.showMaximized()
 
-
         # ===== Central Widget =====
         self.centralwidget = QtWidgets.QWidget(AdminDashboard)
         self.centralwidget.setObjectName("centralwidget")
@@ -123,8 +122,8 @@ class Ui_AdminDashboard(object):
         # === Stock Page UI with Tabs(Retail / Wholesale) ===
         self.page_stock = QtWidgets.QWidget()
         stock_layout = QtWidgets.QVBoxLayout(self.page_stock)
-        stock_layout.setContentsMargins(20, 20, 20, 20)
-        stock_layout.setSpacing(12)
+        stock_layout.setContentsMargins(10, 10, 10, 0)
+        stock_layout.setSpacing(1)
 
         # --- Centered Tabs ---
         tabs_wrapper = QtWidgets.QHBoxLayout()
@@ -144,14 +143,21 @@ class Ui_AdminDashboard(object):
         tabs_wrapper.addStretch()
         stock_layout.addLayout(tabs_wrapper)
 
-
         # --- Table ---
         self.table_stock = QtWidgets.QTableWidget()
         self.table_stock.setColumnCount(9)
         self.table_stock.setHorizontalHeaderLabels(
-            ["ID", "Item Name", "Quantity", "Cost Price",
-            "Selling Price", "Expiry", "Total Cost",
-            "Total Selling", "Profit"]
+            [
+                "ID",
+                "Item Name",
+                "Quantity",
+                "Cost Price",
+                "Selling Price",
+                "Expiry",
+                "Total Cost",
+                "Total Selling",
+                "Profit",
+            ]
         )
         self.table_stock.horizontalHeader().setStretchLastSection(True)
         self.table_stock.horizontalHeader().setSectionResizeMode(
@@ -163,7 +169,7 @@ class Ui_AdminDashboard(object):
         self.table_stock.setAlternatingRowColors(True)
         self.table_stock.verticalHeader().setVisible(False)
 
-        # 🔹 Table expands 90% width and full height available
+        """ # 🔹 Table expands 90% width and full height available
         self.table_stock.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )
@@ -178,7 +184,7 @@ class Ui_AdminDashboard(object):
             resize_table()
             QtWidgets.QWidget.resizeEvent(self.page_stock, event)
 
-        self.page_stock.resizeEvent = on_resize
+        self.page_stock.resizeEvent = on_resize """
 
         # Apply tab styling
         self.stock_tabs.setStyleSheet(
@@ -205,7 +211,7 @@ class Ui_AdminDashboard(object):
         # === Retail Tab ===
         self.tab_retail = QtWidgets.QWidget()
         self.retail_layout = QtWidgets.QVBoxLayout(self.tab_retail)
-        self.retail_layout.setContentsMargins(20, 20, 20, 20)
+        self.retail_layout.setContentsMargins(10, 10, 10, 0)
         self.retail_layout.setSpacing(12)
         self.stock_tabs.addTab(self.tab_retail, "RETAIL")
 
@@ -213,17 +219,16 @@ class Ui_AdminDashboard(object):
         form_container = QtWidgets.QWidget()
         form_container.setFixedWidth(820)
         form_layout = QtWidgets.QGridLayout(form_container)
-        form_layout.setContentsMargins(12, 12, 12, 12)
-        form_layout.setHorizontalSpacing(24)
-        form_layout.setVerticalSpacing(12)
-
+        form_layout.setContentsMargins(10, 10, 10, 0)
+        form_layout.setVerticalSpacing(20)
+        form_layout.setHorizontalSpacing(20)
         label_style = "color: black; font-weight: bold;"
 
         def vfield(label_text, widget):
             wrapper = QtWidgets.QWidget()
             vbox = QtWidgets.QVBoxLayout(wrapper)
             vbox.setContentsMargins(0, 0, 0, 0)
-            vbox.setSpacing(4) 
+            vbox.setSpacing(4)
             lbl = QtWidgets.QLabel(label_text)
             lbl.setStyleSheet(label_style)
             vbox.addWidget(lbl)
@@ -336,9 +341,17 @@ class Ui_AdminDashboard(object):
         self.table_stock = QtWidgets.QTableWidget()
         self.table_stock.setColumnCount(9)
         self.table_stock.setHorizontalHeaderLabels(
-            ["ID", "Item Name", "Quantity", "Cost Price", 
-            "Selling Price", "Expiry", "Total Cost", 
-            "Total Selling", "Profit"]
+            [
+                "ID",
+                "Item Name",
+                "Quantity",
+                "Cost Price",
+                "Selling Price",
+                "Expired",
+                "Total Cost",
+                "Total Selling",
+                "Profit",
+            ]
         )
 
         self.table_stock.horizontalHeader().setStretchLastSection(True)
@@ -364,15 +377,16 @@ class Ui_AdminDashboard(object):
             self.table_stock.setMinimumWidth(target_width)
             self.table_stock.setMaximumWidth(target_width)
 
-        # 🔹 Sync resize events for both tabs + table
+            self.table_stock.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            )
+
         def on_resize(event):
             resize_tabs()
             resize_table()
             QtWidgets.QWidget.resizeEvent(self.page_stock, event)
 
         self.page_stock.resizeEvent = on_resize
-
-
 
         # ✅ click-row to fill inputs
         def on_stock_row_click():
@@ -444,13 +458,19 @@ class Ui_AdminDashboard(object):
             )
             self.table_stock.setItem(r, 8, QtWidgets.QTableWidgetItem(f"{profit:.2f}"))
 
-        self.retail_layout.addWidget(self.table_stock, stretch=1) 
+        # === Stock Table + Totals + LCD Container ===
+        content_container = QtWidgets.QVBoxLayout()
+        content_container.setContentsMargins(0, 0, 0, 0)
+        content_container.setSpacing(1)  # space between LCD & Table
 
-        # Totals
+        # 🔹 Table stretches to fill free vertical space
+        content_container.addWidget(self.table_stock, stretch=5)
+
+        # 🔹 Totals row (fixed height)
         totals_widget = QtWidgets.QWidget()
         totals_h = QtWidgets.QHBoxLayout(totals_widget)
         totals_h.setContentsMargins(0, 0, 0, 0)
-        totals_h.setSpacing(20)
+        totals_h.setSpacing(0)
 
         self.lbl_total_cost = QtWidgets.QLabel("Total Cost Price: 0.00")
         self.lbl_total_selling = QtWidgets.QLabel("Total Selling Price: 0.00")
@@ -460,12 +480,14 @@ class Ui_AdminDashboard(object):
         totals_h.addWidget(self.lbl_total_cost)
         totals_h.addWidget(self.lbl_total_selling)
         totals_h.addWidget(self.lbl_total_profit)
-        self.retail_layout.addWidget(totals_widget)
-        # === LCD Displays for Overall Sums ===
+
+        content_container.addWidget(totals_widget, stretch=0)
+
+        # 🔹 LCD row (fixed height, pinned at bottom)
         lcd_widget = QtWidgets.QWidget()
         lcd_layout = QtWidgets.QHBoxLayout(lcd_widget)
         lcd_layout.setContentsMargins(0, 0, 0, 0)
-        lcd_layout.setSpacing(15)
+        lcd_layout.setSpacing(10)  # space between lcd & its labels
 
         def make_lcd_block(label_text):
             container = QtWidgets.QHBoxLayout()
@@ -476,8 +498,8 @@ class Ui_AdminDashboard(object):
             lcd = QtWidgets.QLCDNumber()
             lcd.setDigitCount(10)  # wider display
             lcd.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
-            lcd.setMinimumHeight(50)  # increased height
-            lcd.setMinimumWidth(90)  # increased width
+            lcd.setMinimumHeight(50)
+            lcd.setMinimumWidth(90)
             lcd.display("0.00")
 
             container.addWidget(label)
@@ -492,13 +514,214 @@ class Ui_AdminDashboard(object):
         lcd_layout.addLayout(selling_block)
         lcd_layout.addLayout(profit_block)
 
-        self.retail_layout.addWidget(lcd_widget)
+        content_container.addWidget(lcd_widget, stretch=0)
 
+        # ✅ Add whole container to retail layout
+        self.retail_layout.addLayout(content_container, stretch=1)
 
-        # === Wholesale Tab (placeholder for now) ===
+        # 🔹 Ensure the LCD row sits flush with the bottom of the page
+        self.retail_layout.setContentsMargins(0, 0, 0, 0)
+        self.retail_layout.setSpacing(5)  # space between table and filter
+
+        # === Wholesale Tab ===
         self.tab_wholesale = QtWidgets.QWidget()
         wholesale_layout = QtWidgets.QVBoxLayout(self.tab_wholesale)
-        wholesale_layout.addWidget(QtWidgets.QLabel("Wholesale stock management coming soon..."))
+        wholesale_layout.setContentsMargins(10, 10, 10, 0)
+        wholesale_layout.setSpacing(10)
+
+        # ======================================================
+        # TOP CONTAINER (Form + Buttons together)
+        # ======================================================
+        form_buttons_container = QtWidgets.QWidget()
+        form_buttons_layout = QtWidgets.QGridLayout(form_buttons_container)
+        form_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        form_buttons_layout.setHorizontalSpacing(20)
+        form_buttons_layout.setVerticalSpacing(10)
+
+        # ID
+        self.ws_id = QtWidgets.QLineEdit()
+        lbl_id = QtWidgets.QLabel("ID:")
+        lbl_id.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_id, 0, 0)
+        form_buttons_layout.addWidget(self.ws_id, 0, 1)
+
+        # Item Name
+        self.ws_name = QtWidgets.QLineEdit()
+        lbl_name = QtWidgets.QLabel("Item Name:")
+        lbl_name.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_name, 0, 2)
+        form_buttons_layout.addWidget(self.ws_name, 0, 3)
+
+        # Quantity
+        self.ws_qty = QtWidgets.QLineEdit()
+        lbl_qty = QtWidgets.QLabel("Quantity:")
+        lbl_qty.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_qty, 0, 4)
+        form_buttons_layout.addWidget(self.ws_qty, 0, 5)
+
+        # Cost Price
+        self.ws_cost = QtWidgets.QLineEdit()
+        lbl_cost = QtWidgets.QLabel("Cost Price:")
+        lbl_cost.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_cost, 1, 0)
+        form_buttons_layout.addWidget(self.ws_cost, 1, 1)
+
+        # Selling Price
+        self.ws_selling = QtWidgets.QLineEdit()
+        lbl_selling = QtWidgets.QLabel("Selling Price:")
+        lbl_selling.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_selling, 1, 2)
+        form_buttons_layout.addWidget(self.ws_selling, 1, 3)
+
+        # Expiry (label + checkbox + date)
+        lbl_expiry = QtWidgets.QLabel("Expire:")
+        lbl_expiry.setObjectName("formLabel")
+
+        expiry_container = QtWidgets.QHBoxLayout()
+        expiry_container.setContentsMargins(0, 0, 0, 0)
+        expiry_container.setSpacing(5)
+
+        self.ws_expiry_checkbox = QtWidgets.QCheckBox()
+        self.ws_expiry_checkbox.setText("")  # only box, no text
+        self.ws_expiry_checkbox.setFixedWidth(20)
+
+        self.ws_expiry_date = QtWidgets.QDateEdit()
+        self.ws_expiry_date.setCalendarPopup(True)
+        self.ws_expiry_date.setFixedHeight(
+            self.ws_id.sizeHint().height()
+        )  # match input height
+        self.ws_expiry_date.setFixedWidth(
+            int(self.ws_id.sizeHint().width() * 0.99)
+        )  # 70% width
+
+        expiry_container.addWidget(self.ws_expiry_checkbox)
+        expiry_container.addWidget(self.ws_expiry_date)
+
+        expiry_widget = QtWidgets.QWidget()
+        expiry_widget.setLayout(expiry_container)
+
+        form_buttons_layout.addWidget(lbl_expiry, 1, 4)
+        form_buttons_layout.addWidget(expiry_widget, 1, 5)
+
+        # Category
+        self.ws_category = QtWidgets.QLineEdit()
+        lbl_category = QtWidgets.QLabel("Category:")
+        lbl_category.setObjectName("formLabel")
+        form_buttons_layout.addWidget(lbl_category, 2, 0)
+        form_buttons_layout.addWidget(self.ws_category, 2, 1)
+
+        # Buttons (equal width + centered text)
+        self.ws_btn_add = QtWidgets.QPushButton("ADD")
+        self.ws_btn_edit = QtWidgets.QPushButton("EDIT")
+        self.ws_btn_delete = QtWidgets.QPushButton("DELETE")
+        self.ws_btn_clear = QtWidgets.QPushButton("CLEAR")
+
+        btns = [
+            self.ws_btn_add,
+            self.ws_btn_edit,
+            self.ws_btn_delete,
+            self.ws_btn_clear,
+        ]
+        for b in btns:
+            b.setMinimumWidth(100)
+            b.setObjectName("actionButton")
+
+        btn_widget = QtWidgets.QWidget()
+        btn_layout = QtWidgets.QHBoxLayout(btn_widget)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(10)
+        btn_layout.addStretch()
+        [btn_layout.addWidget(b) for b in btns]
+        btn_layout.addStretch()
+
+        form_buttons_layout.addWidget(btn_widget, 2, 2, 1, 4)
+        wholesale_layout.addWidget(form_buttons_container)
+
+        # ======================================================
+        # BOTTOM CONTAINER (Filter + Table + LCD)
+        # ======================================================
+        bottom_container = QtWidgets.QVBoxLayout()
+        bottom_container.setContentsMargins(0, 0, 0, 0)
+        bottom_container.setSpacing(10)
+
+        # Filter bar (input aligned to far-right)
+        filter_widget = QtWidgets.QWidget()
+        filter_layout = QtWidgets.QHBoxLayout(filter_widget)
+        filter_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.ws_txt_filter = QtWidgets.QLineEdit()
+        self.ws_txt_filter.setPlaceholderText("Filter by item name...")
+        self.ws_txt_filter.setObjectName("filterInput")
+        self.ws_txt_filter.setMaximumWidth(int(self.tab_wholesale.width() * 0.5))
+
+        filter_layout.addStretch()  # push everything to the right
+        filter_layout.addWidget(self.ws_txt_filter)
+
+        bottom_container.addWidget(filter_widget)
+
+        # Wholesale Table
+        self.ws_table_stock = QtWidgets.QTableWidget()
+        self.ws_table_stock.setColumnCount(10)
+        self.ws_table_stock.setHorizontalHeaderLabels(
+            [
+                "ID",
+                "Item Name",
+                "Category",
+                "Quantity",
+                "Cost Price",
+                "Selling Price",
+                "Expired",
+                "Total Cost",
+                "Total Selling",
+                "Profit",
+            ]
+        )
+        self.ws_table_stock.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        self.ws_table_stock.setMinimumHeight(300)
+        self.ws_table_stock.verticalHeader().setDefaultSectionSize(30)
+        self.ws_table_stock.horizontalHeader().setStretchLastSection(False)
+
+        bottom_container.addWidget(self.ws_table_stock, stretch=10)
+
+        # LCD row
+        lcd_widget = QtWidgets.QWidget()
+        lcd_layout = QtWidgets.QHBoxLayout(lcd_widget)
+        lcd_layout.setContentsMargins(0, 0, 0, 5)
+        lcd_layout.setSpacing(15)
+
+        def make_lcd_block(label_text):
+            container = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel(label_text)
+            label.setObjectName("lcdLabel")
+            label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
+
+            lcd = QtWidgets.QLCDNumber()
+            lcd.setDigitCount(10)
+            lcd.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
+            lcd.setMinimumHeight(40)
+            lcd.setMinimumWidth(120)
+            lcd.display("0.00")
+
+            container.addWidget(label)
+            container.addWidget(lcd)
+            return container, lcd
+
+        cost_block, self.ws_lcd_total_cost = make_lcd_block("Total Cost Value:")
+        selling_block, self.ws_lcd_total_selling = make_lcd_block(
+            "Total Selling Value:"
+        )
+        profit_block, self.ws_lcd_total_profit = make_lcd_block("Total Profit:")
+
+        lcd_layout.addLayout(cost_block)
+        lcd_layout.addLayout(selling_block)
+        lcd_layout.addLayout(profit_block)
+
+        bottom_container.addWidget(lcd_widget, stretch=0)
+        wholesale_layout.addLayout(bottom_container, stretch=1)
+
+        # Add wholesale tab
         self.stock_tabs.addTab(self.tab_wholesale, "WHOLESALE")
 
         self.page_sales = QtWidgets.QLabel(

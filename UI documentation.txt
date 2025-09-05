@@ -12,15 +12,16 @@ UI DOCUMENTATION
 3. filter records by phone or Ghana card (auto filter as you type in the filter input)
 4. double-click any column to edit it from the table
 
-       ======Stock UI======
+       ======Stock(Retail / Wholesale) UI======
 1. fill forms to save to stock (all fields are compulsory)
 2. click any row to fill back all datasets into thier respective inputs for quick delete & update 
 3. mistakenly click on wrong row, use "CLEAR" button to clear all inputs
 4. filter records by "item name" (auto filter as you type in the filter input)
 5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
 6. on stock table, the progressBar value in the quantity column should be same as item quantity
-7. 3 LCD to display overall sumo f cost price, selling price & profit of the stock
-
+7. 3 LCD to display overall sum of cost price, selling price & profit of the stock
+8. "Category" field added to the Wholesale to differentiate between items on sales and report UI
+   
        ======Account UI======
 
 
