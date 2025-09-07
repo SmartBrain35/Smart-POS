@@ -3,7 +3,8 @@ UI DOCUMENTATION
        ======Account UI======
 1. fill forms to register new account. Use (name/ phone/ email) and (password) to login
 2. on the table, click delete icon to delete a row
-3. double click on a particular dataset to edit
+3. click edit icon to fill back datasets to thier respective inputs for quick update. 
+Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs fields 
 4. name, phone, email, password & role are compulsory
 
        ======Employee UI======
@@ -22,7 +23,9 @@ UI DOCUMENTATION
 7. 3 LCD to display overall sum of cost price, selling price & profit of the stock
 8. "Category" field added to the Wholesale to differentiate between items on sales and report UI
    
-       ======Account UI======
-
+       ======login UI======
+1. login with email / phone and password
+2. login as "admin" enable all features otherwise, open only "Sales UI & dashboard"
+3. note: only admin can "add, delete & update stock"
 
        ======Account UI======

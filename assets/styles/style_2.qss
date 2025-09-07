@@ -1,5 +1,5 @@
 
-/* === Retail Tab Styles === */
+/* ================== Retail Tab  ================ */
 
 /* Inputs */
 #inputRetailId, #inputRetailName, #inputRetailQty,
@@ -66,9 +66,7 @@ QHeaderView::section {
 }
 
 
-
-/* === WHOLESALE PAGE STYLES === */
-
+/*========================WHOLESALE UI===============*/
 /* Labels */
 #labelWholesaleId,
 #labelWholesaleName,
@@ -139,4 +137,60 @@ QHeaderView::section {
     border-radius: 6px;
     padding: 2px;
     min-height: 30px;
+}
+
+
+/*========================Account UI===============*/
+/* Inputs */
+QLineEdit#inputAccountName,
+QLineEdit#inputAccountPhone,
+QLineEdit#inputAccountEmail,
+QLineEdit#inputAccountPassword,
+QComboBox#inputAccountRole {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* Buttons */
+QPushButton#btnAccountRegister,
+QPushButton#btnAccountEdit,
+QPushButton#btnAccountClear {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+QPushButton#btnAccountRegister:hover,
+QPushButton#btnAccountEdit:hover,
+QPushButton#btnAccountClear:hover {
+    background-color: #005a9e;
+}
+
+/* Table */
+QTableWidget#tableUsers {
+    border: 1px solid #ccc;
+    gridline-color: #ddd;
+    selection-background-color: #1976d2;
+    alternate-background-color: #f9f9f9;
+}
+
+#tableBtnEdit, #tableBtnDelete {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#tableBtnEdit:hover {
+    background: #e0f7ff;
+    border-radius: 6px;
+}
+#tableBtnDelete:hover {
+    background: #ffe0e0;
+    border-radius: 6px;
 }

@@ -386,7 +386,7 @@ class Ui_AdminDashboard(object):
             form_container, stretch=0, alignment=QtCore.Qt.AlignTop
         )
         self.retail_layout.addWidget(content_container, stretch=1)
-        
+
         # === Wholesale Tab Ui ===
         self.tab_wholesale = QtWidgets.QWidget()
         wholesale_layout = QtWidgets.QVBoxLayout(self.tab_wholesale)
@@ -554,7 +554,9 @@ class Ui_AdminDashboard(object):
         self.ws_table_stock.verticalHeader().setDefaultSectionSize(30)
         self.ws_table_stock.horizontalHeader().setStretchLastSection(False)
 
-        self.ws_table_stock.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.ws_table_stock.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.Stretch
+        )
         bottom_container.addWidget(self.ws_table_stock, stretch=10)
 
         # LCD row
@@ -581,9 +583,15 @@ class Ui_AdminDashboard(object):
             container.addWidget(lcd)
             return container, lcd
 
-        cost_block, self.ws_lcd_total_cost = make_lcd_block("Total Cost Value:", "lcdWholesaleCost")
-        selling_block, self.ws_lcd_total_selling = make_lcd_block("Total Selling Value:", "lcdWholesaleSelling")
-        profit_block, self.ws_lcd_total_profit = make_lcd_block("Total Profit:", "lcdWholesaleProfit")
+        cost_block, self.ws_lcd_total_cost = make_lcd_block(
+            "Total Cost Value:", "lcdWholesaleCost"
+        )
+        selling_block, self.ws_lcd_total_selling = make_lcd_block(
+            "Total Selling Value:", "lcdWholesaleSelling"
+        )
+        profit_block, self.ws_lcd_total_profit = make_lcd_block(
+            "Total Profit:", "lcdWholesaleProfit"
+        )
 
         lcd_layout.addLayout(cost_block)
         lcd_layout.addLayout(selling_block)
@@ -594,7 +602,6 @@ class Ui_AdminDashboard(object):
 
         # Add wholesale tab
         self.stock_tabs.addTab(self.tab_wholesale, "WHOLESALE")
-
 
         self.page_sales = QtWidgets.QLabel(
             "🛒 Sales Page", alignment=QtCore.Qt.AlignCenter
@@ -806,77 +813,87 @@ class Ui_AdminDashboard(object):
         self.page_account = QtWidgets.QWidget()
         account_layout = QtWidgets.QVBoxLayout(self.page_account)
         account_layout.setContentsMargins(20, 20, 20, 20)
-        account_layout.setSpacing(20)
+        account_layout.setSpacing(15)
 
-        # === Form Section (Grid Layout, labels on top with tight spacing) ===
+        # === Form Section (Grid Layout, labels on top, tighter spacing) ===
         form_container = QtWidgets.QWidget()
-        form_container.setFixedWidth(850)  # wider form
+        form_container.setFixedWidth(850)
         form_layout = QtWidgets.QGridLayout(form_container)
         form_layout.setContentsMargins(20, 20, 20, 20)
-        form_layout.setHorizontalSpacing(35)  # space between columns
-        form_layout.setVerticalSpacing(25)  # space between field groups
+        form_layout.setHorizontalSpacing(25)
+        form_layout.setVerticalSpacing(6)  # tighter rows
 
-        # Common label styling
         label_style = "color: black; font-weight: bold;"
 
         def create_field(label_text, widget):
-            """Helper: stack label + widget vertically with small spacing"""
             wrapper = QtWidgets.QWidget()
             vbox = QtWidgets.QVBoxLayout(wrapper)
             vbox.setContentsMargins(0, 0, 0, 0)
-            vbox.setSpacing(4)  # << reduce gap label-input here
+            vbox.setSpacing(2)
             lbl = QtWidgets.QLabel(label_text)
             lbl.setStyleSheet(label_style)
             vbox.addWidget(lbl)
             vbox.addWidget(widget)
             return wrapper
 
-        # Name
+        # Inputs
         self.input_name = QtWidgets.QLineEdit()
+        self.input_name.setObjectName("inputAccountName")
         self.input_name.setPlaceholderText("Enter name")
-        self.input_name.setMinimumWidth(int(form_container.width() * 0.4))
+        self.input_name.setFixedHeight(35)
         form_layout.addWidget(create_field("Name:", self.input_name), 0, 0, 1, 2)
 
-        # Phone
         self.input_phone = QtWidgets.QLineEdit()
+        self.input_phone.setObjectName("inputAccountPhone")
         self.input_phone.setPlaceholderText("Enter phone number")
-        self.input_phone.setMinimumWidth(int(form_container.width() * 0.4))
+        self.input_phone.setFixedHeight(35)
         form_layout.addWidget(create_field("Phone:", self.input_phone), 0, 2, 1, 2)
 
-        # Town
-        self.input_town = QtWidgets.QLineEdit()
-        self.input_town.setPlaceholderText("Enter town")
-        self.input_town.setMinimumWidth(int(form_container.width() * 0.4))
-        form_layout.addWidget(create_field("Town:", self.input_town), 1, 0, 1, 2)
-
-        # Email
         self.input_email = QtWidgets.QLineEdit()
+        self.input_email.setObjectName("inputAccountEmail")
         self.input_email.setPlaceholderText("Enter email")
-        self.input_email.setMinimumWidth(int(form_container.width() * 0.4))
-        form_layout.addWidget(create_field("Email:", self.input_email), 1, 2, 1, 2)
+        self.input_email.setFixedHeight(35)
+        form_layout.addWidget(create_field("Email:", self.input_email), 1, 0, 1, 2)
 
-        # Password
         self.input_password = QtWidgets.QLineEdit()
+        self.input_password.setObjectName("inputAccountPassword")
         self.input_password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.input_password.setPlaceholderText("Enter password")
-        self.input_password.setMinimumWidth(int(form_container.width() * 0.4))
+        self.input_password.setFixedHeight(35)
         form_layout.addWidget(
-            create_field("Password:", self.input_password), 2, 0, 1, 2
+            create_field("Password:", self.input_password), 1, 2, 1, 2
         )
 
-        # Role
         self.input_role = QtWidgets.QComboBox()
+        self.input_role.setObjectName("inputAccountRole")
         self.input_role.addItems(["Admin", "Manager", "Cashier", "Sales Person"])
-        self.input_role.setMinimumWidth(int(form_container.width() * 0.4))
-        form_layout.addWidget(create_field("Role:", self.input_role), 2, 2, 1, 2)
+        self.input_role.setFixedHeight(35)
+        form_layout.addWidget(create_field("Role:", self.input_role), 2, 0, 1, 2)
 
-        # Register Button (centered, extended)
-        self.btn_register = QtWidgets.QPushButton("Register User")
-        self.btn_register.setObjectName("primaryButton")
-        self.btn_register.setFixedWidth(int(form_container.width() * 0.5))
-        form_layout.addWidget(
-            self.btn_register, 3, 0, 1, 4, alignment=QtCore.Qt.AlignCenter
-        )
+        # Buttons - reduced width
+        self.btn_register = QtWidgets.QPushButton("ADD")
+        self.btn_register.setObjectName("btnAccountRegister")
+        self.btn_register.setFixedWidth(120)
+
+        self.btn_edit = QtWidgets.QPushButton("EDIT")
+        self.btn_edit.setObjectName("btnAccountEdit")
+        self.btn_edit.setFixedWidth(120)
+
+        self.btn_clear = QtWidgets.QPushButton("CLEAR")
+        self.btn_clear.setObjectName("btnAccountClear")
+        self.btn_clear.setFixedWidth(120)
+
+        btn_widget = QtWidgets.QWidget()
+        btn_layout = QtWidgets.QHBoxLayout(btn_widget)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(15)  # small space between buttons
+        btn_layout.addWidget(self.btn_register)
+        btn_layout.addWidget(self.btn_edit)
+        btn_layout.addWidget(self.btn_clear)
+
+        # Place buttons beside Role field (same row, columns 2-3)
+        form_layout.addWidget(btn_widget, 2, 2, 1, 2)
+
         # Center the form
         form_wrapper = QtWidgets.QHBoxLayout()
         form_wrapper.addStretch()
@@ -886,9 +903,10 @@ class Ui_AdminDashboard(object):
 
         # === Table Section ===
         self.table_users = QtWidgets.QTableWidget()
-        self.table_users.setColumnCount(7)  # Removed Ghana Card column
+        self.table_users.setObjectName("tableUsers")
+        self.table_users.setColumnCount(6)  # Removed Status column
         self.table_users.setHorizontalHeaderLabels(
-            ["ID", "Name", "Phone", "Email", "Role", "Status", "Actions"]
+            ["ID", "Name", "Phone", "Email", "Role", "Actions"]
         )
         self.table_users.horizontalHeader().setStretchLastSection(True)
         self.table_users.horizontalHeader().setSectionResizeMode(
@@ -900,48 +918,50 @@ class Ui_AdminDashboard(object):
         self.table_users.setAlternatingRowColors(True)
         self.table_users.verticalHeader().setVisible(False)
 
-        # Sample data (without Ghana Card)
+        # Sample data (6 cols now, no "Status")
         users_data = [
-            (1, "Admin User", "0244000001", "admin@pos.com", "Admin", "Active"),
-            (2, "Cashier One", "0244000002", "cashier@pos.com", "Cashier", "Active"),
-            (3, "Manager One", "0244000003", "manager@pos.com", "Manager", "Inactive"),
+            (1, "Admin User", "0244000001", "admin@pos.com", "Admin"),
+            (2, "Cashier One", "0244000002", "cashier@pos.com", "Cashier"),
+            (3, "Manager One", "0244000003", "manager@pos.com", "Manager"),
         ]
 
         self.table_users.setRowCount(len(users_data))
 
-        for row, (uid, name, phone, email, role, status) in enumerate(users_data):
+        for row, (uid, name, phone, email, role) in enumerate(users_data):
             self.table_users.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
             self.table_users.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
             self.table_users.setItem(row, 2, QtWidgets.QTableWidgetItem(phone))
             self.table_users.setItem(row, 3, QtWidgets.QTableWidgetItem(email))
             self.table_users.setItem(row, 4, QtWidgets.QTableWidgetItem(role))
-            self.table_users.setItem(row, 5, QtWidgets.QTableWidgetItem(status))
 
-            # Actions cell (Edit + Delete together in one cell)
+            # --- Action cell with icons ---
             action_widget = QtWidgets.QWidget()
             action_layout = QtWidgets.QHBoxLayout(action_widget)
             action_layout.setContentsMargins(0, 0, 0, 0)
-            action_layout.setSpacing(45)
+            action_layout.setSpacing(15)
 
             btn_edit = QtWidgets.QPushButton()
-            btn_edit.setObjectName("iconButton")
+            btn_edit.setObjectName("tableBtnEdit")
             btn_edit.setIcon(QtGui.QIcon("assets/icons/edit.png"))
-            btn_edit.setToolTip("Edit User")
             btn_edit.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            btn_edit.setToolTip("Edit User")
+            btn_edit.setFixedSize(30, 30)
 
             btn_delete = QtWidgets.QPushButton()
-            btn_delete.setObjectName("iconButton")
+            btn_delete.setObjectName("tableBtnDelete")
             btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            btn_delete.setToolTip("Delete User")
             btn_delete.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            btn_delete.setToolTip("Delete User")
+            btn_delete.setFixedSize(30, 30)
 
+            action_layout.addStretch()
             action_layout.addWidget(btn_edit)
             action_layout.addWidget(btn_delete)
             action_layout.addStretch()
 
-            self.table_users.setCellWidget(row, 6, action_widget)
+            self.table_users.setCellWidget(row, 5, action_widget)
 
-        account_layout.addWidget(self.table_users)
+        account_layout.addWidget(self.table_users, stretch=1)
 
         self.page_settings = QtWidgets.QLabel(
             "🔧 Settings Page", alignment=QtCore.Qt.AlignCenter
