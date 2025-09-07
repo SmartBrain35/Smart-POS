@@ -93,36 +93,9 @@ QPushButton#primaryButton:hover {
     background-color: #0ea5e9;   /* slightly darker hover */
 }
 
-/* ===== Keep Register Button Original ===== */
-QPushButton#registerButton {
-    background-color: #00c2ff;  /* unchanged */
-    color: black;
-    font-weight: bold;
-    padding: 8px 15px;
-    border-radius: 6px;
-}
-QPushButton#registerButton:hover {
-    background-color: #0099cc;  /* unchanged */
-}
 
-/* ====== ComboBox for Role ====== */
-QComboBox {
-    background-color: #1e293b;      /* dark background */
-    color: #ffffff;                 /* white text */
-    padding: 6px 10px;
-    border: 1px solid #334155;
-    border-radius: 6px;
-}
-QComboBox::drop-down {
-    border: none;
-    width: 20px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1e293b;
-    color: #ffffff;
-    selection-background-color: #3b82f6;  /* blue highlight */
-    selection-color: #ffffff;
-}
+
+
 
 /* ====== Account Page Table ====== */
 QTableWidget {
@@ -142,33 +115,6 @@ QTableWidget::item:selected {
     color: #000000;
 }
 
-/* ====== Table Buttons ====== */
-QPushButton#iconButton {
-    background: transparent;
-    border: none;
-    padding: 4px;
-    border-radius: 6px;
-}
-QPushButton#iconButton:hover {
-    background-color: rgba(59, 130, 246, 0.1); /* soft blue */
-}
-
-/* Calendar / DateEdit */
-QDateEdit {
-    background-color: #1e293b;
-    border: 2px solid #a2b2c7;
-    border-radius: 6px;
-    padding: 4px 8px;
-    color: white;
-}
-QDateEdit:disabled {
-    background-color: #e5e7eb;
-    color: #9ca3af;
-    border: 2px solid #d1d5db;
-}
-QDateEdit:focus {
-    border: 2px solid #0b181dff;
-}
 
 QTabBar::tab {
     min-width: 150px;
@@ -185,37 +131,4 @@ QTabBar::tab:selected {
 }
 QTabWidget::pane {
     border: none;
-}
-
-QLCDNumber {
-    color: white;                /* White digits */
-    background-color: #1e293b;    /* Dark slate background */
-    border: 2px solid #38bdf8;    /*  border */
-    border-radius: 8px;
-    padding: 6px;
-    font-weight: bold;            /* Bold digits */
-    font-size: 20px;              /* Larger font */
-}
-
-/* Form labels */
-QLabel#formLabel {
-    color: black;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-/* LCD labels */
-QLabel#lcdLabel {
-    color: black;
-    font-weight: bold;
-    font-size: 15px;
-}
-
-/* Action Buttons (Add/Edit/Delete/Clear) */
-QPushButton#actionButton {
-    min-width: 100px;
-    padding: 8px 15px;
-    font-weight: bold;
-    text-align: center;
-    color: black;
 }

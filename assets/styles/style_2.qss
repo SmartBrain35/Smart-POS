@@ -1,0 +1,142 @@
+
+/* === Retail Tab Styles === */
+
+/* Inputs */
+#inputRetailId, #inputRetailName, #inputRetailQty,
+#inputRetailCost, #inputRetailSelling,
+#inputRetailCategory, #dateRetailExpiry,
+#inputRetailFilter {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* CheckBox */
+#checkRetailExpiry {
+    margin-right: 6px;
+}
+
+/* Buttons (uniform width) */
+#btnRetailAdd, #btnRetailEdit, #btnRetailDelete,
+#btnRetailClear, #btnRetailFilter {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnRetailAdd:hover, #btnRetailEdit:hover,
+#btnRetailDelete:hover, #btnRetailClear:hover,
+#btnRetailFilter:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableStock {
+    border: 1px solid #1e2a38;
+    gridline-color: #333;
+    background: white;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 13px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* LCDs */
+#lcdRetailTotalCost, #lcdRetailTotalSelling, #lcdRetailTotalProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+    min-height: 30px;
+}
+
+
+
+/* === WHOLESALE PAGE STYLES === */
+
+/* Labels */
+#labelWholesaleId,
+#labelWholesaleName,
+#labelWholesaleQty,
+#labelWholesaleCost,
+#labelWholesaleSelling,
+#labelWholesaleExpiry,
+#labelWholesaleCategory,
+#lcdWholesaleCostLabel,
+#lcdWholesaleSellingLabel,
+#lcdWholesaleProfitLabel {
+    font-weight: bold;
+    color: black;
+}
+
+/* Inputs */
+#inputWholesaleId,
+#inputWholesaleName,
+#inputWholesaleQty,
+#inputWholesaleCost,
+#inputWholesaleSelling,
+#inputWholesaleCategory,
+#inputWholesaleFilter,
+#dateWholesaleExpiry{
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* Buttons */
+#btnWholesaleAdd,
+#btnWholesaleEdit,
+#btnWholesaleDelete,
+#btnWholesaleClear {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnWholesaleAdd:hover,
+#btnWholesaleEdit:hover,
+#btnWholesaleDelete:hover,
+#btnWholesaleClear:hover {
+    background-color: #125a9c;
+}
+
+/* Table */
+#WholesaleTable {
+    border: 1px solid #ccc;
+    gridline-color: #ddd;
+    selection-background-color: #1976d2;
+    alternate-background-color: #f9f9f9;
+}
+
+/* LCDs */
+#lcdWholesaleCost,
+#lcdWholesaleSelling,
+#lcdWholesaleProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+    min-height: 30px;
+}
