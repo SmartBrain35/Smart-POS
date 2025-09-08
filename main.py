@@ -1,11 +1,13 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os, sys
 
 from backend.storage.database import init_db
 from PySide6.QtWidgets import QApplication
-from controllers.login import LoginController   # or your entry controller
+from controllers.login import LoginController  # or your entry controller
+
 
 def main():
     init_db()
@@ -25,4 +27,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

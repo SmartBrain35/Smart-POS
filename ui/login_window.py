@@ -1,11 +1,19 @@
 # ui/login.py
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QGraphicsDropShadowEffect, QFrame
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QHBoxLayout,
+    QGraphicsDropShadowEffect,
+    QFrame,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QGuiApplication
 import os
 import sys
+
 
 class LoginWindow(QWidget):
     def __init__(self):
@@ -33,12 +41,6 @@ class LoginWindow(QWidget):
         shadow.setColor(QColor(0, 0, 0, 120))  # softer shadow
         self.container.setGraphicsEffect(shadow)
 
-        # Load stylesheet
-        style_path = os.path.join(os.path.dirname(__file__), "../assets/styles/style.qss")
-        if os.path.exists(style_path):
-            with open(style_path, "r") as f:
-                self.container.setStyleSheet(f.read())
-
         # Inner layout
         layout = QVBoxLayout(self.container)
         layout.setAlignment(Qt.AlignCenter)
@@ -52,12 +54,14 @@ class LoginWindow(QWidget):
         # Username input
         self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Username")
+        self.username_input.setObjectName("LoginUsernameInput")
         layout.addWidget(self.username_input)
 
         # Password input
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
         self.password_input.setPlaceholderText("Password")
+        self.password_input.setObjectName("LoginPasswordInput")
         layout.addWidget(self.password_input)
 
         # Error label
@@ -69,10 +73,11 @@ class LoginWindow(QWidget):
         # Buttons
         btn_layout = QHBoxLayout()
         self.login_button = QPushButton("Login")
-        self.login_button.setObjectName("primaryButton")
+        self.login_button.setObjectName("BtnLogin")
         btn_layout.addWidget(self.login_button)
 
         self.exit_button = QPushButton("Exit")
+        self.exit_button.setObjectName("BtnExit")
         self.exit_button.clicked.connect(sys.exit)
         btn_layout.addWidget(self.exit_button)
 

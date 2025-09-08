@@ -64,6 +64,7 @@ class Ui_AdminDashboard(object):
                     text-align: left;
                     border: none;
                     font-size: 15px;
+                    font-weight: bold;
                 }
                 QPushButton:hover {
                     background-color: #00c2ff;

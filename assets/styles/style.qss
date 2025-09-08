@@ -1,4 +1,294 @@
-/* ===== syle.qss ===== */
+
+/* ================== Retail Tab  ================ */
+
+/* Inputs */
+#inputRetailId, #inputRetailName, #inputRetailQty,
+#inputRetailCost, #inputRetailSelling,
+#inputRetailCategory, #dateRetailExpiry,
+#inputRetailFilter {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* CheckBox */
+#checkRetailExpiry {
+    margin-right: 6px;
+}
+
+/* Buttons (uniform width) */
+#btnRetailAdd, #btnRetailEdit, #btnRetailDelete,
+#btnRetailClear, #btnRetailFilter {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnRetailAdd:hover, #btnRetailEdit:hover,
+#btnRetailDelete:hover, #btnRetailClear:hover,
+#btnRetailFilter:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableStock {
+    border: 1px solid #1e2a38;
+    gridline-color: #333;
+    background: white;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 13px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* LCDs */
+#lcdRetailTotalCost, #lcdRetailTotalSelling, #lcdRetailTotalProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/*========================WHOLESALE UI===============*/
+/* Labels */
+#labelWholesaleId,
+#labelWholesaleName,
+#labelWholesaleQty,
+#labelWholesaleCost,
+#labelWholesaleSelling,
+#labelWholesaleExpiry,
+#labelWholesaleCategory,
+#lcdWholesaleCostLabel,
+#lcdWholesaleSellingLabel,
+#lcdWholesaleProfitLabel {
+    font-weight: bold;
+    color: black;
+}
+
+/* Inputs */
+#inputWholesaleId,
+#inputWholesaleName,
+#inputWholesaleQty,
+#inputWholesaleCost,
+#inputWholesaleSelling,
+#inputWholesaleCategory,
+#inputWholesaleFilter,
+#dateWholesaleExpiry{
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* Buttons */
+#btnWholesaleAdd,
+#btnWholesaleEdit,
+#btnWholesaleDelete,
+#btnWholesaleClear, #btnWholesaleFilter {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnWholesaleAdd:hover,
+#btnWholesaleEdit:hover,
+#btnWholesaleDelete:hover,
+#btnWholesaleClear:hover {
+    background-color: #125a9c;
+}
+
+/* Table */
+#WholesaleTable {
+    border: 1px solid #ccc;
+    gridline-color: #ddd;
+    selection-background-color: #1976d2;
+    alternate-background-color: #f9f9f9;
+}
+
+/* LCDs */
+#lcdWholesaleTotalCost,
+#lcdWholesaleTotalSelling,
+#lcdWholesaleTotalProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+    min-height: 50px;
+}
+
+
+/*========================Account UI===============*/
+/* Inputs */
+QLineEdit#inputAccountName,
+QLineEdit#inputAccountPhone,
+QLineEdit#inputAccountEmail,
+QLineEdit#inputAccountPassword,
+QComboBox#inputAccountRole {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+}
+
+/* Buttons */
+QPushButton#btnAccountRegister,
+QPushButton#btnAccountEdit,
+QPushButton#btnAccountClear {
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+QPushButton#btnAccountRegister:hover,
+QPushButton#btnAccountEdit:hover,
+QPushButton#btnAccountClear:hover {
+    background-color: #005a9e;
+}
+
+/* Table */
+QTableWidget#tableUsers {
+    border: 1px solid #ccc;
+    gridline-color: #ddd;
+    selection-background-color: #1976d2;
+    alternate-background-color: #f9f9f9;
+}
+
+#tableBtnEdit, #tableBtnDelete {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#tableBtnEdit:hover {
+    background: #e0f7ff;
+    border-radius: 6px;
+}
+#tableBtnDelete:hover {
+    background: #913131ff;
+    border-radius: 6px;
+}
+
+/*=======================Employee UI================*/
+
+/* === Input Fields === */
+#empNameInput, 
+#empPhoneInput,
+#empCardInput,
+#empAddressInput,
+#empDesignationInput,
+#empSalaryInput,
+#filterInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-size: 15px;
+}
+
+
+/* === Buttons (shared look) === */
+#btnAddEmployee,
+#btnClearEmployee,
+#btnFilter,
+QPushButton[id^="btnDelete_"] {
+    border-radius: 6px;
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+
+/* Space between Add & Clear buttons */
+#btnAddEmployee {
+    margin-right: 15px;
+}
+
+#btnAddEmployee:hover,
+#btnClearEmployee:hover,
+#btnFilter:hover,
+QPushButton[id^="btnDelete_"]:hover {
+    background-color: #005a9e;
+}
+
+#btnClearEmployee {
+    background-color: #00aaff;
+}
+#btnClearEmployee:hover {
+    background-color: #5a6268;
+}
+
+QPushButton[id^="btnDelete_"] {
+    background-color: #00aaff;
+    min-width: 70px;
+    qproperty-iconSize: 20px 20px;  
+}
+
+/* Center the delete icon in its cell */
+QPushButton[id^="btnDelete_"] {
+    qproperty-iconSize: 20px 20px;
+    padding: 0;
+    margin: 0 auto;   /* centers inside the cell */
+}
+QPushButton[id^="btnDelete_"]:hover {
+    background-color: #b52a37;
+}
+
+
+/* === Table Styling === */
+#tableEmployees {
+    gridline-color: #ddd;
+    font-size: 13px;
+    alternate-background-color: #f9f9f9;
+    background-color: #ffffff;
+    selection-background-color: #0078d7;
+    selection-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+#tableEmployees::item {
+    padding: 6px;
+}
+#tableEmployees QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+
+/* ===== Login UI===== */
 QWidget {
     font-family: "Segoe UI", sans-serif;
     color: #e2e8f0;
@@ -20,7 +310,7 @@ QLabel#titleLabel {
 }
 
 /* Line Edits */
-QLineEdit {
+QLineEdit#LoginUsernameInput, QLineEdit#LoginPasswordInput{
     background-color: #0f172a;
     border: 2px solid #334155;
     border-radius: 12px;
@@ -29,13 +319,13 @@ QLineEdit {
     color: #f8fafc;
 }
 
-QLineEdit:focus {
+QLineEdit#LoginUsernameInput:focus,  QLineEdit#LoginPasswordInput:focus{
     border: 2px solid #38bdf8; /* cyan glow on focus */
-    background-color: #1e293b;
+    background-color: #0f172a;
 }
 
-/* Buttons (Login + Exit look the same) */
-QPushButton {
+/* Buttons (Login & Exit)*/
+QPushButton#BtnLogin, QPushButton#BtnExit{
     background: qlineargradient(
         spread:pad, x1:0, y1:0, x2:1, y2:0,
         stop:0 #38bdf8, stop:1 #0ea5e9
@@ -48,14 +338,15 @@ QPushButton {
     color: white;
 }
 
-QPushButton:hover {
+QPushButton#BtnLogin:hover, QPushButton#BtnExit:hover{
     background: qlineargradient(
         spread:pad, x1:0, y1:0, x2:1, y2:0,
-        stop:0 #0ea5e9, stop:1 #38bdf8
+        stop:0 #0c7eb3ff, stop:1 #1ca8e4ff
     );
+    border: 2px solid #38bdf8;
 }
 
-QPushButton:pressed {
+QPushButton#BtnLogin:pressed, QPushButton#BtnExit:pressed {
     background-color: #0c4a6e;
 }
 
@@ -67,68 +358,3 @@ QPushButton:pressed {
 }
 
 
-/* ===== Input Fields ===== */
-QLineEdit {
-    background-color: #1e293b;   /* slightly brighter than dashboard bg */
-    border: 2px solid #64748b;   /* neutral gray border */
-    border-radius: 10px;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: #f1f5f9;              /* light text */
-}
-QLineEdit:focus {
-    border: 2px solid #38bdf8;   /* cyan accent */
-    background-color: #0f172a;   /* deep navy focus bg */
-}
-
-/* ===== Buttons (Global Style - except Register) ===== */
-QPushButton#primaryButton {
-    background-color: #38bdf8;   /* cyan accent */
-    color: #0f172a;
-    font-weight: bold;
-    padding: 8px 15px;
-    border-radius: 8px;
-}
-QPushButton#primaryButton:hover {
-    background-color: #0ea5e9;   /* slightly darker hover */
-}
-
-
-
-
-
-/* ====== Account Page Table ====== */
-QTableWidget {
-    background-color: #ffffff;      /* white table */
-    color: #000000;                 /* black text */
-    gridline-color: #cbd5e1;
-    border-radius: 8px;
-}
-QHeaderView::section {
-    background-color: #1e293b;      /* dark header */
-    color: #ffffff;
-    padding: 6px;
-    border: none;
-}
-QTableWidget::item:selected {
-    background-color: #bfdbfe;      /* light blue selected row */
-    color: #000000;
-}
-
-
-QTabBar::tab {
-    min-width: 150px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #0f172a;
-    padding: 6px 12px;
-    margin: 4px;
-    border-radius: 8px;
-}
-QTabBar::tab:selected {
-    background-color: #00c2ff;
-    color: black;
-}
-QTabWidget::pane {
-    border: none;
-}
