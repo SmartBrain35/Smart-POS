@@ -62,9 +62,7 @@ QHeaderView::section {
     border: 2px solid #00ccff;
     border-radius: 6px;
     padding: 2px;
-    min-height: 30px;
 }
-
 
 /*========================WHOLESALE UI===============*/
 /* Labels */
@@ -102,7 +100,7 @@ QHeaderView::section {
 #btnWholesaleAdd,
 #btnWholesaleEdit,
 #btnWholesaleDelete,
-#btnWholesaleClear {
+#btnWholesaleClear, #btnWholesaleFilter {
     min-width: 130px;
     min-height: 25px;
     font-weight: bold;
@@ -128,15 +126,15 @@ QHeaderView::section {
 }
 
 /* LCDs */
-#lcdWholesaleCost,
-#lcdWholesaleSelling,
-#lcdWholesaleProfit {
+#lcdWholesaleTotalCost,
+#lcdWholesaleTotalSelling,
+#lcdWholesaleTotalProfit {
     background: #1d2530;
     color: #00ccff;
     border: 2px solid #00ccff;
     border-radius: 6px;
     padding: 2px;
-    min-height: 30px;
+    min-height: 50px;
 }
 
 
@@ -191,6 +189,102 @@ QTableWidget#tableUsers {
     border-radius: 6px;
 }
 #tableBtnDelete:hover {
-    background: #ffe0e0;
+    background: #913131ff;
     border-radius: 6px;
+}
+
+/*=======================Employee UI================*/
+
+/*=======================Employee UI================*/
+
+/* === Input Fields === */
+#empNameInput, 
+#empPhoneInput,
+#empCardInput,
+#empAddressInput,
+#empDesignationInput,
+#empSalaryInput,
+#filterInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-size: 15px;
+}
+
+
+/* === Buttons (shared look) === */
+#btnAddEmployee,
+#btnClearEmployee,
+#btnFilter,
+QPushButton[id^="btnDelete_"] {
+    border-radius: 6px;
+    min-width: 130px;
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+
+/* Space between Add & Clear buttons */
+#btnAddEmployee {
+    margin-right: 15px;
+}
+
+#btnAddEmployee:hover,
+#btnClearEmployee:hover,
+#btnFilter:hover,
+QPushButton[id^="btnDelete_"]:hover {
+    background-color: #005a9e;
+}
+
+#btnClearEmployee {
+    background-color: #00aaff;
+}
+#btnClearEmployee:hover {
+    background-color: #5a6268;
+}
+
+QPushButton[id^="btnDelete_"] {
+    background-color: #00aaff;
+    min-width: 70px;
+    qproperty-iconSize: 20px 20px;   /* ensures consistent icon sizing */
+}
+
+/* Center the delete icon in its cell */
+QPushButton[id^="btnDelete_"] {
+    qproperty-iconSize: 20px 20px;
+    padding: 0;
+    margin: 0 auto;   /* centers inside the cell */
+}
+QPushButton[id^="btnDelete_"]:hover {
+    background-color: #b52a37;
+}
+
+
+/* === Table Styling === */
+#tableEmployees {
+    gridline-color: #ddd;
+    font-size: 13px;
+    alternate-background-color: #f9f9f9;
+    background-color: #ffffff;
+    selection-background-color: #0078d7;
+    selection-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+#tableEmployees::item {
+    padding: 6px;
+}
+#tableEmployees QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
 }
