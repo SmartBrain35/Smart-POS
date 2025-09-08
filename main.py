@@ -1,14 +1,19 @@
-from PySide6.QtWidgets import QApplication
-from controllers.login import LoginController
+from dotenv import load_dotenv
+load_dotenv()
+
 import os, sys
 
+from backend.storage.database import init_db
+from PySide6.QtWidgets import QApplication
+from controllers.login import LoginController   # or your entry controller
 
 def main():
+    init_db()
 
     app = QApplication(sys.argv)
 
     # Load QSS globally so ALL windows (dashboard, account page, etc.) use it
-    qss_path = os.path.join(os.path.dirname(__file__), "assets/styles/style_2.qss")
+    qss_path = os.path.join(os.path.dirname(__file__), "assets/styles/style.qss")
     if os.path.exists(qss_path):
         with open(qss_path, "r", encoding="utf-8") as f:
             app.setStyleSheet(f.read())
@@ -20,3 +25,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
