@@ -18,6 +18,31 @@
     margin-right: 6px;
 }
 
+
+/* DateEdit calendar popup styling */
+#dateRetailExpiry QCalendarWidget {
+    background: black; /* Black background for calendar */
+    color: white; /* White font for visibility */
+}
+#dateRetailExpiry QCalendarWidget QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+}
+#dateRetailExpiry QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background: #1e2a38;
+}
+#dateRetailExpiry QCalendarWidget QToolButton {
+    color: white;
+    background: #1e2a38;
+}
+#dateRetailExpiry QCalendarWidget QMenu {
+    background: black;
+    color: white;
+}
+
+
 /* Buttons (uniform width) */
 #btnRetailAdd, #btnRetailEdit, #btnRetailDelete,
 #btnRetailClear, #btnRetailFilter {
@@ -39,12 +64,13 @@
 /* Table */
 #tableStock {
     border: 1px solid #1e2a38;
-    gridline-color: #333;
+    gridline-color: #000000ff;
     background: white;
     alternate-background-color: #f6f6f6;
+    color: black;
     selection-background-color: #00aaff;
     selection-color: white;
-    font-size: 13px;
+    font-size: 14px;
 }
 /* Fix header styling */
 QHeaderView::section {
@@ -96,6 +122,30 @@ QHeaderView::section {
     color: white;
 }
 
+/* DateEdit calendar popup styling */
+#dateWholesaleExpiry QCalendarWidget {
+    background: black; /* Black background for calendar */
+    color: white; /* White font for visibility */
+}
+#dateWholesaleExpiry QCalendarWidget QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+}
+#dateWholesaleExpiry QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background: #1e2a38;
+}
+#dateWholesaleExpiry QCalendarWidget QToolButton {
+    color: white;
+    background: #1e2a38;
+}
+#dateWholesaleExpiry QCalendarWidget QMenu {
+    background: black;
+    color: white;
+}
+
+
 /* Buttons */
 #btnWholesaleAdd,
 #btnWholesaleEdit,
@@ -119,10 +169,12 @@ QHeaderView::section {
 
 /* Table */
 #WholesaleTable {
-    border: 1px solid #ccc;
-    gridline-color: #ddd;
+    border: 1px solid #110b0bff;
+    gridline-color: #000000ff;;
     selection-background-color: #1976d2;
     alternate-background-color: #f9f9f9;
+    color: black;
+    font: 14px;
 }
 
 /* LCDs */
@@ -173,10 +225,12 @@ QPushButton#btnAccountClear:hover {
 
 /* Table */
 QTableWidget#tableUsers {
-    border: 1px solid #ccc;
-    gridline-color: #ddd;
+    border: 1px solid #0a0404ff;
+    gridline-color: #000000ff;;
     selection-background-color: #1976d2;
     alternate-background-color: #f9f9f9;
+    color: black;
+    font-size: 14px;
 }
 
 #tableBtnEdit, #tableBtnDelete {
@@ -266,14 +320,15 @@ QPushButton[id^="btnDelete_"]:hover {
 
 /* === Table Styling === */
 #tableEmployees {
-    gridline-color: #ddd;
-    font-size: 13px;
+    gridline-color: #000000ff;;
+    font-size: 14px;
     alternate-background-color: #f9f9f9;
     background-color: #ffffff;
     selection-background-color: #0078d7;
     selection-color: white;
-    border: 1px solid #ccc;
+    border: 1px solid #0c0606ff;
     border-radius: 6px;
+    color: black;
 }
 
 #tableEmployees::item {
@@ -338,16 +393,15 @@ QPushButton#BtnLogin, QPushButton#BtnExit{
     color: white;
 }
 
-QPushButton#BtnLogin:hover, QPushButton#BtnExit:hover{
+QPushButton#BtnLogin:hover, #BtnExit:hover{
     background: qlineargradient(
         spread:pad, x1:0, y1:0, x2:1, y2:0,
         stop:0 #0c7eb3ff, stop:1 #1ca8e4ff
     );
-    border: 2px solid #38bdf8;
+    border: 2px solid #38bdf8
 }
-
-QPushButton#BtnLogin:pressed, QPushButton#BtnExit:pressed {
-    background-color: #0c4a6e;
+QPushButton#BtnLogin:pressed, #BtnExit:pressed {
+    background: #0c4a6e;
 }
 
 /* Error Label */
@@ -358,3 +412,115 @@ QPushButton#BtnLogin:pressed, QPushButton#BtnExit:pressed {
 }
 
 
+
+/* ================== Sales Page ================ */
+
+/* Inputs */
+#inputSearchItem, #inputQtyInStock, #dateInvoice, #inputStockPrice, #inputCategory,
+#inputQtySold, #inputInvoiceID, #comboPaymentMethod,
+#inputDiscount, #inputAmountPaid, #inputChange {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+/* ComboBox specific styling to match input appearance */
+#comboPaymentMethod QComboBox {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold; 
+}
+
+QComboBox QAbstractItemView{
+    background-color: #1d2530;
+    color: White;
+}
+
+/* DateEdit calendar popup styling */
+#dateInvoice QCalendarWidget {
+    background: black; 
+    color: white;
+}
+#dateInvoice QCalendarWidget QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+}
+#dateInvoice QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background: #1e2a38;
+}
+#dateInvoice QCalendarWidget QToolButton {
+    color: white;
+    background: #1e2a38;
+}
+#dateInvoice QCalendarWidget QMenu {
+    background: black;
+    color: white;
+}
+
+/* CheckBox */
+#checkIncludeDate {
+    margin-right: 6px;
+}
+
+/* Buttons (uniform width and height) */
+#btnAddToCart, #btnSaveSale, #btnPrintSale, #btnCompleteSale, #btnClearSale {
+    min-width: 150px;
+    min-height: 30px; 
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnAddToCart:hover, #btnSaveSale:hover, #btnPrintSale:hover,
+#btnCompleteSale:hover, #btnClearSale:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableItemList, #tableCheckoutCart {
+    border: 1px solid #1e2a38;
+    gridline-color: #000000ff;
+    background: white;
+    color: black;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 14px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* LCDs */
+#lcdGross, #lcdDiscount, #lcdTotal, #lcdItemsSold, #lcdDailySales, #lcdDailyProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* Labels for LCDs and inputs */
+#label_lcdGross, #label_lcdDiscount, #label_lcdTotal,
+#label_lcdItemsSold, #label_lcdDailySales, #label_lcdDailyProfit,
+#labelSearchItem, #labelQtyInStock, #labelStockPrice, #labelCategory,
+#labelQtySold, #labelInvoiceID, #labelPaymentMethod,
+#labelDiscountInput, #labelAmountPaid, #labelChange{
+    color: black;
+    font-weight: bold;
+}
