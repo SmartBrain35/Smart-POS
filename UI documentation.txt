@@ -28,4 +28,27 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 2. login as "admin" enable all features otherwise, open only "Sales UI & dashboard"
 3. note: only admin can "add, delete & update stock"
 
-       ======Account UI======
+       ======Sales UI======
+1. QTableWidget display all the items in stock
+2. Search input filter item from the items displayed in QTableWidget as you type
+3. inputs (quantity in stock, stock price & Category) display a selected item details on the QTableWidget
+4. in a case where system date is wrong, date input help set date for the checkout details
+5. QSpinBox (quantity selling) specify quantity being purchased
+6. Add-to-Cart button add selecteditem on the QTableWidget to the cart table
+7 LCDs: 
+       Gross -> sum up all the prices in the price column on the cart table.
+       Discount -> display the Discount on purchased items (manually enter in the Discount input field).
+       Total -> display calculated result as (gross + discount)
+       Item sold -> sum up all the amount sold
+       Daily Sales -> sum up all the values of Total LCD
+       Daily Profit -> sum up all the individual profits of the items sold
+
+8. buttons:
+       save -> save records into the database
+       complete -> save records into database and print receipt
+       Print -> print receipt
+       clear -> Clear all inputs and set thier values into default
+
+9. payment method gives several mode of payment. Discount, manually added discount (value >= 0).
+   Amount inputs receive amount to be paid for the purchased (value must be >= 1)
+   Change input display the customer change as (LCD(total) - amount to be paid)
