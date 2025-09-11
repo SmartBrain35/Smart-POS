@@ -62,3 +62,25 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
        Total profit -> sum up all the damaged items profit
 
        NOTE: damaged item's quantities must be subtracted from the stock
+
+       ======Expenditure UI Page======
+1. all inputs are mandatory to fill out
+2. click a row to fill back datasets into their respective inputs for Update
+3. click delete "icon" to delete a particular row
+4. save button save records
+5. clear button clear and set all the inputs to default
+6. LCDs display overall sun up of expenditures in weekly monthly & yearly 
+7. auto filter input as you type
+
+       ======Return UI Page======
+1. all inputs are mandatory to fill out
+2. click a row to fill back datasets into their respective inputs for Update
+3. click delete "icon" to delete a particular row
+4. save button save records
+5. clear button clear and set all the inputs to default
+6. auto filter input as you type
+7. LCDs:
+       Total Items -> count total items being returned
+       Refund -> sum up all the items prices being refunded
+       loss -> sum up all profit loss
+NOTE: items return are added back to stock automatically

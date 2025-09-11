@@ -627,3 +627,245 @@ QHeaderView::section {
     color: black;
     font-weight: bold;
 }
+
+
+/* ================== Expenditure Page ================ */
+
+/* Inputs */
+#expenditureDateInput, #expenditureDescriptionInput, #expenditureAmountInput, #expenditureCategoryInput, #filterInputExpenditure {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+/* ComboBox specific styling to match input appearance */
+QComboBox#expenditureCategoryInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#expenditureCategoryInput::drop-down {
+    border: none;
+}
+QComboBox#expenditureCategoryInput::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+QComboBox#expenditureCategoryInput QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    border: 2px solid #00ccff;
+    border-radius: 4px;
+}
+QComboBox#expenditureCategoryInput::item {
+    color: white;
+    font-weight: bold;
+}
+QComboBox#expenditureCategoryInput::item:selected {
+    background-color: #00aaff;
+    color: white;
+}
+
+/* DateEdit calendar popup styling */
+#expenditureDateInput QCalendarWidget {
+    background: black;
+    color: white;
+}
+#expenditureDateInput QCalendarWidget QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+}
+#expenditureDateInput QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background: #1e2a38;
+}
+#expenditureDateInput QCalendarWidget QToolButton {
+    color: white;
+    background: #1e2a38;
+}
+#expenditureDateInput QCalendarWidget QMenu {
+    background: black;
+    color: white;
+}
+
+/* Buttons (uniform width and height) */
+#btnSaveExpenditure, #btnEditExpenditure, #btnDeleteExpenditure, #btnClearExpenditure {
+    min-width: 150px;
+    min-height: 40px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnSaveExpenditure:hover, #btnEditExpenditure:hover, #btnDeleteExpenditure:hover, #btnClearExpenditure:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableExpenditure {
+    border: 1px solid #1e2a38;
+    gridline-color: #000000ff;
+    background: white;
+    color: black;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 14px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* Table Delete Button */
+#ExpenditureTableBtnDelete {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#ExpenditureTableBtnDelete:hover {
+    background: #913131ff;
+    border-radius: 6px;
+}
+
+/* LCDs */
+#lcdWeeklyExpenditures, #lcdMonthlyExpenditures, #lcdYearlyExpenditures {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* Labels for LCDs and inputs */
+#label_label_lcd, #label_lcdMonthlyExpenditures, #label_lcdYearlyExpenditures,
+#label_expenditureDateInput, #label_expenditureDescriptionInput, #label_expenditureAmountInput,
+#label_expenditureCategoryInput, #label_filterInputExpenditure {
+    color: black;
+    font-weight: bold;
+}
+
+
+
+/* ================== Return Page ================ */
+
+/* Inputs */
+#returnItemNameInput, #returnQuantityInput, #returnPriceInput, #returnReasonInput, #filterInputReturn {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+/* ComboBox specific styling to match input appearance */
+QComboBox#returnReasonInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#returnReasonInput::drop-down {
+    border: none;
+}
+QComboBox#returnReasonInput::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+QComboBox#returnReasonInput QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    border: 2px solid #00ccff;
+    border-radius: 4px;
+}
+QComboBox#returnReasonInput::item {
+    color: white;
+    font-weight: bold;
+}
+QComboBox#returnReasonInput::item:selected {
+    background-color: #00aaff;
+    color: white;
+}
+
+/* Buttons (uniform width and height) */
+#btnSaveReturn, #btnEditReturn, #btnDeleteReturn, #btnClearReturn {
+    min-width: 150px;
+    min-height: 40px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnSaveReturn:hover, #btnEditReturn:hover, #btnDeleteReturn:hover, #btnClearReturn:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableReturn {
+    border: 1px solid #1e2a38;
+    gridline-color: #000000ff;
+    background: white;
+    color: black;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 14px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* Table Delete Button */
+#ReturnTableBtnDelete {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#ReturnTableBtnDelete:hover {
+    background: #913131ff;
+    border-radius: 6px;
+}
+
+/* LCDs */
+#lcdTotalReturnedItems, #lcdTotalRefundAmount, #lcdTotalLoss {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* Labels for LCDs and inputs */
+#label_lcdTotalReturnedItems, #label_lcdTotalRefundAmount, #label_lcdTotalLoss,
+#label_returnItemNameInput, #label_returnQuantityInput, #label_returnPriceInput,
+#label_returnReasonInput, #label_filterInputReturn {
+    color: black;
+    font-weight: bold;
+}

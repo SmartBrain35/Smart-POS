@@ -6,7 +6,7 @@ import os, sys
 
 from backend.storage.database import init_db
 from PySide6.QtWidgets import QApplication
-from controllers.login import LoginController  # or your entry controller
+from controllers.login import LoginController
 
 
 def main():
