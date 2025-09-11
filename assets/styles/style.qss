@@ -412,7 +412,6 @@ QPushButton#BtnLogin:pressed, #BtnExit:pressed {
 }
 
 
-
 /* ================== Sales Page ================ */
 
 /* Inputs */
@@ -521,6 +520,110 @@ QHeaderView::section {
 #labelSearchItem, #labelQtyInStock, #labelStockPrice, #labelCategory,
 #labelQtySold, #labelInvoiceID, #labelPaymentMethod,
 #labelDiscountInput, #labelAmountPaid, #labelChange{
+    color: black;
+    font-weight: bold;
+}
+
+
+
+/* ================== Damage Page ================ */
+
+/* Inputs */
+#damageItemNameInput, #damageQuantityInput, #damagePriceInput, #damageStatusInput, #filterInputDamage {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+/* ComboBox specific styling to match input appearance */
+QComboBox#damageStatusInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+QComboBox#damageStatusInput QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    border: 2px solid #00ccff;
+    border-radius: 4px;
+}
+QComboBox#damageStatusInput::item {
+    color: white;
+    font-weight: bold;
+}
+QComboBox#damageStatusInput::item:selected {
+    background-color: #00aaff;
+    color: white;
+}
+
+/* Buttons (uniform width and height) */
+#btnSaveDamage, #btnEditDamage, #btnDeleteDamage, #btnClearDamage {
+    min-width: 150px;
+    min-height: 40px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnSaveDamage:hover, #btnEditDamage:hover, #btnDeleteDamage:hover, #btnClearDamage:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableDamage {
+    border: 1px solid #1e2a38;
+    gridline-color: #000000ff;
+    background: white;
+    color: black;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 14px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* Table Delete Button */
+#DamageTableBtnDelete {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#DamageTableBtnDelete:hover {
+    background: #913131ff;
+    border-radius: 6px;
+}
+
+/* LCDs */
+#lcdTotalItems, #lcdTotalPrice, #lcdTotalProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* Labels for LCDs and inputs */
+#label_lcdTotalItems, #label_lcdTotalPrice, #label_lcdTotalProfit,
+#label_damageItemNameInput, #label_damageQuantityInput, #label_damagePriceInput,
+#label_damageStatusInput, #label_filterInputDamage {
     color: black;
     font-weight: bold;
 }

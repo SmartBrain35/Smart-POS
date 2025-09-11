@@ -42,7 +42,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
        Item sold -> sum up all the amount sold
        Daily Sales -> sum up all the values of Total LCD
        Daily Profit -> sum up all the individual profits of the items sold
-
+       note: Daily sales & Daily Profit will be sent to the manager via SMS
 8. buttons:
        save -> save records into the database
        complete -> save records into database and print receipt
@@ -52,3 +52,13 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 9. payment method gives several mode of payment. Discount, manually added discount (value >= 0).
    Amount inputs receive amount to be paid for the purchased (value must be >= 1)
    Change input display the customer change as (LCD(total) - amount to be paid)
+
+       ======Damage UI Page======
+1. all inputs are mandatory to fill
+3. auto filter input as you type
+4. LDCs:
+       Total items -> total items damaged
+       Total price -> sum up all damage items prices
+       Total profit -> sum up all the damaged items profit
+
+       NOTE: damaged item's quantities must be subtracted from the stock
