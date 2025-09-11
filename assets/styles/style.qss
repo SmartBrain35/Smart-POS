@@ -1,4 +1,3 @@
-
 /* ================== Retail Tab  ================ */
 
 /* Inputs */
@@ -188,7 +187,6 @@ QHeaderView::section {
     padding: 2px;
     min-height: 50px;
 }
-
 
 /*========================Account UI===============*/
 /* Inputs */
@@ -753,7 +751,7 @@ QHeaderView::section {
 }
 
 /* Labels for LCDs and inputs */
-#label_label_lcd, #label_lcdMonthlyExpenditures, #label_lcdYearlyExpenditures,
+#label_lcdWeeklyExpenditures, #label_lcdMonthlyExpenditures, #label_lcdYearlyExpenditures,
 #label_expenditureDateInput, #label_expenditureDescriptionInput, #label_expenditureAmountInput,
 #label_expenditureCategoryInput, #label_filterInputExpenditure {
     color: black;
@@ -866,6 +864,136 @@ QHeaderView::section {
 #label_lcdTotalReturnedItems, #label_lcdTotalRefundAmount, #label_lcdTotalLoss,
 #label_returnItemNameInput, #label_returnQuantityInput, #label_returnPriceInput,
 #label_returnReasonInput, #label_filterInputReturn {
+    color: black;
+    font-weight: bold;
+}
+
+/* ================== Report Page ================ */
+
+/* Inputs */
+#reportDateFromInput, #reportDateToInput, #reportCategoryInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+
+/* ComboBox specific styling to match input appearance */
+QComboBox#reportCategoryInput {
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#reportCategoryInput::drop-down {
+    border: none;
+}
+QComboBox#reportCategoryInput::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+QComboBox#reportCategoryInput QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    border: 2px solid #00ccff;
+    border-radius: 4px;
+}
+QComboBox#reportCategoryInput::item {
+    color: white;
+    font-weight: bold;
+}
+QComboBox#reportCategoryInput::item:selected {
+    background-color: #00aaff;
+    color: white;
+}
+
+/* DateEdit calendar popup styling */
+#reportDateFromInput QCalendarWidget, #reportDateToInput QCalendarWidget {
+    background: black;
+    color: white;
+}
+#reportDateFromInput QCalendarWidget QAbstractItemView, #reportDateToInput QCalendarWidget QAbstractItemView {
+    background: black;
+    color: white;
+    selection-background-color: #00aaff;
+    selection-color: white;
+}
+#reportDateFromInput QCalendarWidget QWidget#qt_calendar_navigationbar, #reportDateToInput QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background: #1e2a38;
+}
+#reportDateFromInput QCalendarWidget QToolButton, #reportDateToInput QCalendarWidget QToolButton {
+    color: white;
+    background: #1e2a38;
+}
+#reportDateFromInput QCalendarWidget QMenu, #reportDateToInput QCalendarWidget QMenu {
+    background: black;
+    color: white;
+}
+
+/* Buttons (uniform width and height) */
+#btnGenerateReport, #btnExportReport, #btnClearReport {
+    min-width: 150px;
+    min-height: 40px;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
+}
+#btnGenerateReport:hover, #btnExportReport:hover, #btnClearReport:hover {
+    background-color: #0088cc;
+}
+
+/* Table */
+#tableReport {
+    border: 1px solid #1e2a38;
+    gridline-color: #000000ff;
+    background: white;
+    color: black;
+    alternate-background-color: #f6f6f6;
+    selection-background-color: #00aaff;
+    selection-color: white;
+    font-size: 14px;
+}
+/* Fix header styling */
+QHeaderView::section {
+    background-color: #1d2530;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 6px;
+}
+
+/* Table View Button */
+#ReportTableBtnView {
+    border: none;
+    background: transparent;
+    padding: 3px;
+}
+#ReportTableBtnView:hover {
+    background: #e0f7ff;
+    border-radius: 6px;
+}
+
+/* LCDs */
+#lcdTotalRevenue, #lcdTotalExpenditures, #lcdNetProfit {
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* Labels for LCDs and inputs */
+#label_lcdTotalRevenue, #label_lcdTotalExpenditures, #label_lcdNetProfit,
+#label_reportDateFromInput, #label_reportDateToInput, #label_reportCategoryInput {
     color: black;
     font-weight: bold;
 }
