@@ -1,6 +1,5 @@
 from sqlmodel import create_engine, Session
 from backend.storage.models import SQLModel
-from config import get_settings
 from typing import Generator
 from contextlib import contextmanager
 from pathlib import Path
