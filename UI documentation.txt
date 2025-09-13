@@ -3,8 +3,8 @@ UI DOCUMENTATION
        ======Account UI======
 1. fill forms to register new account. Use (name/ phone/ email) and (password) to login
 2. on the table, click delete icon to delete a row
-3. click edit icon to fill back datasets to thier respective inputs for quick update. 
-Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs fields 
+3. click edit icon to fill back datasets to thier respective inputs for quick update.
+Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs fields
 4. name, phone, email, password & role are compulsory
 
        ======Employee UI======
@@ -15,14 +15,14 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 
        ======Stock(Retail / Wholesale) UI======
 1. fill forms to save to stock (all fields are compulsory)
-2. click any row to fill back all datasets into thier respective inputs for quick delete & update 
+2. click any row to fill back all datasets into thier respective inputs for quick delete & update
 3. mistakenly click on wrong row, use "CLEAR" button to clear all inputs
 4. filter records by "item name" (auto filter as you type in the filter input)
 5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
 6. on stock table, the progressBar value in the quantity column should be same as item quantity
 7. 3 LCD to display overall sum of cost price, selling price & profit of the stock
 8. "Category" field added to the Wholesale to differentiate between items on sales and report UI
-   
+
        ======login UI======
 1. login with email / phone and password
 2. login as "admin" enable all features otherwise, disable stock, Report, Employee & Account buttons om home page
@@ -34,7 +34,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 4. in a case where system date is wrong, date input help set date for the checkout details
 5. QSpinBox (quantity selling) specify quantity being purchased
 6. Add-to-Cart button add selecteditem on the QTableWidget to the cart table
-7 LCDs: 
+7 LCDs:
        Gross -> sum up all the prices in the price column on the cart table.
        Discount -> display the Discount on purchased items (manually enter in the Discount input field).
        Total -> display calculated result as (gross + discount)
@@ -68,7 +68,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 3. click delete "icon" to delete a particular row
 4. save button save records
 5. clear button clear and set all the inputs to default
-6. LCDs display overall sun up of expenditures in weekly monthly & yearly 
+6. LCDs display overall sun up of expenditures in weekly monthly & yearly
 7. auto filter input as you type
 
        ======Return UI Page======
