@@ -1,7 +1,7 @@
 # controllers/login.py
 from PySide6.QtWidgets import QMessageBox, QMainWindow
 from ui.login_window import LoginWindow
-from ui.dashboard import Ui_AdminDashboard
+from ui.home import HomePage
 
 
 class LoginController:
@@ -19,11 +19,10 @@ class LoginController:
         if username == "admin" and password == "1234":
             # Create dashboard window properly
             self.dashboard_window = QMainWindow()
-            self.ui = Ui_AdminDashboard()
+            self.ui = HomePage()
             self.ui.setupUi(self.dashboard_window)
 
             self.dashboard_window.show()
             self.login_view.close()
         else:
             self.login_view.show_error("Invalid username or password")
-

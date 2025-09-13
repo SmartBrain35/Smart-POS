@@ -1,7 +1,7 @@
 # controllers/dashboard.py
 
 from PySide6.QtWidgets import QMessageBox
-from ui.dashboard import Ui_AdminDashboard
+from ui.home import Ui_AdminDashboard
 from ui.login_window import LoginWindow
 
 

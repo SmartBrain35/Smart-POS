@@ -25,8 +25,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
    
        ======login UI======
 1. login with email / phone and password
-2. login as "admin" enable all features otherwise, open only "Sales UI & dashboard"
-3. note: only admin can "add, delete & update stock"
+2. login as "admin" enable all features otherwise, disable stock, Report, Employee & Account buttons om home page
 
        ======Sales UI======
 1. QTableWidget display all the items in stock

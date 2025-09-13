@@ -78,7 +78,7 @@ class Ui_Account(object):
         btn_widget = QtWidgets.QWidget()
         btn_layout = QtWidgets.QHBoxLayout(btn_widget)
         btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.setSpacing(15)  # small space between buttons
+        btn_layout.setSpacing(15)
         btn_layout.addWidget(self.btn_register)
         btn_layout.addWidget(self.btn_edit)
         btn_layout.addWidget(self.btn_clear)
@@ -96,7 +96,7 @@ class Ui_Account(object):
         # === Table Section ===
         self.table_users = QtWidgets.QTableWidget()
         self.table_users.setObjectName("tableUsers")
-        self.table_users.setColumnCount(6)  # Removed Status column
+        self.table_users.setColumnCount(6)
         self.table_users.setHorizontalHeaderLabels(
             ["ID", "Name", "Phone", "Email", "Role", "Actions"]
         )

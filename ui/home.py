@@ -1,5 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from ui.dashboard_ui import Ui_Dashboard
 from ui.stock_ui import Ui_Stock
 from ui.sales_ui import Ui_Sales
 from ui.report_ui import Ui_Report
@@ -8,19 +9,19 @@ from ui.return_ui import Ui_Return
 from ui.damage_ui import Ui_Damage
 from ui.expenditure_ui import Ui_Expenditure
 from ui.account_ui import Ui_Account
-
-# from ui.settings_ui import Ui_Settings
+from ui.settings_ui import Ui_Settings
 from ui.simple_page_ui import Ui_SimplePage
+from ui.report_ui import Ui_Report
+from controllers.report import ReportController
 
-
-class Ui_AdminDashboard(object):
-    def setupUi(self, AdminDashboard):
-        AdminDashboard.setObjectName("AdminDashboard")
-        AdminDashboard.setMinimumSize(1200, 800)
-        AdminDashboard.showMaximized()
+class HomePage(object):
+    def setupUi(self, Home):
+        Home.setObjectName("home")
+        Home.setMinimumSize(1200, 800)
+        Home.showMaximized()
 
         # ===== Central Widget =====
-        self.centralwidget = QtWidgets.QWidget(AdminDashboard)
+        self.centralwidget = QtWidgets.QWidget(Home)
         self.centralwidget.setObjectName("centralwidget")
 
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -129,9 +130,7 @@ class Ui_AdminDashboard(object):
 
         # Dashboard Page (simple)
         self.page_dashboard = QtWidgets.QWidget()
-        self.ui_dashboard = Ui_SimplePage(
-            "Welcome to Smart POS Dashboard", "font-size: 24px; font-weight: bold;"
-        )
+        self.ui_dashboard = Ui_Dashboard()
         self.ui_dashboard.setupUi(self.page_dashboard)
 
         # Stock Page
@@ -148,7 +147,9 @@ class Ui_AdminDashboard(object):
         self.page_report = QtWidgets.QWidget()
         self.ui_report = Ui_Report()
         self.ui_report.setupUi(self.page_report)
-
+        # Controller
+        self.report_controller = ReportController(self.ui_report)
+        
         # Employees Page
         self.page_employees = QtWidgets.QWidget()
         self.ui_employees = Ui_Employees()
@@ -175,11 +176,9 @@ class Ui_AdminDashboard(object):
         self.ui_account.setupUi(self.page_account)
 
         # Settings Page (simple)
-        # self.page_settings = QtWidgets.QWidget()
-        # self.ui_settings = Ui_SimplePage(
-        #    "🔧 Settings Page", "font-size: 24px; font-weight: bold;"
-        # )
-        # self.ui_settings.setupUi(self.page_settings)
+        self.page_settings = QtWidgets.QWidget()
+        self.ui_settings = Ui_Settings()
+        self.ui_settings.setupUi(self.page_settings)
 
         # Add pages to stacked widget
         self.stackedWidget.addWidget(self.page_dashboard)  # index 0
@@ -191,14 +190,14 @@ class Ui_AdminDashboard(object):
         self.stackedWidget.addWidget(self.page_damage)  # index 6
         self.stackedWidget.addWidget(self.page_expenditure)  # index 7
         self.stackedWidget.addWidget(self.page_account)  # index 8
-        # self.stackedWidget.addWidget(self.page_settings)  # index 9
+        self.stackedWidget.addWidget(self.page_settings)  # index 9
 
         self.mainLayout.addWidget(self.stackedWidget)
         self.horizontalLayout.addWidget(self.mainContent)
 
-        AdminDashboard.setCentralWidget(self.centralwidget)
-        self.retranslateUi(AdminDashboard)
-        QtCore.QMetaObject.connectSlotsByName(AdminDashboard)
+        Home.setCentralWidget(self.centralwidget)
+        self.retranslateUi(Home)
+        QtCore.QMetaObject.connectSlotsByName(Home)
 
         # ===== Page Switching Connections =====
         self.buttons["Dashboard"].clicked.connect(
@@ -221,7 +220,7 @@ class Ui_AdminDashboard(object):
         )
         self.buttons["Logout"].clicked.connect(self.logout)
 
-    # add this method inside AdminDashboard class
+    # add this method inside Home class
     def logout(self):
         from controllers.login import LoginController
 
@@ -237,6 +236,6 @@ class Ui_AdminDashboard(object):
         self.stackedWidget.setCurrentIndex(index)
         self.lbl_title.setText(title)
 
-    def retranslateUi(self, AdminDashboard):
+    def retranslateUi(self, Home):
         _translate = QtCore.QCoreApplication.translate
-        AdminDashboard.setWindowTitle(_translate("AdminDashboard", "Dashboard"))
+        Home.setWindowTitle(_translate("Home", "Dashboard"))

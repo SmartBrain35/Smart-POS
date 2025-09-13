@@ -1,3 +1,6 @@
+
+
+
 /* ================== Retail Tab  ================ */
 
 /* Inputs */
@@ -61,8 +64,8 @@
 }
 
 /* Table */
-#tableStock {
-    border: 1px solid #1e2a38;
+#tableStock{
+    border: 1px solid #162b42ff;
     gridline-color: #000000ff;
     background: white;
     alternate-background-color: #f6f6f6;
@@ -222,10 +225,10 @@ QPushButton#btnAccountClear:hover {
 }
 
 /* Table */
-QTableWidget#tableUsers {
+QTableWidget#tableUsers, #tableRecentActivity{
     border: 1px solid #0a0404ff;
     gridline-color: #000000ff;;
-    selection-background-color: #1976d2;
+    selection-background-color: #00aaff;
     alternate-background-color: #f9f9f9;
     color: black;
     font-size: 14px;
@@ -322,7 +325,7 @@ QPushButton[id^="btnDelete_"]:hover {
     font-size: 14px;
     alternate-background-color: #f9f9f9;
     background-color: #ffffff;
-    selection-background-color: #0078d7;
+    selection-background-color: #00aaff;
     selection-color: white;
     border: 1px solid #0c0606ff;
     border-radius: 6px;
@@ -868,132 +871,59 @@ QHeaderView::section {
     font-weight: bold;
 }
 
-/* ================== Report Page ================ */
 
-/* Inputs */
-#reportDateFromInput, #reportDateToInput, #reportCategoryInput {
-    border: 2px solid #00ccff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    background: #1d2530;
-    color: white;
+
+/* === General Styling === */
+#ReportPage {
+    background-color: #f6f7fb;
+}
+
+QLabel {
+    font-size: 14px;
+    color: #333;
     font-weight: bold;
 }
 
-/* ComboBox specific styling to match input appearance */
-QComboBox#reportCategoryInput {
-    border: 2px solid #00ccff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    background: #1d2530;
-    color: white;
-    font-weight: bold;
+/* === Inputs === */
+#InputDateFrom, #InputDateTo, #InputCategory {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding-left: 8px;
+    background-color: white;
+    font-size: 13px;
 }
-QComboBox#reportCategoryInput::drop-down {
+
+/* === Buttons === */
+#BtnGenerateReport, #BtnClearReport {
+    background-color: #2d89ef;
+    color: white;
     border: none;
-}
-QComboBox#reportCategoryInput::down-arrow {
-    width: 10px;
-    height: 10px;
-}
-QComboBox#reportCategoryInput QAbstractItemView {
-    background: black;
-    color: white;
-    selection-background-color: #00aaff;
-    selection-color: white;
-    border: 2px solid #00ccff;
-    border-radius: 4px;
-}
-QComboBox#reportCategoryInput::item {
-    color: white;
+    border-radius: 6px;
     font-weight: bold;
-}
-QComboBox#reportCategoryInput::item:selected {
-    background-color: #00aaff;
-    color: white;
-}
-
-/* DateEdit calendar popup styling */
-#reportDateFromInput QCalendarWidget, #reportDateToInput QCalendarWidget {
-    background: black;
-    color: white;
-}
-#reportDateFromInput QCalendarWidget QAbstractItemView, #reportDateToInput QCalendarWidget QAbstractItemView {
-    background: black;
-    color: white;
-    selection-background-color: #00aaff;
-    selection-color: white;
-}
-#reportDateFromInput QCalendarWidget QWidget#qt_calendar_navigationbar, #reportDateToInput QCalendarWidget QWidget#qt_calendar_navigationbar {
-    background: #1e2a38;
-}
-#reportDateFromInput QCalendarWidget QToolButton, #reportDateToInput QCalendarWidget QToolButton {
-    color: white;
-    background: #1e2a38;
-}
-#reportDateFromInput QCalendarWidget QMenu, #reportDateToInput QCalendarWidget QMenu {
-    background: black;
-    color: white;
-}
-
-/* Buttons (uniform width and height) */
-#btnGenerateReport, #btnExportReport, #btnClearReport {
-    min-width: 150px;
-    min-height: 40px;
-    font-weight: bold;
-    font-size: 15px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    color: black;
-    background-color: #00aaff;
-}
-#btnGenerateReport:hover, #btnExportReport:hover, #btnClearReport:hover {
-    background-color: #0088cc;
-}
-
-/* Table */
-#tableReport {
-    border: 1px solid #1e2a38;
-    gridline-color: #000000ff;
-    background: white;
-    color: black;
-    alternate-background-color: #f6f6f6;
-    selection-background-color: #00aaff;
-    selection-color: white;
     font-size: 14px;
 }
-/* Fix header styling */
-QHeaderView::section {
-    background-color: #1d2530;
-    color: white;
-    font-weight: bold;
-    border: none;
-    padding: 6px;
+#BtnGenerateReport:hover, #BtnClearReport:hover {
+    background-color: #1e5fab;
 }
 
-/* Table View Button */
-#ReportTableBtnView {
-    border: none;
-    background: transparent;
-    padding: 3px;
-}
-#ReportTableBtnView:hover {
-    background: #e0f7ff;
+/* === LCDs === */
+QLCDNumber {
+    background: #fff;
+    border: 1px solid #aaa;
     border-radius: 6px;
+    color: #0078d4;
 }
 
-/* LCDs */
-#lcdTotalRevenue, #lcdTotalExpenditures, #lcdNetProfit {
-    background: #1d2530;
-    color: #00ccff;
-    border: 2px solid #00ccff;
-    border-radius: 6px;
-    padding: 2px;
+/* === PDF Viewer === */
+#PdfViewer {
+    border: 2px solid #ddd;
+    border-radius: 8px;
 }
 
-/* Labels for LCDs and inputs */
-#label_lcdTotalRevenue, #label_lcdTotalExpenditures, #label_lcdNetProfit,
-#label_reportDateFromInput, #label_reportDateToInput, #label_reportCategoryInput {
-    color: black;
-    font-weight: bold;
+/* === Sections === */
+#FilterSection, #LcdSection, #PdfContainer {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.05);
 }
