@@ -110,47 +110,4 @@ class Ui_Account(object):
         self.table_users.setAlternatingRowColors(True)
         self.table_users.verticalHeader().setVisible(False)
 
-        # Sample data (6 cols now, no "Status")
-        users_data = [
-            (1, "Admin User", "0244000001", "admin@pos.com", "Admin"),
-            (2, "Cashier One", "0244000002", "cashier@pos.com", "Cashier"),
-            (3, "Manager One", "0244000003", "manager@pos.com", "Manager"),
-        ]
-
-        self.table_users.setRowCount(len(users_data))
-
-        for row, (uid, name, phone, email, role) in enumerate(users_data):
-            self.table_users.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
-            self.table_users.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
-            self.table_users.setItem(row, 2, QtWidgets.QTableWidgetItem(phone))
-            self.table_users.setItem(row, 3, QtWidgets.QTableWidgetItem(email))
-            self.table_users.setItem(row, 4, QtWidgets.QTableWidgetItem(role))
-
-            # --- Action cell with icons ---
-            action_widget = QtWidgets.QWidget()
-            action_layout = QtWidgets.QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(0, 0, 0, 0)
-            action_layout.setSpacing(15)
-
-            btn_edit = QtWidgets.QPushButton()
-            btn_edit.setObjectName("tableBtnEdit")
-            btn_edit.setIcon(QtGui.QIcon("assets/icons/edit.png"))
-            btn_edit.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            btn_edit.setToolTip("Edit User")
-            btn_edit.setFixedSize(30, 30)
-
-            btn_delete = QtWidgets.QPushButton()
-            btn_delete.setObjectName("tableBtnDelete")
-            btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            btn_delete.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            btn_delete.setToolTip("Delete User")
-            btn_delete.setFixedSize(30, 30)
-
-            action_layout.addStretch()
-            action_layout.addWidget(btn_edit)
-            action_layout.addWidget(btn_delete)
-            action_layout.addStretch()
-
-            self.table_users.setCellWidget(row, 5, action_widget)
-
         account_layout.addWidget(self.table_users, stretch=1)

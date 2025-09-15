@@ -1,7 +1,7 @@
-# controllers/login.py
 from PySide6.QtWidgets import QMessageBox, QMainWindow
 from ui.login_window import LoginWindow
 from ui.home import HomePage
+from backend.apis import AccountAPI
 
 
 class LoginController:
@@ -16,7 +16,14 @@ class LoginController:
         username = self.login_view.username_input.text().strip()
         password = self.login_view.password_input.text().strip()
 
-        if username == "admin" and password == "1234":
+        if not username or not password:
+            self.login_view.show_error("username/password invalid")
+            return
+
+        ## call API authentication method
+        result = AccountAPI.authenticate(username, password)
+
+        if result["success"]:
             # Create dashboard window properly
             self.dashboard_window = QMainWindow()
             self.ui = HomePage()
@@ -25,4 +32,4 @@ class LoginController:
             self.dashboard_window.show()
             self.login_view.close()
         else:
-            self.login_view.show_error("Invalid username or password")
+            QMessageBox.warning(self.login_view, "Login Failed", result["error"])
