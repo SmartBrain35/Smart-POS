@@ -23,6 +23,9 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 7. 6 LCDs to display overall count & sum of stock items costs prices, selling prices & profits of the stock
 8. "Category" field added to the UI to differentiate between items on sales and report UI
 
+Note: quantity columns have progressBar to visually display item quantity
+
+
        ======login UI======
 1. login with email / phone and password
 2. login as "admin" enable all features otherwise, disable stock, Report, Employee & Account buttons om home page

@@ -165,21 +165,13 @@ class Ui_Stock(object):
         self.table_stock.setMinimumHeight(300)
         left_v.addWidget(self.table_stock, stretch=1)
 
-        # --- LCDs in 4x2 Grid (unchanged) ---
+        # --- LCDs in 4x2 Grid ---
         lcds_container = QtWidgets.QWidget()
         lcds_grid = QtWidgets.QGridLayout(lcds_container)
         lcds_grid.setContentsMargins(0, 0, 0, 0)
         lcds_grid.setHorizontalSpacing(6)
         lcds_grid.setVerticalSpacing(12)
 
-        # --- LCDs in 4x2 Grid ---
-        lcds_container = QtWidgets.QWidget()
-        lcds_grid = QtWidgets.QGridLayout(lcds_container)
-        lcds_grid.setContentsMargins(0, 0, 0, 0)  # flush to wall
-        lcds_grid.setHorizontalSpacing(6)  # horizontal spacing
-        lcds_grid.setVerticalSpacing(12)  # vertical spacing
-
-        # 8 LCDs (4x2 grid)
         box1, self.lcd1 = self.make_lcd("Wholesale Items", "lcdsWholesaleItems")
         box2, self.lcd2 = self.make_lcd("Wholesale Costs", "lcdsWholesaleCosts")
         box3, self.lcd3 = self.make_lcd("Wholesale Value", "lcdsWholesaleValues")
@@ -190,25 +182,22 @@ class Ui_Stock(object):
         box7, self.lcd7 = self.make_lcd("Retail Value", "lcdRetailValues")
         box8, self.lcd8 = self.make_lcd("Retail Profit", "lcdRetailProfits")
 
-        # Arrange in 4x2 grid (column grouping)
-        # Column 0 = Wholesale
-        lcds_grid.addWidget(box1, 0, 0)  # Wholesale Items
-        lcds_grid.addWidget(box2, 1, 0)  # Wholesale Costs
-        lcds_grid.addWidget(box3, 2, 0)  # Wholesale Value
-        lcds_grid.addWidget(box4, 3, 0)  # Wholesale Profit
+        lcds_grid.addWidget(box1, 0, 0)
+        lcds_grid.addWidget(box2, 1, 0)
+        lcds_grid.addWidget(box3, 2, 0)
+        lcds_grid.addWidget(box4, 3, 0)
 
-        # Column 1 = Retail
-        lcds_grid.addWidget(box5, 0, 1)  # Retail Items
-        lcds_grid.addWidget(box6, 1, 1)  # Retail Costs
-        lcds_grid.addWidget(box7, 2, 1)  # Retail Value
-        lcds_grid.addWidget(box8, 3, 1)  # Retail Profit
+        lcds_grid.addWidget(box5, 0, 1)
+        lcds_grid.addWidget(box6, 1, 1)
+        lcds_grid.addWidget(box7, 2, 1)
+        lcds_grid.addWidget(box8, 3, 1)
 
         # --- Table + LCDs side by side ---
         table_lcd_h = QtWidgets.QHBoxLayout()
         table_lcd_h.setContentsMargins(0, 0, 0, 0)
         table_lcd_h.setSpacing(10)
 
-        table_lcd_h.addWidget(left_container, stretch=4)  # table stretches more
+        table_lcd_h.addWidget(left_container, stretch=4)
         table_lcd_h.addWidget(
             lcds_container,
             stretch=1,
@@ -216,7 +205,7 @@ class Ui_Stock(object):
         )
 
         content_v.addLayout(table_lcd_h)
-        content_v.addSpacing(2)  # Tiny space below the table
+        content_v.addSpacing(2)
 
         stock_layout.addWidget(form_container, stretch=0, alignment=QtCore.Qt.AlignTop)
         stock_layout.addWidget(content_container, stretch=1)
@@ -228,7 +217,7 @@ class Ui_Stock(object):
         vbox.setSpacing(3)
 
         lbl = QtWidgets.QLabel(title)
-        lbl.setAlignment(QtCore.Qt.AlignLeft)  # label top-left
+        lbl.setAlignment(QtCore.Qt.AlignLeft)
         lbl.setStyleSheet("font-size: 10pt; font-weight: bold; color: black")
 
         lcd = QtWidgets.QLCDNumber()
