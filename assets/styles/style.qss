@@ -1,7 +1,4 @@
-
-
-
-/* ================== Retail Tab  ================ */
+/* ================== Stock Page  ================ */
 
 /* Inputs */
 #inputRetailId, #inputRetailName, #inputRetailQty,
@@ -84,7 +81,7 @@ QHeaderView::section {
 }
 
 /* LCDs */
-#lcdRetailTotalCost, #lcdRetailTotalSelling, #lcdRetailTotalProfit {
+#lcdsWholesaleItems, #lcdsWholesaleCosts, #lcdsWholesaleValues, #lcdsWholesaleProfits, #lcdRetailItems, #lcdRetailCosts, #lcdRetailValues, #lcdRetailProfits{
     background: #1d2530;
     color: #00ccff;
     border: 2px solid #00ccff;
@@ -92,103 +89,58 @@ QHeaderView::section {
     padding: 2px;
 }
 
-/*========================WHOLESALE UI===============*/
-/* Labels */
-#labelWholesaleId,
-#labelWholesaleName,
-#labelWholesaleQty,
-#labelWholesaleCost,
-#labelWholesaleSelling,
-#labelWholesaleExpiry,
-#labelWholesaleCategory,
-#lcdWholesaleCostLabel,
-#lcdWholesaleSellingLabel,
-#lcdWholesaleProfitLabel {
+
+/*========================Alert UI===============*/
+
+QDialog {
+    background-color: #1e1e2f;
+    border: 1px solid #00c2ff;
+    border-radius: 10px;
+}
+
+QDialog QLabel {
+    color: white;
+    font-size: 16px;
+}
+
+QListWidget {
+    background-color: #1e1e2f;
+    alternate-background-color: #28283a;
+    color: white;
+    border: 1px solid #3a3a4c;
+    border-radius: 5px;
+}
+
+QListWidget::item {
+    padding: 10px;
+    border-bottom: 1px solid #3a3a4c;
+}
+
+QListWidget::item:selected {
+    background-color: #3a3a4c;
+}
+
+QListWidget::item:hover {
+    background-color: #28283a;
+}
+
+QPushButton {
+    background-color: #1e1e2f;
+    border: 2px solid #00c2ff;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
     font-weight: bold;
-    color: black;
 }
 
-/* Inputs */
-#inputWholesaleId,
-#inputWholesaleName,
-#inputWholesaleQty,
-#inputWholesaleCost,
-#inputWholesaleSelling,
-#inputWholesaleCategory,
-#inputWholesaleFilter,
-#dateWholesaleExpiry{
-    border: 2px solid #00ccff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    background: #1d2530;
-    color: white;
+QPushButton:hover {
+    background-color: #28283a;
+    border: 2px solid #ffffff;
 }
 
-/* DateEdit calendar popup styling */
-#dateWholesaleExpiry QCalendarWidget {
-    background: black; /* Black background for calendar */
-    color: white; /* White font for visibility */
-}
-#dateWholesaleExpiry QCalendarWidget QAbstractItemView {
-    background: black;
-    color: white;
-    selection-background-color: #00aaff;
-    selection-color: white;
-}
-#dateWholesaleExpiry QCalendarWidget QWidget#qt_calendar_navigationbar {
-    background: #1e2a38;
-}
-#dateWholesaleExpiry QCalendarWidget QToolButton {
-    color: white;
-    background: #1e2a38;
-}
-#dateWholesaleExpiry QCalendarWidget QMenu {
-    background: black;
-    color: white;
-}
-
-
-/* Buttons */
-#btnWholesaleAdd,
-#btnWholesaleEdit,
-#btnWholesaleDelete,
-#btnWholesaleClear, #btnWholesaleFilter {
-    min-width: 130px;
-    min-height: 25px;
-    font-weight: bold;
-    font-size: 15px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    color: black;
-    background-color: #00aaff;
-}
-#btnWholesaleAdd:hover,
-#btnWholesaleEdit:hover,
-#btnWholesaleDelete:hover,
-#btnWholesaleClear:hover {
-    background-color: #125a9c;
-}
-
-/* Table */
-#WholesaleTable {
-    border: 1px solid #110b0bff;
-    gridline-color: #000000ff;;
-    selection-background-color: #1976d2;
-    alternate-background-color: #f9f9f9;
-    color: black;
-    font: 14px;
-}
-
-/* LCDs */
-#lcdWholesaleTotalCost,
-#lcdWholesaleTotalSelling,
-#lcdWholesaleTotalProfit {
-    background: #1d2530;
-    color: #00ccff;
-    border: 2px solid #00ccff;
-    border-radius: 6px;
-    padding: 2px;
-    min-height: 50px;
+QPushButton:pressed {
+    background-color: #3a3a4c;
 }
 
 /*========================Account UI===============*/
@@ -524,7 +476,6 @@ QHeaderView::section {
     color: black;
     font-weight: bold;
 }
-
 
 
 /* ================== Damage Page ================ */
@@ -873,57 +824,97 @@ QHeaderView::section {
 
 
 
-/* === General Styling === */
+     /*========================Report UI===============*/
 #ReportPage {
-    background-color: #f6f7fb;
+    background-color: #f0f0f0;
 }
 
-QLabel {
-    font-size: 14px;
-    color: #333;
+#FilterSection QLabel {
     font-weight: bold;
+    color: #333333;
 }
 
-/* === Inputs === */
 #InputDateFrom, #InputDateTo, #InputCategory {
-    border: 1px solid #ccc;
+    border: 1px solid #cccccc;
     border-radius: 5px;
-    padding-left: 8px;
+    padding: 5px;
     background-color: white;
-    font-size: 13px;
 }
 
-/* === Buttons === */
-#BtnGenerateReport, #BtnClearReport {
-    background-color: #2d89ef;
+#BtnGenerateReport {
+    background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 14px;
-}
-#BtnGenerateReport:hover, #BtnClearReport:hover {
-    background-color: #1e5fab;
+    border-radius: 5px;
+    padding: 8px;
 }
 
-/* === LCDs === */
-QLCDNumber {
-    background: #fff;
-    border: 1px solid #aaa;
-    border-radius: 6px;
-    color: #0078d4;
+#BtnGenerateReport:hover {
+    background-color: #45a049;
 }
 
-/* === PDF Viewer === */
-#PdfViewer {
-    border: 2px solid #ddd;
-    border-radius: 8px;
+#BtnClearReport {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
 }
 
-/* === Sections === */
-#FilterSection, #LcdSection, #PdfContainer {
+#BtnClearReport:hover {
+    background-color: #da190b;
+}
+
+#BtnPrintReport {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+#BtnPrintReport:hover {
+    background-color: #0b7dda;
+}
+
+#LcdSection {
     background-color: #ffffff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+#Label_LcdRevenue, #Label_LcdExpenditures, #Label_LcdProfit {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555555;
+}
+
+#LcdRevenue {
+    background-color: #e0ffe0;
+    color: #008000;
+    border: 1px solid #cccccc;
+}
+
+#LcdExpenditures {
+    background-color: #ffe0e0;
+    color: #800000;
+    border: 1px solid #cccccc;
+}
+
+#LcdProfit {
+    background-color: #e0e0ff;
+    color: #000080;
+    border: 1px solid #cccccc;
+}
+
+#PdfContainer {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+}
+
+#PdfViewer {
+    border: 1px solid #cccccc;
+    background-color: white;
 }

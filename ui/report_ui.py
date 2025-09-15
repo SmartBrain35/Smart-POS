@@ -10,21 +10,50 @@ from PySide6.QtWidgets import (
     QLCDNumber,
     QSizePolicy,
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, QDate, QUrl
 from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtGui import QIcon, QCursor
+from PySide6.QtPrintSupport import QPrinter, QPrintDialog
 
 
 class Ui_Report(object):
     def setupUi(self, Report):
         Report.setObjectName("ReportPage")
         self.report_layout = QVBoxLayout(Report)
-        self.report_layout.setContentsMargins(30, 30, 30, 30)
-        self.report_layout.setSpacing(20)
+        self.report_layout.setContentsMargins(15, 15, 15, 15)
+        self.report_layout.setSpacing(15)
 
         # === Filter Section ===
-        filter_section = QWidget()
-        filter_section.setObjectName("FilterSection")
-        filter_layout = QGridLayout(filter_section)
+        self.setup_filter_section()
+        self.report_layout.addWidget(self.filter_section)
+
+        # === Content Section for PDF and LCDs ===
+        self.content_widget = QWidget()
+        content_layout = QHBoxLayout(self.content_widget)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(15)
+
+        # === PDF Viewer Centered ===
+        self.setup_pdf_viewer()
+        content_layout.addWidget(self.pdf_container, stretch=1)
+
+        # === Right Side for LCDs ===
+        self.right_side = QWidget()
+        right_layout = QVBoxLayout(self.right_side)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.addStretch(1)  # Push LCDs to bottom
+
+        # === LCD Section (Vertical) ===
+        self.setup_lcd_section()
+        right_layout.addWidget(self.lcd_section)
+
+        content_layout.addWidget(self.right_side)
+        self.report_layout.addWidget(self.content_widget, stretch=1)
+
+    def setup_filter_section(self):
+        self.filter_section = QWidget()
+        self.filter_section.setObjectName("FilterSection")
+        filter_layout = QGridLayout(self.filter_section)
 
         self.report_date_from = QDateEdit(QDate.currentDate().addMonths(-1))
         self.report_date_from.setCalendarPopup(True)
@@ -63,42 +92,22 @@ class Ui_Report(object):
         filter_layout.addWidget(self.btn_generate_report, 1, 2)
         filter_layout.addWidget(self.btn_clear_report, 1, 3)
 
-        self.report_layout.addWidget(filter_section)
+    def setup_lcd_section(self):
+        self.lcd_section = QWidget()
+        self.lcd_section.setObjectName("LcdSection")
+        lcd_layout = QVBoxLayout(self.lcd_section)
 
-        # === LCD Section ===
-        lcd_section = QWidget()
-        lcd_section.setObjectName("LcdSection")
-        lcd_layout = QHBoxLayout(lcd_section)
-
-        def create_lcd(title, obj_name):
-            wrapper = QWidget()
-            layout = QVBoxLayout(wrapper)
-            layout.setSpacing(5)
-
-            label = QLabel(title)
-            label.setObjectName(f"Label_{obj_name}")
-            lcd = QLCDNumber()
-            lcd.setObjectName(obj_name)
-            lcd.setDigitCount(9)
-            lcd.setFixedHeight(40)
-
-            layout.addWidget(label)
-            layout.addWidget(lcd)
-            return wrapper, lcd
-
-        revenue_box, self.lcd_revenue = create_lcd("Total Revenue", "LcdRevenue")
-        exp_box, self.lcd_expenditures = create_lcd(
+        revenue_box, self.lcd_revenue = self.create_lcd("Total Revenue", "LcdRevenue")
+        exp_box, self.lcd_expenditures = self.create_lcd(
             "Total Expenditures", "LcdExpenditures"
         )
-        profit_box, self.lcd_profit = create_lcd("Net Profit", "LcdProfit")
+        profit_box, self.lcd_profit = self.create_lcd("Net Profit", "LcdProfit")
 
         lcd_layout.addWidget(revenue_box)
         lcd_layout.addWidget(exp_box)
         lcd_layout.addWidget(profit_box)
 
-        self.report_layout.addWidget(lcd_section)
-
-        # === PDF Viewer Centered ===
+    def setup_pdf_viewer(self):
         self.pdf_container = QWidget()
         self.pdf_container.setObjectName("PdfContainer")
         pdf_layout = QHBoxLayout(self.pdf_container)
@@ -112,4 +121,24 @@ class Ui_Report(object):
         pdf_layout.addWidget(self.pdf_viewer)
         pdf_layout.addStretch()
 
-        self.report_layout.addWidget(self.pdf_container, stretch=1)
+        # Add Print Button (new feature)
+        self.btn_print_report = QPushButton("Print Report")
+        self.btn_print_report.setFixedHeight(35)
+        self.btn_print_report.setObjectName("BtnPrintReport")
+        pdf_layout.addWidget(self.btn_print_report)
+
+    def create_lcd(self, title, obj_name):
+        wrapper = QWidget()
+        layout = QVBoxLayout(wrapper)
+        layout.setSpacing(5)
+
+        label = QLabel(title)
+        label.setObjectName(f"Label_{obj_name}")
+        lcd = QLCDNumber()
+        lcd.setObjectName(obj_name)
+        lcd.setDigitCount(9)
+        lcd.setFixedHeight(40)
+
+        layout.addWidget(label)
+        layout.addWidget(lcd)
+        return wrapper, lcd

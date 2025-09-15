@@ -12,7 +12,9 @@ from ui.account_ui import Ui_Account
 from ui.settings_ui import Ui_Settings
 from ui.simple_page_ui import Ui_SimplePage
 from ui.report_ui import Ui_Report
-from controllers.report import ReportController
+
+# from controllers.report import ReportController
+
 
 class HomePage(object):
     def setupUi(self, Home):
@@ -147,9 +149,9 @@ class HomePage(object):
         self.page_report = QtWidgets.QWidget()
         self.ui_report = Ui_Report()
         self.ui_report.setupUi(self.page_report)
-        # Controller
-        self.report_controller = ReportController(self.ui_report)
-        
+        # Report Controller
+        # self.report_controller = ReportController(self.ui_report)
+
         # Employees Page
         self.page_employees = QtWidgets.QWidget()
         self.ui_employees = Ui_Employees()

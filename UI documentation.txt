@@ -13,15 +13,15 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 3. filter records by phone or Ghana card (auto filter as you type in the filter input)
 4. double-click any column to edit it from the table
 
-       ======Stock(Retail / Wholesale) UI======
+       ======StocUI======
 1. fill forms to save to stock (all fields are compulsory)
 2. click any row to fill back all datasets into thier respective inputs for quick delete & update
 3. mistakenly click on wrong row, use "CLEAR" button to clear all inputs
 4. filter records by "item name" (auto filter as you type in the filter input)
 5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
 6. on stock table, the progressBar value in the quantity column should be same as item quantity
-7. 3 LCD to display overall sum of cost price, selling price & profit of the stock
-8. "Category" field added to the Wholesale to differentiate between items on sales and report UI
+7. 6 LCDs to display overall count & sum of stock items costs prices, selling prices & profits of the stock
+8. "Category" field added to the UI to differentiate between items on sales and report UI
 
        ======login UI======
 1. login with email / phone and password
@@ -83,3 +83,19 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
        Refund -> sum up all the items prices being refunded
        loss -> sum up all profit loss
 NOTE: items return are added back to stock automatically
+
+
+       ======Report UI Page======
+1. report use ReportLab library to display records
+2. narrow search by setting dates and category to search
+3. generate button preview the search
+4. clear button to set all LCD and inputs to default values
+5. each category selected will have its corresponding LCD label
+       e.g: category = expenditure, then LCD label changes to meet the information being preview
+
+              ======Dashbord UI Page======
+1. display values as the KPI cards show e.g "total transaction", Low stock"..etc.
+2. Charts
+       top Selling Items -> display items according to thier buying damageStatusInput
+       sales Trends -> display sales trend of the week
+3. table display recent activities

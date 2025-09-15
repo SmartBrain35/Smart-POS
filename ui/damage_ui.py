@@ -220,7 +220,7 @@ class Ui_Damage(object):
         lcds_v.setSpacing(8)
         lcds_v.setAlignment(
             QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
-        )  # Pin to bottom
+        )
 
         def _lcd_block(title, obj_name):
             w = QtWidgets.QWidget()
@@ -232,7 +232,7 @@ class Ui_Damage(object):
             lbl.setStyleSheet("color: black; font-weight: bold;")
             lbl.setAlignment(
                 QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft
-            )  # Align labels to top-left
+            )
             lcd = QtWidgets.QLCDNumber()
             lcd.setObjectName(obj_name)
             lcd.setDigitCount(9)

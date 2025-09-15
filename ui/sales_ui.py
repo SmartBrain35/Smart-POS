@@ -39,10 +39,7 @@ class Ui_Sales(object):
         )
         left_col.addWidget(self.tableItemList, stretch=1)
 
-        self.sales_layout.addLayout(
-            left_col, 2
-        )  # Reduced stretch to make left narrower
-
+        self.sales_layout.addLayout(left_col, 2)
         # ---------------- CENTER COLUMN (Top controls, Cart Table, Below area) ----------------
         center_col = QtWidgets.QVBoxLayout()
         center_col.setSpacing(10)
@@ -60,18 +57,20 @@ class Ui_Sales(object):
         fields_h = QtWidgets.QHBoxLayout()
         fields_h.setSpacing(6)
 
-        lbl_qty_in_stock = QtWidgets.QLabel("Qty in Stock:")
+        lbl_qty_in_stock = QtWidgets.QLabel("Stock Qty:")
         lbl_qty_in_stock.setObjectName("labelQtyInStock")
         lbl_qty_in_stock.setStyleSheet("color: black; font-weight: bold;")
         self.inputQtyInStock = QtWidgets.QLineEdit()
+        self.inputQtyInStock.setReadOnly(True)
         self.inputQtyInStock.setObjectName("inputQtyInStock")
         self.inputQtyInStock.setFixedHeight(40)
         self.inputQtyInStock.setFixedWidth(120)
 
-        lbl_stock_price = QtWidgets.QLabel("Stock Price:")
+        lbl_stock_price = QtWidgets.QLabel("Price:")
         lbl_stock_price.setObjectName("labelStockPrice")
         lbl_stock_price.setStyleSheet("color: black; font-weight: bold;")
         self.inputStockPrice = QtWidgets.QLineEdit()
+        self.inputStockPrice.setReadOnly(True)
         self.inputStockPrice.setObjectName("inputStockPrice")
         self.inputStockPrice.setFixedHeight(40)
         self.inputStockPrice.setFixedWidth(120)
@@ -80,6 +79,7 @@ class Ui_Sales(object):
         lbl_category.setObjectName("labelCategory")
         lbl_category.setStyleSheet("color: black; font-weight: bold;")
         self.inputCategory = QtWidgets.QLineEdit()
+        self.inputCategory.setReadOnly(True)
         self.inputCategory.setObjectName("inputCategory")
         self.inputCategory.setFixedHeight(40)
         self.inputCategory.setFixedWidth(120)
@@ -102,13 +102,13 @@ class Ui_Sales(object):
 
         self.checkIncludeDate = QtWidgets.QCheckBox("Include Date")
         self.checkIncludeDate.setObjectName("checkIncludeDate")
-        self.checkIncludeDate.setText("")  # Clear checkbox label
+        self.checkIncludeDate.setText("")
 
         self.dateInvoice = QtWidgets.QDateEdit(QtCore.QDate.currentDate())
-        self.dateInvoice.setObjectName("dateInvoice")
         self.dateInvoice.setCalendarPopup(True)
+        self.dateInvoice.setObjectName("dateInvoice")
         self.dateInvoice.setFixedHeight(40)
-        self.dateInvoice.setFixedWidth(150)  # Adjusted for better fit
+        self.dateInvoice.setFixedWidth(150)
 
         group_right_top.addWidget(self.checkIncludeDate)
         group_right_top.addWidget(self.dateInvoice)
@@ -124,8 +124,8 @@ class Ui_Sales(object):
 
         # Quantity sold with label (close gap)
         qty_sold_h = QtWidgets.QHBoxLayout()
-        qty_sold_h.setSpacing(2)  # Close the gap between label and QSpinBox
-
+        qty_sold_h.setSpacing(2)
+        
         lbl_qty_sold = QtWidgets.QLabel("Quantity Sold:")
         lbl_qty_sold.setObjectName("labelQtySold")
         lbl_qty_sold.setStyleSheet("color: black; font-weight: bold;")
@@ -163,6 +163,7 @@ class Ui_Sales(object):
         lbl_invoice.setObjectName("labelInvoiceID")
         lbl_invoice.setStyleSheet("color: black; font-weight: bold;")
         self.inputInvoiceID = QtWidgets.QLineEdit()
+        self.inputInvoiceID.setReadOnly(True)
         self.inputInvoiceID.setObjectName("inputInvoiceID")
         self.inputInvoiceID.setFixedHeight(40)
         self.inputInvoiceID.setFixedWidth(160)
@@ -192,7 +193,7 @@ class Ui_Sales(object):
         self.tableCheckoutCart.setAlternatingRowColors(False)
         self.tableCheckoutCart.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch
-        )  # Stretch item name column
+        )
         self.tableCheckoutCart.horizontalHeader().setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeToContents
         )
@@ -208,15 +209,13 @@ class Ui_Sales(object):
         self.tableCheckoutCart.horizontalHeader().setSectionResizeMode(
             5, QtWidgets.QHeaderView.ResizeToContents
         )
-        self.tableCheckoutCart.setMinimumHeight(250)  # Base height
-        center_col.addWidget(
-            self.tableCheckoutCart, stretch=1
-        )  # Allow table to expand vertically
+        self.tableCheckoutCart.setMinimumHeight(250)
+        center_col.addWidget(self.tableCheckoutCart, stretch=1)
 
         # Below cart table: LCDs, payment, buttons, daily sales/profit
         below_h = QtWidgets.QHBoxLayout()
-        below_h.setSpacing(30)  # Increased horizontal gap between LCDs and inputs
-        below_h.setAlignment(QtCore.Qt.AlignBottom)  # Push content to bottom
+        below_h.setSpacing(30)
+        below_h.setAlignment(QtCore.Qt.AlignBottom)
 
         # LCDs (vertical stack, below cart) - Gross, Discount, Total
         lcds_v = QtWidgets.QVBoxLayout()
@@ -231,9 +230,7 @@ class Ui_Sales(object):
             lbl = QtWidgets.QLabel(title)
             lbl.setObjectName(f"label_{obj_name}")
             lbl.setStyleSheet("color: black; font-weight: bold;")
-            lbl.setAlignment(
-                QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft
-            )  # Label on top left
+            lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
             lcd = QtWidgets.QLCDNumber()
             lcd.setObjectName(obj_name)
             lcd.setDigitCount(9)
@@ -242,7 +239,7 @@ class Ui_Sales(object):
             lcd.setFixedWidth(180)
             w_layout.addWidget(lbl)
             w_layout.addWidget(lcd)
-            w_layout.addStretch(0)  # Ensure consistent alignment
+            w_layout.addStretch(0)
             return w, lcd
 
         box_gross, self.lcdGross = _lcd_block("Gross", "lcdGross")
@@ -267,36 +264,36 @@ class Ui_Sales(object):
 
         # First row: Save and Print
         row1 = QtWidgets.QHBoxLayout()
-        row1.setSpacing(20)  # Increased horizontal gap between buttons
+        row1.setSpacing(20)
         row1.setAlignment(QtCore.Qt.AlignRight)
 
         self.btnSave = QtWidgets.QPushButton("SAVE")
         self.btnSave.setObjectName("btnSaveSale")
-        self.btnSave.setFixedHeight(30)  # Increased height
-        self.btnSave.setFixedWidth(150)  # Increased width
+        self.btnSave.setFixedHeight(30)
+        self.btnSave.setFixedWidth(150)
 
         self.btnPrint = QtWidgets.QPushButton("PRINT")
         self.btnPrint.setObjectName("btnPrintSale")
-        self.btnPrint.setFixedHeight(30)  # Increased height
-        self.btnPrint.setFixedWidth(150)  # Increased width
+        self.btnPrint.setFixedHeight(30)
+        self.btnPrint.setFixedWidth(150)
 
         row1.addWidget(self.btnSave)
         row1.addWidget(self.btnPrint)
 
         # Second row: Complete and Clear
         row2 = QtWidgets.QHBoxLayout()
-        row2.setSpacing(20)  # Increased horizontal gap between buttons
+        row2.setSpacing(20)
         row2.setAlignment(QtCore.Qt.AlignRight)
 
         self.btnComplete = QtWidgets.QPushButton("COMPLETE")
         self.btnComplete.setObjectName("btnCompleteSale")
-        self.btnComplete.setFixedHeight(35)  # Increased height
-        self.btnComplete.setFixedWidth(150)  # Increased width
+        self.btnComplete.setFixedHeight(35)
+        self.btnComplete.setFixedWidth(150)
 
         self.btnClear = QtWidgets.QPushButton("CLEAR")
         self.btnClear.setObjectName("btnClearSale")
-        self.btnClear.setFixedHeight(35)  # Increased height
-        self.btnClear.setFixedWidth(150)  # Increased width
+        self.btnClear.setFixedHeight(35)
+        self.btnClear.setFixedWidth(150)
 
         row2.addWidget(self.btnComplete)
         row2.addWidget(self.btnClear)
@@ -319,8 +316,8 @@ class Ui_Sales(object):
         self.comboPaymentMethod = QtWidgets.QComboBox()
         self.comboPaymentMethod.setObjectName("comboPaymentMethod")
         self.comboPaymentMethod.addItems(["Cash", "MoMo", "Card"])
-        self.comboPaymentMethod.setFixedHeight(40)  # Matches search input height
-        self.comboPaymentMethod.setFixedWidth(150)  # Reduced width
+        self.comboPaymentMethod.setFixedHeight(40)
+        self.comboPaymentMethod.setFixedWidth(150)
         payment_method_h.addWidget(lbl_payment_method)
         payment_method_h.addWidget(self.comboPaymentMethod)
         payment_fields_v.addLayout(payment_method_h)
@@ -333,8 +330,8 @@ class Ui_Sales(object):
         lbl_discount.setStyleSheet("color: black; font-weight: bold;")
         self.inputDiscount = QtWidgets.QLineEdit()
         self.inputDiscount.setObjectName("inputDiscount")
-        self.inputDiscount.setFixedHeight(40)  # Matches search input height
-        self.inputDiscount.setFixedWidth(150)  # Reduced width
+        self.inputDiscount.setFixedHeight(40)
+        self.inputDiscount.setFixedWidth(150)
         discount_h.addWidget(lbl_discount)
         discount_h.addWidget(self.inputDiscount)
         payment_fields_v.addLayout(discount_h)
@@ -347,8 +344,8 @@ class Ui_Sales(object):
         lbl_amount.setStyleSheet("color: black; font-weight: bold;")
         self.inputAmountPaid = QtWidgets.QLineEdit()
         self.inputAmountPaid.setObjectName("inputAmountPaid")
-        self.inputAmountPaid.setFixedHeight(40)  # Matches search input height
-        self.inputAmountPaid.setFixedWidth(150)  # Reduced width
+        self.inputAmountPaid.setFixedHeight(40)
+        self.inputAmountPaid.setFixedWidth(150)
         amount_h.addWidget(lbl_amount)
         amount_h.addWidget(self.inputAmountPaid)
         payment_fields_v.addLayout(amount_h)
@@ -362,8 +359,8 @@ class Ui_Sales(object):
         self.inputChange = QtWidgets.QLineEdit()
         self.inputChange.setObjectName("inputChange")
         self.inputChange.setReadOnly(True)
-        self.inputChange.setFixedHeight(40)  # Matches search input height
-        self.inputChange.setFixedWidth(150)  # Reduced width
+        self.inputChange.setFixedHeight(40)
+        self.inputChange.setFixedWidth(150)
         change_h.addWidget(lbl_change)
         change_h.addWidget(self.inputChange)
         payment_fields_v.addLayout(change_h)
