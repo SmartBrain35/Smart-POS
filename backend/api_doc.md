@@ -58,3 +58,46 @@ AccountAPI.delete_account(account_id: int)
 ```
 
 ---
+
+## Employee Management
+
+```python
+# Add new employee
+EmployeeAPI.create_employee(
+    name: str,
+    phone: str,
+    ghana_card: str,
+    address: str | None = None,
+    salary: float | None = None,
+    designation: str = "admin"
+)
+# designation options: "admin", "manager", "cashier", "sales_person"
+# Returns: {"success": bool, "employee": {...}, "error": str}
+# employee: {"id", "name", "phone", "ghana_card", "address", "hire_date", "salary",
+#            "designation", "created_at", "updated_at"}
+
+# Get all employees (for table display)
+EmployeeAPI.get_all_employees()
+# Returns: {"success": bool, "employees": [{}...], "error": str}
+# employee: {"id", "name", "phone", "ghana_card", "address", "hire_date", "salary",
+#            "designation", "created_at", "updated_at"}
+
+# Filter employees by phone or Ghana card
+EmployeeAPI.filter_employees(search_term: str)
+# Returns: {"success": bool, "employees": [{}...], "error": str}
+# employee: {"id", "name", "phone", "ghana_card", "address", "hire_date", "salary",
+#            "designation", "created_at", "updated_at"}
+
+# Update specific employee field (for inline editing)
+EmployeeAPI.update_employee_field(employee_id: int, field: str, value: Any)
+# Allowed fields: "name", "phone", "ghana_card", "address", "salary", "designation"
+# Returns: {"success": bool, "employee": {...}, "error": str}
+# employee: {"id", "name", "phone", "ghana_card", "address", "hire_date", "salary",
+#            "designation", "created_at", "updated_at"}
+
+# Delete employee
+EmployeeAPI.delete_employee(employee_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+```
+
+---
