@@ -54,7 +54,7 @@ class Account(SQLModel, table=True):
     phone: str = Field(unique=True, index=True)
     email: str = Field(unique=True, index=True)
     password: str
-    role: UserRole = Field(default=UserRole.SALES_PERSON)
+    role: UserRole = Field(default=UserRole.ADMIN)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
