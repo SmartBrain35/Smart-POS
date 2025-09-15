@@ -157,7 +157,7 @@ class Damage(BaseModel, table=True):
     damage_date: date = Field(default_factory=date.today, index=True)
     created_at: datetime = Field(default_factory=datetime.now)
 
-    stock: Stock = Relationship(back_populates="damage")
+    stock: Stock = Relationship(back_populates="damaged_item")
 
 
 class Expenditure(BaseModel, table=True):

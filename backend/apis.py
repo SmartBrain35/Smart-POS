@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from typing import Any
 from sqlmodel import select, and_, or_, func
-from sqlalchemy.exc import IntegrityError
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.storage.models import (
@@ -84,6 +83,7 @@ class AccountAPI:
                     "account": account.model_dump(exclude={'password'})
                 }
         except Exception as e:
+            # print(e)
             return {"success": False, "error": str(e)}
 
     @staticmethod
