@@ -46,7 +46,15 @@ class ReturnReason(str, Enum):
     MIND_CHANGE = "mind_change"
 
 
-class Account(SQLModel, table=True):
+class BaseModel(SQLModel):
+    model_config = {
+        "ser_json_encoders": {
+            Enum: lambda v: v.value
+        }
+    }
+
+
+class Account(BaseModel, table=True):
     __tablename__ = 'accounts'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -54,14 +62,14 @@ class Account(SQLModel, table=True):
     phone: str = Field(unique=True, index=True)
     email: str = Field(unique=True, index=True)
     password: str
-    role: UserRole = Field(default=UserRole.SALES_PERSON)
+    role: UserRole = Field(default=UserRole.ADMIN)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
     sales: list["Sale"] = Relationship(back_populates="cashier")
 
 
-class Employee(SQLModel, table=True):
+class Employee(BaseModel, table=True):
     __tablename__ = 'employees'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -76,7 +84,7 @@ class Employee(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
-class Stock(SQLModel, table=True):
+class Stock(BaseModel, table=True):
     __tablename__ = 'stocks'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -110,7 +118,7 @@ class Stock(SQLModel, table=True):
         return self.quantity * self.profit_per_unit
 
 
-class Sale(SQLModel, table=True):
+class Sale(BaseModel, table=True):
     __tablename__ = 'sales'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -128,7 +136,7 @@ class Sale(SQLModel, table=True):
     returned_items: list["Return"] = Relationship(back_populates="sale")
 
 
-class SaleItem(SQLModel, table=True):
+class SaleItem(BaseModel, table=True):
     __tablename__ = 'sale_items'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -140,7 +148,7 @@ class SaleItem(SQLModel, table=True):
     stock: Stock = Relationship(back_populates="sale_item")
 
 
-class Damage(SQLModel, table=True):
+class Damage(BaseModel, table=True):
     __tablename__ = 'damages'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -152,7 +160,7 @@ class Damage(SQLModel, table=True):
     stock: Stock = Relationship(back_populates="damage")
 
 
-class Expenditure(SQLModel, table=True):
+class Expenditure(BaseModel, table=True):
     __tablename__ = 'expenditures'
 
     id: int | None = Field(default=None, primary_key=True)
@@ -164,7 +172,7 @@ class Expenditure(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
-class Return(SQLModel, table=True):
+class Return(BaseModel, table=True):
     __tablename__ = 'returns'
 
     id: int | None = Field(default=None, primary_key=True)
