@@ -230,3 +230,36 @@ DamageAPI.update_damage(
 DamageAPI.delete_damage(damage_id: int)
 # Returns: {"success": bool, "message": str, "error": str}
 ```
+
+## Expenditure Management
+
+```python
+# Create new expenditure
+ExpenditureAPI.create_expenditure(description: str, amount: float, category: str, expense_date: str | None = None)
+# category options: values from ExpenditureCategory enum
+# expense_date format: "YYYY-MM-DD" (optional, defaults to today)
+# Returns: {"success": bool, "expenditure": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+
+# Get all expenditures (with summaries)
+ExpenditureAPI.get_all_expenditures()
+# Returns: {"success": bool, "expenditures": [{}...], "summary": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+# summary: {"weekly_total": float, "monthly_total": float, "yearly_total": float}
+
+# Update expenditure
+ExpenditureAPI.update_expenditure(expenditure_id: int, description: str, amount: float, category: str, expense_date: str)
+# category options: values from ExpenditureCategory enum
+# expense_date format: "YYYY-MM-DD"
+# Returns: {"success": bool, "expenditure": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+
+# Delete expenditure
+ExpenditureAPI.delete_expenditure(expenditure_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+
+# Filter expenditures by description
+ExpenditureAPI.filter_expenditures(search_term: str)
+# Returns: {"success": bool, "expenditures": [{}...], "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+```

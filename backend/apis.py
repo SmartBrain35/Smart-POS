@@ -1,10 +1,10 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Any
 from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.schemas import (
-    AccountRead, EmployeeRead, StockRead, SaleRead
+    AccountRead, EmployeeRead, StockRead, ExpenditureRead
 )
 
 from backend.storage.models import (
@@ -109,11 +109,11 @@ class AccountAPI:
     @staticmethod
     def update_account(
         account_id: int,
-        name: str | None = None,
-        phone: str | None = None,
-        email: str | None = None,
-        password: str | None = None,
-        role: str | None = None
+        name: str,
+        phone: str,
+        email: str,
+        password: str,
+        role: str
     ) -> dict[str, Any]:
         """Update account details"""
         try:
@@ -452,12 +452,12 @@ class StockAPI:
     @staticmethod
     def update_stock(
         stock_id: int,
-        item_name: str | None = None,
-        quantity: int | None = None,
-        cost_price: float | None = None,
-        selling_price: float | None = None,
-        category: str | None = None,
-        expiry_date: str | None = None
+        item_name: str,
+        quantity: int,
+        cost_price: float,
+        selling_price: float,
+        category: str,
+        expiry_date: str
     ) -> dict[str, Any]:
         """Update stock item"""
         try:
@@ -918,5 +918,170 @@ class DamageAPI:
 
                 session.delete(damage)
                 return {"success": True, "message": "Damage deleted and stock restored"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+class ExpenditureAPI:
+    """CRUD operations for Expenditure management"""
+
+    @staticmethod
+    def create_expenditure(
+        description: str,
+        amount: float,
+        category: str,
+        expense_date: str | None = None
+    ) -> dict[str, Any]:
+        """Create new expenditure record"""
+        try:
+            with get_session() as session:
+                # Validate category
+                try:
+                    exp_category = ExpenditureCategory(category)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid category: {category}"}
+
+                # Parse expense date
+                parsed_date = date.today()
+                if expense_date:
+                    try:
+                        parsed_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid expense date format (YYYY-MM-DD)"}
+
+                expenditure = Expenditure(
+                    description=description,
+                    amount=amount,
+                    category=exp_category,
+                    expense_date=parsed_date
+                )
+
+                session.add(expenditure)
+                session.flush()
+                session.refresh(expenditure)
+
+                return {
+                    "success": True,
+                    "expenditure": ExpenditureRead.model_validate(expenditure).model_dump()
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_all_expenditures() -> dict[str, Any]:
+        """Get all expenditures with period summaries"""
+        try:
+            with get_session() as session:
+                expenditures = session.exec(select(Expenditure)).all()
+
+                # Calculate period totals
+                today = date.today()
+                current_year = today.year
+
+                # Weekly (last 7 days)
+                week_start = today - timedelta(days=7)
+                weekly_total = sum(
+                    exp.amount for exp in expenditures
+                    if exp.expense_date >= week_start
+                )
+
+                # Monthly (current month)
+                monthly_total = sum(
+                    exp.amount for exp in expenditures
+                    if exp.expense_date.year == current_year and exp.expense_date.month == today.month
+                )
+
+                # Yearly (current year)
+                yearly_total = sum(
+                    exp.amount for exp in expenditures
+                    if exp.expense_date.year == current_year
+                )
+
+                return {
+                    "success": True,
+                    "expenditures": [
+                        ExpenditureRead.model_validate(exp).model_dump()
+                        for exp in expenditures
+                    ],
+                    "summary": {
+                        "weekly_total": weekly_total,
+                        "monthly_total": monthly_total,
+                        "yearly_total": yearly_total
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def update_expenditure(
+        expenditure_id: int,
+        description: str,
+        amount: float,
+        category: str,
+        expense_date: str
+    ) -> dict[str, Any]:
+        """Update expenditure record"""
+        try:
+            with get_session() as session:
+                expenditure = session.get(Expenditure, expenditure_id)
+                if not expenditure:
+                    return {"success": False, "error": "Expenditure not found"}
+
+                # Validate category
+                try:
+                    exp_category = ExpenditureCategory(category)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid category: {category}"}
+
+                # Parse expense date
+                try:
+                    parsed_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
+                except ValueError:
+                    return {"success": False, "error": "Invalid expense date format (YYYY-MM-DD)"}
+
+                expenditure.description = description
+                expenditure.amount = amount
+                expenditure.category = exp_category
+                expenditure.expense_date = parsed_date
+                expenditure.updated_at = datetime.now()
+
+                session.flush()
+                return {
+                    "success": True,
+                    "expenditure": ExpenditureRead.model_validate(expenditure).model_dump()
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_expenditure(expenditure_id: int) -> dict[str, Any]:
+        """Delete expenditure record"""
+        try:
+            with get_session() as session:
+                expenditure = session.get(Expenditure, expenditure_id)
+                if not expenditure:
+                    return {"success": False, "error": "Expenditure not found"}
+
+                session.delete(expenditure)
+                return {"success": True, "message": "Expenditure deleted successfully"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def filter_expenditures(search_term: str) -> dict[str, Any]:
+        """Filter expenditures by description"""
+        try:
+            with get_session() as session:
+                expenditures = session.exec(
+                    select(Expenditure).where(Expenditure.description.contains(search_term))
+                ).all()
+
+                return {
+                    "success": True,
+                    "expenditures": [
+                        ExpenditureRead.model_validate(exp).model_dump()
+                        for exp in expenditures
+                    ]
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
