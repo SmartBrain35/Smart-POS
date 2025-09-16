@@ -3,6 +3,10 @@ from typing import Any
 from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
+from backend.schemas import (
+    AccountRead, EmployeeRead, StockRead
+)
+
 from backend.storage.models import (
     Account,
     Employee,
@@ -20,6 +24,7 @@ from backend.storage.models import (
     ExpenditureCategory,
     ReturnReason,
 )
+
 
 
 class AccountAPI:
@@ -67,7 +72,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={"password"}),
+                    "account": account.model_dump(exclude={'password'})
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -94,7 +99,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={"password"}),
+                    "account": account.model_dump(exclude={'password'})
                 }
         except Exception as e:
             # print(e)
@@ -109,8 +114,8 @@ class AccountAPI:
                 return {
                     "success": True,
                     "accounts": [
-                        acc.model_dump(exclude={"password"}) for acc in accounts
-                    ],
+                        acc.model_dump(exclude={'password'})  for acc in accounts
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -162,7 +167,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={"password"}),
+                    "account": account.model_dump(exclude={'password'})
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -242,7 +247,7 @@ class EmployeeAPI:
                 session.commit()
                 session.refresh(employee)
 
-                return {"success": True, "employee": employee.model_dump()}
+                return {"success": True, "employee": EmployeeRead.model_validate(employee).model_dump()}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -254,7 +259,9 @@ class EmployeeAPI:
                 employees = session.exec(select(Employee)).all()
                 return {
                     "success": True,
-                    "employees": [emp.model_dump() for emp in employees],
+                    "employees": [
+                        emp.model_dump() for emp in employees
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -275,7 +282,9 @@ class EmployeeAPI:
 
                 return {
                     "success": True,
-                    "employees": [emp.model_dump() for emp in employees],
+                    "employees": [
+                        emp.model_dump() for emp in employees
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -338,7 +347,7 @@ class EmployeeAPI:
                     }
 
                 employee.updated_at = datetime.now()
-                return {"success": True, "employee": employee.model_dump()}
+                return {"success": True, "employee": Employee.model_validate(employee).model_dump()}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -361,18 +370,11 @@ class StockAPI:
     """CRUD operations for Stock management with business logic"""
 
     @staticmethod
-    def add_stock(
-        item_name: str,
-        quantity: int,
-        cost_price: float,
-        selling_price: float,
-        category: str = "retail",
-        expiry_date: str | None = None,
-    ) -> dict[str, Any]:
+    def add_stock(item_name: str, quantity: int, cost_price: float, selling_price: float,
+                  category: str = "retail", expiry_date: str | None = None) -> dict[str, Any]:
         """Add new stock item"""
         try:
             with get_session() as session:
-                # Validate category
                 try:
                     stock_type = StockType(category)
                 except ValueError:
@@ -400,18 +402,13 @@ class StockAPI:
                     # Update existing stock
                     existing.quantity += quantity
                     existing.cost_price = cost_price  # Update with new cost price
-                    existing.selling_price = (
-                        selling_price  # Update with new selling price
-                    )
+                    existing.selling_price = selling_price  # Update with new selling price
                     existing.updated_at = datetime.now()
                     if parsed_expiry:
                         existing.expiry_date = parsed_expiry
 
                     session.commit()
-                    return {
-                        "success": True,
-                        "message": f"Stock updated. New quantity: {existing.quantity}",
-                    }
+                    return {"success": True, "message": f"Stock updated. New quantity: {existing.quantity}"}
                 else:
                     # Create new stock item
                     stock = Stock(
@@ -427,11 +424,7 @@ class StockAPI:
                     session.commit()
                     session.refresh(stock)
 
-                    return {
-                        "success": True,
-                        "stock_id": stock.id,
-                        "message": "Stock added successfully",
-                    }
+                    return {"success": True, "stock_id": stock.id, "message": "Stock added successfully"}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -441,10 +434,17 @@ class StockAPI:
         try:
             with get_session() as session:
                 stocks = session.exec(select(Stock)).all()
+                wholesale_stocks = [
+                    stock
+                    for stock in stocks
+                    if stock.category == StockType.WHOLESALE
+                ]
 
-                total_cost = sum(stock.total_cost_value for stock in stocks)
-                total_selling = sum(stock.total_selling_value for stock in stocks)
-                total_profit = sum(stock.total_profit_potential for stock in stocks)
+                retail_stocks = [
+                    stock
+                    for stock in stocks
+                    if stock.category == StockType.RETAIL
+                ]
 
                 return {
                     "success": True,
@@ -456,23 +456,18 @@ class StockAPI:
                             "cost_price": stock.cost_price,
                             "selling_price": stock.selling_price,
                             "category": stock.category.value,
-                            "expiry_date": (
-                                stock.expiry_date.isoformat()
-                                if stock.expiry_date
-                                else None
-                            ),
+                            "expiry_date": stock.expiry_date.isoformat() if stock.expiry_date else None,
                             "profit_per_unit": stock.profit_per_unit,
                             "total_cost_value": stock.total_cost_value,
                             "total_selling_value": stock.total_selling_value,
-                            "total_profit_potential": stock.total_profit_potential,
-                        }
-                        for stock in stocks
+                            "total_profit_potential": stock.total_profit_potential
+                        } for stock in stocks
                     ],
                     "summary": {
                         "total_cost": total_cost,
                         "total_selling": total_selling,
-                        "total_profit": total_profit,
-                    },
+                        "total_profit": total_profit
+                    }
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -496,29 +491,17 @@ class StockAPI:
                             "cost_price": stock.cost_price,
                             "selling_price": stock.selling_price,
                             "category": stock.category.value,
-                            "expiry_date": (
-                                stock.expiry_date.isoformat()
-                                if stock.expiry_date
-                                else None
-                            ),
-                            "profit_per_unit": stock.profit_per_unit,
-                        }
-                        for stock in stocks
-                    ],
+                            "expiry_date": stock.expiry_date.isoformat() if stock.expiry_date else None,
+                            "profit_per_unit": stock.profit_per_unit
+                        } for stock in stocks
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def update_stock(
-        stock_id: int,
-        item_name: str,
-        quantity: int,
-        cost_price: float,
-        selling_price: float,
-        category: str,
-        expiry_date: str | None = None,
-    ) -> dict[str, Any]:
+    def update_stock(stock_id: int, item_name: str, quantity: int, cost_price: float,
+                    selling_price: float, category: str, expiry_date: str | None = None) -> dict[str, Any]:
         """Update stock item"""
         try:
             with get_session() as session:
@@ -526,7 +509,6 @@ class StockAPI:
                 if not stock:
                     return {"success": False, "error": "Stock item not found"}
 
-                # Validate category
                 try:
                     stock_type = StockType(category)
                 except ValueError:
@@ -554,7 +536,8 @@ class StockAPI:
                 stock.updated_at = datetime.now()
 
                 session.commit()
-                return {"success": True, "message": "Stock updated successfully"}
+                session.refresh(stock)
+                return {"success": True, "stock": StockRead.model_validate(stock).model_dump()}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -578,7 +561,6 @@ class StockAPI:
                     }
 
                 session.delete(stock)
-                session.commit()
                 return {"success": True, "message": "Stock deleted successfully"}
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -600,7 +582,6 @@ class StockAPI:
 
                 stock.quantity -= quantity
                 stock.updated_at = datetime.now()
-                session.commit()
 
                 return {"success": True, "new_quantity": stock.quantity}
         except Exception as e:
@@ -617,7 +598,6 @@ class StockAPI:
 
                 stock.quantity += quantity
                 stock.updated_at = datetime.now()
-                session.commit()
 
                 return {"success": True, "new_quantity": stock.quantity}
         except Exception as e:
@@ -628,13 +608,8 @@ class SaleAPI:
     """CRUD operations for Sales management with business logic"""
 
     @staticmethod
-    def create_sale(
-        cashier_id: int,
-        sale_items: list[dict],
-        discount_amount: float = 0,
-        payment_method: str = "cash",
-        sale_date: str | None = None,
-    ) -> dict[str, Any]:
+    def create_sale(cashier_id: int, sale_items: list[dict], discount_amount: float = 0,
+                   payment_method: str = "cash", sale_date: str | None = None) -> dict[str, Any]:
         """Create a new sale with multiple items"""
         try:
             with get_session() as session:
@@ -642,10 +617,7 @@ class SaleAPI:
                 try:
                     pay_method = PaymentMethod(payment_method)
                 except ValueError:
-                    return {
-                        "success": False,
-                        "error": f"Invalid payment method: {payment_method}",
-                    }
+                    return {"success": False, "error": f"Invalid payment method: {payment_method}"}
 
                 # Parse sale date
                 parsed_date = date.today()
@@ -653,10 +625,7 @@ class SaleAPI:
                     try:
                         parsed_date = datetime.strptime(sale_date, "%Y-%m-%d").date()
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid sale date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid sale date format (YYYY-MM-DD)"}
 
                 # Validate cashier exists
                 cashier = session.get(Account, cashier_id)
@@ -673,27 +642,19 @@ class SaleAPI:
 
                     stock = session.get(Stock, stock_id)
                     if not stock:
-                        return {
-                            "success": False,
-                            "error": f"Stock item {stock_id} not found",
-                        }
+                        return {"success": False, "error": f"Stock item {stock_id} not found"}
 
                     if stock.quantity < quantity_sold:
-                        return {
-                            "success": False,
-                            "error": f"Insufficient stock for {stock.item_name}. Available: {stock.quantity}",
-                        }
+                        return {"success": False, "error": f"Insufficient stock for {stock.item_name}. Available: {stock.quantity}"}
 
                     item_total = stock.selling_price * quantity_sold
                     gross_total += item_total
 
-                    validated_items.append(
-                        {
-                            "stock": stock,
-                            "quantity_sold": quantity_sold,
-                            "item_total": item_total,
-                        }
-                    )
+                    validated_items.append({
+                        "stock": stock,
+                        "quantity_sold": quantity_sold,
+                        "item_total": item_total
+                    })
 
                 # Calculate final total
                 total = gross_total - discount_amount
@@ -704,7 +665,7 @@ class SaleAPI:
                     discount_amount=discount_amount,
                     amount_paid=0,  # Will be set when payment is processed
                     payment_method=pay_method,
-                    cashier_id=cashier_id,
+                    cashier_id=cashier_id
                 )
 
                 session.add(sale)
@@ -715,7 +676,7 @@ class SaleAPI:
                     sale_item = SaleItem(
                         sale_id=sale.id,
                         stock_id=item_data["stock"].id,
-                        quantity_sold=item_data["quantity_sold"],
+                        quantity_sold=item_data["quantity_sold"]
                     )
                     session.add(sale_item)
 
@@ -732,7 +693,7 @@ class SaleAPI:
                     "gross_total": gross_total,
                     "discount": discount_amount,
                     "total": total,
-                    "message": "Sale created successfully",
+                    "message": "Sale created successfully"
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -747,9 +708,7 @@ class SaleAPI:
                     return {"success": False, "error": "Sale not found"}
 
                 # Calculate sale total
-                sale_items = session.exec(
-                    select(SaleItem).where(SaleItem.sale_id == sale_id)
-                ).all()
+                sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale_id)).all()
                 gross_total = sum(
                     item.quantity_sold * session.get(Stock, item.stock_id).selling_price
                     for item in sale_items
@@ -757,10 +716,7 @@ class SaleAPI:
                 total = gross_total - sale.discount_amount
 
                 if amount_paid < total:
-                    return {
-                        "success": False,
-                        "error": f"Insufficient payment. Required: {total}",
-                    }
+                    return {"success": False, "error": f"Insufficient payment. Required: {total}"}
 
                 change_given = amount_paid - total
 
@@ -772,7 +728,7 @@ class SaleAPI:
                     "success": True,
                     "total": total,
                     "amount_paid": amount_paid,
-                    "change": change_given,
+                    "change": change_given
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -787,28 +743,16 @@ class SaleAPI:
                     try:
                         target_date = datetime.strptime(sale_date, "%Y-%m-%d").date()
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid date format (YYYY-MM-DD)"}
 
                 # Get daily sales
-                sales = session.exec(
-                    select(Sale).where(Sale.sale_date == target_date)
-                ).all()
+                sales = session.exec(select(Sale).where(Sale.sale_date == target_date)).all()
 
                 daily_sales = sum(
-                    (
-                        sum(
-                            item.quantity_sold
-                            * session.get(Stock, item.stock_id).selling_price
-                            for item in session.exec(
-                                select(SaleItem).where(SaleItem.sale_id == sale.id)
-                            )
-                        )
-                        - sale.discount_amount
-                    )
-                    for sale in sales
+                    (sum(
+                        item.quantity_sold * session.get(Stock, item.stock_id).selling_price
+                        for item in session.exec(select(SaleItem).where(SaleItem.sale_id == sale.id))
+                    ) - sale.discount_amount) for sale in sales
                 )
 
                 # Calculate total items sold and profit
@@ -816,15 +760,11 @@ class SaleAPI:
                 daily_profit = 0
 
                 for sale in sales:
-                    sale_items = session.exec(
-                        select(SaleItem).where(SaleItem.sale_id == sale.id)
-                    ).all()
+                    sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale.id)).all()
                     for item in sale_items:
                         stock = session.get(Stock, item.stock_id)
                         total_items_sold += item.quantity_sold
-                        daily_profit += (
-                            stock.selling_price - stock.cost_price
-                        ) * item.quantity_sold
+                        daily_profit += (stock.selling_price - stock.cost_price) * item.quantity_sold
 
                 return {
                     "success": True,
@@ -832,7 +772,7 @@ class SaleAPI:
                     "daily_profit": daily_profit,
                     "items_sold": total_items_sold,
                     "total_discount": sum(sale.discount_amount for sale in sales),
-                    "transactions_count": len(sales),
+                    "transactions_count": len(sales)
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -846,9 +786,7 @@ class SaleAPI:
                 if not sale:
                     return {"success": False, "error": "Sale not found"}
 
-                sale_items = session.exec(
-                    select(SaleItem).where(SaleItem.sale_id == sale_id)
-                ).all()
+                sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale_id)).all()
 
                 items = []
                 gross_total = 0
@@ -858,14 +796,12 @@ class SaleAPI:
                     item_total = stock.selling_price * sale_item.quantity_sold
                     gross_total += item_total
 
-                    items.append(
-                        {
-                            "item_name": stock.item_name,
-                            "quantity": sale_item.quantity_sold,
-                            "unit_price": stock.selling_price,
-                            "total": item_total,
-                        }
-                    )
+                    items.append({
+                        "item_name": stock.item_name,
+                        "quantity": sale_item.quantity_sold,
+                        "unit_price": stock.selling_price,
+                        "total": item_total
+                    })
 
                 return {
                     "success": True,
@@ -879,7 +815,7 @@ class SaleAPI:
                     "net_total": gross_total - sale.discount_amount,
                     "amount_paid": sale.amount_paid,
                     "change": sale.change_given,
-                    "payment_method": sale.payment_method.value,
+                    "payment_method": sale.payment_method.value
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -889,9 +825,7 @@ class DamageAPI:
     """CRUD operations for Damage management"""
 
     @staticmethod
-    def record_damage(
-        stock_id: int, quantity_damaged: int, damage_date: str | None = None
-    ) -> dict[str, Any]:
+    def record_damage(stock_id: int, quantity_damaged: int, damage_date: str | None = None) -> dict[str, Any]:
         """Record damaged items and update stock"""
         try:
             with get_session() as session:
@@ -900,10 +834,7 @@ class DamageAPI:
                     return {"success": False, "error": "Stock item not found"}
 
                 if stock.quantity < quantity_damaged:
-                    return {
-                        "success": False,
-                        "error": f"Cannot damage {quantity_damaged} items. Only {stock.quantity} in stock",
-                    }
+                    return {"success": False, "error": f"Cannot damage {quantity_damaged} items. Only {stock.quantity} in stock"}
 
                 # Parse damage date
                 parsed_date = date.today()
@@ -911,16 +842,13 @@ class DamageAPI:
                     try:
                         parsed_date = datetime.strptime(damage_date, "%Y-%m-%d").date()
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid damage date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid damage date format (YYYY-MM-DD)"}
 
                 # Create damage record
                 damage = Damage(
                     stock_id=stock_id,
                     quantity_damaged=quantity_damaged,
-                    damage_date=parsed_date,
+                    damage_date=parsed_date
                 )
 
                 # Reduce stock quantity
@@ -935,7 +863,7 @@ class DamageAPI:
                     "success": True,
                     "damage_id": damage.id,
                     "remaining_stock": stock.quantity,
-                    "message": "Damage recorded and stock updated",
+                    "message": "Damage recorded and stock updated"
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -952,22 +880,17 @@ class DamageAPI:
                         target_date = datetime.strptime(filter_date, "%Y-%m-%d").date()
                         query = query.where(Damage.damage_date == target_date)
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid date format (YYYY-MM-DD)"}
 
                 damages = session.exec(query).all()
 
                 total_items = sum(damage.quantity_damaged for damage in damages)
                 total_price = sum(
-                    damage.quantity_damaged
-                    * session.get(Stock, damage.stock_id).selling_price
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price
                     for damage in damages
                 )
                 total_profit_loss = sum(
-                    damage.quantity_damaged
-                    * session.get(Stock, damage.stock_id).profit_per_unit
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).profit_per_unit
                     for damage in damages
                 )
 
@@ -980,21 +903,16 @@ class DamageAPI:
                             "item_name": session.get(Stock, damage.stock_id).item_name,
                             "quantity_damaged": damage.quantity_damaged,
                             "damage_date": damage.damage_date.isoformat(),
-                            "unit_price": session.get(
-                                Stock, damage.stock_id
-                            ).selling_price,
-                            "total_value": damage.quantity_damaged
-                            * session.get(Stock, damage.stock_id).selling_price,
-                            "profit_loss": damage.quantity_damaged
-                            * session.get(Stock, damage.stock_id).profit_per_unit,
-                        }
-                        for damage in damages
+                            "unit_price": session.get(Stock, damage.stock_id).selling_price,
+                            "total_value": damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price,
+                            "profit_loss": damage.quantity_damaged * session.get(Stock, damage.stock_id).profit_per_unit
+                        } for damage in damages
                     ],
                     "summary": {
                         "total_items": total_items,
                         "total_price": total_price,
-                        "total_profit_loss": total_profit_loss,
-                    },
+                        "total_profit_loss": total_profit_loss
+                    }
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1005,9 +923,7 @@ class DamageAPI:
         try:
             with get_session() as session:
                 damages = session.exec(
-                    select(Damage)
-                    .join(Stock)
-                    .where(Stock.item_name.contains(search_term))
+                    select(Damage).join(Stock).where(Stock.item_name.contains(search_term))
                 ).all()
 
                 return {
@@ -1019,14 +935,10 @@ class DamageAPI:
                             "item_name": session.get(Stock, damage.stock_id).item_name,
                             "quantity_damaged": damage.quantity_damaged,
                             "damage_date": damage.damage_date.isoformat(),
-                            "unit_price": session.get(
-                                Stock, damage.stock_id
-                            ).selling_price,
-                            "total_value": damage.quantity_damaged
-                            * session.get(Stock, damage.stock_id).selling_price,
-                        }
-                        for damage in damages
-                    ],
+                            "unit_price": session.get(Stock, damage.stock_id).selling_price,
+                            "total_value": damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price
+                        } for damage in damages
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1036,9 +948,7 @@ class ExpenditureAPI:
     """CRUD operations for Expenditure management"""
 
     @staticmethod
-    def create_expenditure(
-        description: str, amount: float, category: str, expense_date: str | None = None
-    ) -> dict[str, Any]:
+    def create_expenditure(description: str, amount: float, category: str, expense_date: str | None = None) -> dict[str, Any]:
         """Create new expenditure record"""
         try:
             with get_session() as session:
@@ -1054,16 +964,13 @@ class ExpenditureAPI:
                     try:
                         parsed_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid expense date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid expense date format (YYYY-MM-DD)"}
 
                 expenditure = Expenditure(
                     description=description,
                     amount=amount,
                     category=exp_category,
-                    expense_date=parsed_date,
+                    expense_date=parsed_date
                 )
 
                 session.add(expenditure)
@@ -1073,7 +980,7 @@ class ExpenditureAPI:
                 return {
                     "success": True,
                     "expenditure_id": expenditure.id,
-                    "message": "Expenditure recorded successfully",
+                    "message": "Expenditure recorded successfully"
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1092,21 +999,19 @@ class ExpenditureAPI:
                 # Weekly (last 7 days)
                 week_start = today - datetime.timedelta(days=7)
                 weekly_total = sum(
-                    exp.amount for exp in expenditures if exp.expense_date >= week_start
+                    exp.amount for exp in expenditures
+                    if exp.expense_date >= week_start
                 )
 
                 # Monthly (current month)
                 monthly_total = sum(
-                    exp.amount
-                    for exp in expenditures
-                    if exp.expense_date.year == current_year
-                    and exp.expense_date.month == today.month
+                    exp.amount for exp in expenditures
+                    if exp.expense_date.year == current_year and exp.expense_date.month == today.month
                 )
 
                 # Yearly (current year)
                 yearly_total = sum(
-                    exp.amount
-                    for exp in expenditures
+                    exp.amount for exp in expenditures
                     if exp.expense_date.year == current_year
                 )
 
@@ -1119,27 +1024,21 @@ class ExpenditureAPI:
                             "amount": exp.amount,
                             "category": exp.category.value,
                             "expense_date": exp.expense_date.isoformat(),
-                            "created_at": exp.created_at.isoformat(),
-                        }
-                        for exp in expenditures
+                            "created_at": exp.created_at.isoformat()
+                        } for exp in expenditures
                     ],
                     "summary": {
                         "weekly_total": weekly_total,
                         "monthly_total": monthly_total,
-                        "yearly_total": yearly_total,
-                    },
+                        "yearly_total": yearly_total
+                    }
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def update_expenditure(
-        expenditure_id: int,
-        description: str,
-        amount: float,
-        category: str,
-        expense_date: str,
-    ) -> dict[str, Any]:
+    def update_expenditure(expenditure_id: int, description: str, amount: float,
+                          category: str, expense_date: str) -> dict[str, Any]:
         """Update expenditure record"""
         try:
             with get_session() as session:
@@ -1157,10 +1056,7 @@ class ExpenditureAPI:
                 try:
                     parsed_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
                 except ValueError:
-                    return {
-                        "success": False,
-                        "error": "Invalid expense date format (YYYY-MM-DD)",
-                    }
+                    return {"success": False, "error": "Invalid expense date format (YYYY-MM-DD)"}
 
                 expenditure.description = description
                 expenditure.amount = amount
@@ -1194,9 +1090,7 @@ class ExpenditureAPI:
         try:
             with get_session() as session:
                 expenditures = session.exec(
-                    select(Expenditure).where(
-                        Expenditure.description.contains(search_term)
-                    )
+                    select(Expenditure).where(Expenditure.description.contains(search_term))
                 ).all()
 
                 return {
@@ -1207,10 +1101,9 @@ class ExpenditureAPI:
                             "description": exp.description,
                             "amount": exp.amount,
                             "category": exp.category.value,
-                            "expense_date": exp.expense_date.isoformat(),
-                        }
-                        for exp in expenditures
-                    ],
+                            "expense_date": exp.expense_date.isoformat()
+                        } for exp in expenditures
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1220,13 +1113,8 @@ class ReturnAPI:
     """CRUD operations for Return management with stock restoration"""
 
     @staticmethod
-    def process_return(
-        sale_id: int,
-        stock_id: int,
-        quantity: int,
-        reason: str,
-        return_date: str | None = None,
-    ) -> dict[str, Any]:
+    def process_return(sale_id: int, stock_id: int, quantity: int, reason: str,
+                      return_date: str | None = None) -> dict[str, Any]:
         """Process item return and restore to stock"""
         try:
             with get_session() as session:
@@ -1243,10 +1131,7 @@ class ReturnAPI:
                 try:
                     return_reason = ReturnReason(reason)
                 except ValueError:
-                    return {
-                        "success": False,
-                        "error": f"Invalid return reason: {reason}",
-                    }
+                    return {"success": False, "error": f"Invalid return reason: {reason}"}
 
                 # Check if item was actually sold in this sale
                 sale_item = session.exec(
@@ -1259,10 +1144,7 @@ class ReturnAPI:
                     return {"success": False, "error": "Item was not sold in this sale"}
 
                 if quantity > sale_item.quantity_sold:
-                    return {
-                        "success": False,
-                        "error": f"Cannot return {quantity} items. Only {sale_item.quantity_sold} were sold",
-                    }
+                    return {"success": False, "error": f"Cannot return {quantity} items. Only {sale_item.quantity_sold} were sold"}
 
                 # Parse return date
                 parsed_date = date.today()
@@ -1270,10 +1152,7 @@ class ReturnAPI:
                     try:
                         parsed_date = datetime.strptime(return_date, "%Y-%m-%d").date()
                     except ValueError:
-                        return {
-                            "success": False,
-                            "error": "Invalid return date format (YYYY-MM-DD)",
-                        }
+                        return {"success": False, "error": "Invalid return date format (YYYY-MM-DD)"}
 
                 # Create return record
                 return_record = Return(
@@ -1281,7 +1160,7 @@ class ReturnAPI:
                     stock_id=stock_id,
                     quantity=quantity,
                     reason=return_reason,
-                    return_date=parsed_date,
+                    return_date=parsed_date
                 )
 
                 # Restore stock quantity
@@ -1297,7 +1176,7 @@ class ReturnAPI:
                     "return_id": return_record.id,
                     "restored_quantity": quantity,
                     "new_stock_quantity": stock.quantity,
-                    "message": "Return processed and stock restored",
+                    "message": "Return processed and stock restored"
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1330,29 +1209,22 @@ class ReturnAPI:
                             "quantity": ret.quantity,
                             "reason": ret.reason.value,
                             "return_date": ret.return_date.isoformat(),
-                            "unit_price": session.get(
-                                Stock, ret.stock_id
-                            ).selling_price,
-                            "refund_amount": ret.quantity
-                            * session.get(Stock, ret.stock_id).selling_price,
-                            "profit_loss": ret.quantity
-                            * session.get(Stock, ret.stock_id).profit_per_unit,
-                        }
-                        for ret in returns
+                            "unit_price": session.get(Stock, ret.stock_id).selling_price,
+                            "refund_amount": ret.quantity * session.get(Stock, ret.stock_id).selling_price,
+                            "profit_loss": ret.quantity * session.get(Stock, ret.stock_id).profit_per_unit
+                        } for ret in returns
                     ],
                     "summary": {
                         "total_items": total_items,
                         "total_refund": total_refund,
-                        "total_loss": total_loss,
-                    },
+                        "total_loss": total_loss
+                    }
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def update_return(
-        return_id: int, quantity: int, reason: str, return_date: str
-    ) -> dict[str, Any]:
+    def update_return(return_id: int, quantity: int, reason: str, return_date: str) -> dict[str, Any]:
         """Update return record and adjust stock accordingly"""
         try:
             with get_session() as session:
@@ -1364,19 +1236,13 @@ class ReturnAPI:
                 try:
                     return_reason = ReturnReason(reason)
                 except ValueError:
-                    return {
-                        "success": False,
-                        "error": f"Invalid return reason: {reason}",
-                    }
+                    return {"success": False, "error": f"Invalid return reason: {reason}"}
 
                 # Parse return date
                 try:
                     parsed_date = datetime.strptime(return_date, "%Y-%m-%d").date()
                 except ValueError:
-                    return {
-                        "success": False,
-                        "error": "Invalid return date format (YYYY-MM-DD)",
-                    }
+                    return {"success": False, "error": "Invalid return date format (YYYY-MM-DD)"}
 
                 # Adjust stock quantity based on quantity difference
                 stock = session.get(Stock, return_record.stock_id)
@@ -1385,10 +1251,7 @@ class ReturnAPI:
 
                 # Check if we can adjust the stock
                 if quantity_diff < 0 and stock.quantity < abs(quantity_diff):
-                    return {
-                        "success": False,
-                        "error": "Cannot reduce return quantity: insufficient stock",
-                    }
+                    return {"success": False, "error": "Cannot reduce return quantity: insufficient stock"}
 
                 # Update stock quantity
                 stock.quantity += quantity_diff
@@ -1416,10 +1279,7 @@ class ReturnAPI:
                 # Remove the returned quantity from stock (reverse the return)
                 stock = session.get(Stock, return_record.stock_id)
                 if stock.quantity < return_record.quantity:
-                    return {
-                        "success": False,
-                        "error": "Cannot delete return: insufficient stock to reverse",
-                    }
+                    return {"success": False, "error": "Cannot delete return: insufficient stock to reverse"}
 
                 stock.quantity -= return_record.quantity
                 stock.updated_at = datetime.now()
@@ -1436,9 +1296,7 @@ class ReturnAPI:
         try:
             with get_session() as session:
                 returns = session.exec(
-                    select(Return)
-                    .join(Stock)
-                    .where(Stock.item_name.contains(search_term))
+                    select(Return).join(Stock).where(Stock.item_name.contains(search_term))
                 ).all()
 
                 return {
@@ -1452,11 +1310,9 @@ class ReturnAPI:
                             "quantity": ret.quantity,
                             "reason": ret.reason.value,
                             "return_date": ret.return_date.isoformat(),
-                            "refund_amount": ret.quantity
-                            * session.get(Stock, ret.stock_id).selling_price,
-                        }
-                        for ret in returns
-                    ],
+                            "refund_amount": ret.quantity * session.get(Stock, ret.stock_id).selling_price
+                        } for ret in returns
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1482,10 +1338,9 @@ class Business_Logic:
                             "id": stock.id,
                             "item_name": stock.item_name,
                             "quantity": stock.quantity,
-                            "category": stock.category.value,
-                        }
-                        for stock in low_stock_items
-                    ],
+                            "category": stock.category.value
+                        } for stock in low_stock_items
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1497,10 +1352,7 @@ class Business_Logic:
             with get_session() as session:
                 expired_items = session.exec(
                     select(Stock).where(
-                        and_(
-                            Stock.expiry_date.is_not(None),
-                            Stock.expiry_date < date.today(),
-                        )
+                        and_(Stock.expiry_date.is_not(None), Stock.expiry_date < date.today())
                     )
                 ).all()
 
@@ -1512,10 +1364,9 @@ class Business_Logic:
                             "item_name": stock.item_name,
                             "quantity": stock.quantity,
                             "expiry_date": stock.expiry_date.isoformat(),
-                            "days_expired": (date.today() - stock.expiry_date).days,
-                        }
-                        for stock in expired_items
-                    ],
+                            "days_expired": (date.today() - stock.expiry_date).days
+                        } for stock in expired_items
+                    ]
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1541,9 +1392,7 @@ class Business_Logic:
                 total_discount = sum(sale.discount_amount for sale in sales)
 
                 for sale in sales:
-                    sale_items = session.exec(
-                        select(SaleItem).where(SaleItem.sale_id == sale.id)
-                    ).all()
+                    sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale.id)).all()
                     for item in sale_items:
                         stock = session.get(Stock, item.stock_id)
                         item_revenue = stock.selling_price * item.quantity_sold
@@ -1565,8 +1414,8 @@ class Business_Logic:
                         "net_revenue": net_revenue,
                         "total_profit": total_profit,
                         "total_items_sold": total_items_sold,
-                        "average_transaction": net_revenue / len(sales) if sales else 0,
-                    },
+                        "average_transaction": net_revenue / len(sales) if sales else 0
+                    }
                 }
         except ValueError:
             return {"success": False, "error": "Invalid date format (YYYY-MM-DD)"}
