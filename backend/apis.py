@@ -719,3 +719,204 @@ class SaleAPI:
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+
+class DamageAPI:
+    """CRUD operations for Damage management"""
+
+    @staticmethod
+    def record_damage(
+        stock_id: int,
+        quantity_damaged: int,
+        status: str = 'broken'
+    ) -> dict[str, Any]:
+        """Record damaged items and update stock"""
+        try:
+            with get_session() as session:
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                if stock.quantity < quantity_damaged:
+                    return {"success": False, "error": f"Cannot damage {quantity_damaged} items. Only {stock.quantity} in stock"}
+
+                try:
+                    damage_status = DamageStatus(status)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid damage satus: {status}"}
+
+                # Create damage record
+                damage = Damage(
+                    stock_id=stock_id,
+                    quantity_damaged=quantity_damaged,
+                    damage_status=damage_status
+                )
+
+                # Reduce stock quantity
+                stock.quantity -= quantity_damaged
+                stock.updated_at = datetime.now()
+
+                session.add(damage)
+                session.flush()
+                session.refresh(damage)
+
+                return {
+                    "success": True,
+                    "damaged_item": {
+                        "id": damage.id,
+                        "stock_id": stock.id,
+                        "item_name": stock.item_name,
+                        "quantity_damaged": quantity_damaged,
+                        "unit_price": stock.selling_price,
+                        "damage_satus": damage_status.value,
+                        "damage_date": damage.damage_date
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_damages(search_term: str | None = None) -> dict[str, Any]:
+        """Get damages and optionally filter damages by item name"""
+        try:
+            with get_session() as session:
+                query = select(Damage)
+
+                if search_term:
+                    query = select(Damage).join(Stock).where(Stock.item_name.contains(search_term))
+
+                damages = session.exec(query).all()
+
+                total_items = sum(damage.quantity_damaged for damage in damages)
+                total_price = sum(
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price
+                    for damage in damages
+                )
+                total_profit_loss = sum(
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).profit_per_unit
+                    for damage in damages
+                )
+
+                return {
+                    "success": True,
+                    "damaged_items": [
+                        {
+                            "id": damage.id,
+                            "stock_id": damage.stock_id,
+                            "item_name": session.get(Stock, damage.stock_id).item_name,
+                            "quantity_damaged": damage.quantity_damaged,
+                            "damage_date": damage.damage_date,
+                            "unit_price": session.get(Stock, damage.stock_id).selling_price,
+                            "damage_satus": damage.damage_status.value,
+                        } for damage in damages
+                    ],
+                    "summary": {
+                        "total_items": total_items,
+                        "total_price": total_price,
+                        "total_profit_loss": total_profit_loss
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def update_damage(
+        damage_id: int,
+        stock_id: int,
+        quantity_damaged: int,
+        damage_date: str,
+        status: str = 'broken'
+    ) -> dict[str, Any]:
+        """Update damage record and adjust stock accordingly"""
+        try:
+            with get_session() as session:
+                damage = session.get(Damage, damage_id)
+                if not damage:
+                    return {"success": False, "error": "Damage record not found"}
+
+                old_stock = session.get(Stock, damage.stock_id)
+                new_stock = session.get(Stock, stock_id)
+
+                if not new_stock:
+                    return {"success": False, "error": "New stock item not found"}
+
+                # Parse damage date
+                try:
+                    parsed_date = datetime.strptime(damage_date, "%Y-%m-%d").date()
+                except ValueError:
+                    return {"success": False, "error": "Invalid damage date format (YYYY-MM-DD)"}
+
+                try:
+                    damage_status = DamageStatus(status)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid damage satus: {status}"}
+
+                # Calculate stock adjustments
+                old_quantity = damage.quantity_damaged
+                quantity_diff = quantity_damaged - old_quantity
+
+                # If changing to different stock item
+                if damage.stock_id != stock_id:
+                    # Restore quantity to old stock
+                    old_stock.quantity += old_quantity
+                    old_stock.updated_at = datetime.now()
+
+                    # Check if new stock has sufficient quantity
+                    if new_stock.quantity < quantity_damaged:
+                        return {"success": False, "error": f"Insufficient stock in {new_stock.item_name}. Available: {new_stock.quantity}"}
+
+                    # Reduce quantity from new stock
+                    new_stock.quantity -= quantity_damaged
+                    new_stock.updated_at = datetime.now()
+                else:
+                    # Same stock item, adjust for quantity difference
+                    if quantity_diff > 0:  # More damage
+                        if old_stock.quantity < quantity_diff:
+                            return {"success": False, "error": f"Insufficient stock to increase damage. Available: {old_stock.quantity}"}
+
+                        old_stock.quantity -= quantity_diff
+                    else:  # Less damage
+                        old_stock.quantity += abs(quantity_diff)
+
+                    old_stock.updated_at = datetime.now()
+
+                # Update damage record
+                damage.stock_id = stock_id
+                damage.quantity_damaged = quantity_damaged
+                damage.damage_date = parsed_date
+                damage.damage_status = damage_status
+
+                session.refresh(damage)
+                return {
+                    "success": True,
+                    "damaged_item": {
+                        "id": damage.id,
+                        "stock_id": damage.stock_id,
+                        "item_name": damage.stock.item_name,
+                        "quantity_damaged": quantity_damaged,
+                        "unit_price": damage.stock.selling_price,
+                        "damage_satus": damage_status.value,
+                        "damage_date": damage.damage_date
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_damage(damage_id: int) -> dict[str, Any]:
+        """Delete damage record and restore stock quantity"""
+        try:
+            with get_session() as session:
+                damage = session.get(Damage, damage_id)
+                if not damage:
+                    return {"success": False, "error": "Damage record not found"}
+
+                # Restore the damaged quantity back to stock
+                stock = session.get(Stock, damage.stock_id)
+                stock.quantity += damage.quantity_damaged
+                stock.updated_at = datetime.now()
+
+                session.delete(damage)
+                return {"success": True, "message": "Damage deleted and stock restored"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}

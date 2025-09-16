@@ -200,5 +200,33 @@ SaleAPI.get_sale_receipt_data(sale_id: int)
 ## Damage Management
 
 ```python
+# Record a damaged stock item
+DamageAPI.record_damage(stock_id: int, quantity_damaged: int, status: str = "broken")
+# status options: "broken", "expired", "lost" (etc, depending on enum)
+# Returns: {"success": bool, "damaged_item": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "unit_price", "damage_satus", "damage_date"}
 
+# Get damages (optionally filter by item name)
+DamageAPI.get_damages(search_term: str | None = None)
+# Returns: {"success": bool, "damaged_items": [{}...], "summary": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "damage_date", "unit_price", "damage_satus"}
+# summary: {"total_items": int, "total_price": float, "total_profit_loss": float}
+
+# Update a damage record
+DamageAPI.update_damage(
+    damage_id: int,
+    stock_id: int,
+    quantity_damaged: int,
+    damage_date: str,      # format: YYYY-MM-DD
+    status: str = "broken"
+)
+# Returns: {"success": bool, "damaged_item": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "unit_price", "damage_satus", "damage_date"}
+
+# Delete a damage record (restores stock quantity)
+DamageAPI.delete_damage(damage_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
 ```
