@@ -4,7 +4,7 @@ from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.schemas import (
-    AccountRead, EmployeeRead
+    AccountRead, EmployeeRead, StockRead
 )
 
 from backend.storage.models import (
@@ -323,5 +323,224 @@ class EmployeeAPI:
 
                 session.delete(employee)
                 return {"success": True, "message": "Employee deleted successfully"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+class StockAPI:
+    """CRUD operations for Stock management with business logic"""
+
+    @staticmethod
+    def add_stock(
+        item_name: str,
+        quantity: int,
+        cost_price: float,
+        selling_price: float,
+        category: str = "retail",
+        expiry_date: str | None = None
+    ) -> dict[str, Any]:
+        """Add new stock item"""
+        try:
+            with get_session() as session:
+                try:
+                    stock_type = StockType(category)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid category: {category}"}
+
+                # Parse expiry date
+                parsed_expiry = None
+                if expiry_date:
+                    try:
+                        parsed_expiry = datetime.strptime(expiry_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid expiry date format (YYYY-MM-DD)"}
+
+                # Check if item already exists
+                existing = session.exec(
+                    select(Stock).where(Stock.item_name == item_name)
+                ).first()
+
+                if existing:
+                    # Update existing stock
+                    existing.quantity += quantity
+                    existing.cost_price = cost_price
+                    existing.selling_price = selling_price
+                    existing.updated_at = datetime.now()
+                    if parsed_expiry:
+                        existing.expiry_date = parsed_expiry
+
+                    session.commit()
+                    return {"success": True, "stock_item": StockRead.model_validate(existing).model_dump()}
+                else:
+                    # Create new stock item
+                    stock = Stock(
+                        item_name=item_name,
+                        quantity=quantity,
+                        cost_price=cost_price,
+                        selling_price=selling_price,
+                        category=stock_type,
+                        expiry_date=parsed_expiry
+                    )
+
+                    session.add(stock)
+                    session.commit()
+                    session.refresh(stock)
+
+                    return {"success": True, "stock_item": StockRead.model_validate(stock).model_dump()}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_all_stock() -> dict[str, Any]:
+        """Get all stock items with calculated values"""
+        try:
+            with get_session() as session:
+                stocks = session.exec(select(Stock)).all()
+                wholesale_stocks = [
+                    stock
+                    for stock in stocks
+                    if stock.category == StockType.WHOLESALE
+                ]
+
+                retail_stocks = [
+                    stock
+                    for stock in stocks
+                    if stock.category == StockType.RETAIL
+                ]
+
+                return {
+                    "success": True,
+                    "stocks": [
+                        StockRead.model_validate(stock).model_dump()
+                        for stock in stocks
+                    ],
+                    "summary": {
+                        "wholesale_items": len(wholesale_stocks),
+                        "wholesale_cost": sum(stock.total_cost_value for stock in wholesale_stocks),
+                        "wholesale_value": sum(stock.total_selling_value for stock in wholesale_stocks),
+                        "wholesale_profit": sum(stock.total_profit_potential for stock in wholesale_stocks),
+                        "retail_items": len(retail_stocks),
+                        "retail_cost": sum(stock.total_cost_value for stock in retail_stocks),
+                        "retail_value": sum(stock.total_selling_value for stock in retail_stocks),
+                        "retail_profit": sum(stock.total_profit_potential for stock in retail_stocks)
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def filter_stock(search_term: str) -> dict[str, Any]:
+        """Filter stock by item name"""
+        try:
+            with get_session() as session:
+                stocks = session.exec(
+                    select(Stock).where(Stock.item_name.contains(search_term))
+                ).all()
+
+                return {
+                    "success": True,
+                    "stocks": [
+                        StockRead.model_validate(stock).model_dump()
+                        for stock in stocks
+                    ]
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def update_stock(
+        stock_id: int,
+        item_name: str | None = None,
+        quantity: int | None = None,
+        cost_price: float | None = None,
+        selling_price: float | None = None,
+        category: str | None = None,
+        expiry_date: str | None = None
+    ) -> dict[str, Any]:
+        """Update stock item"""
+        try:
+            with get_session() as session:
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                try:
+                    stock_type = StockType(category)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid category: {category}"}
+
+                # Parse expiry date
+                parsed_expiry = None
+                if expiry_date:
+                    try:
+                        parsed_expiry = datetime.strptime(expiry_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid expiry date format (YYYY-MM-DD)"}
+
+                stock.item_name = item_name
+                stock.quantity = quantity
+                stock.cost_price = cost_price
+                stock.selling_price = selling_price
+                stock.category = stock_type
+                stock.expiry_date = parsed_expiry
+                stock.updated_at = datetime.now()
+
+                session.commit()
+                session.refresh(stock)
+                return {"success": True, "stock": StockRead.model_validate(stock).model_dump()}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_stock(stock_id: int) -> dict[str, Any]:
+        """Delete stock item"""
+        try:
+            with get_session() as session:
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                # Check if stock has sales records
+                sales_count = session.exec(select(func.count(SaleItem.id)).where(SaleItem.stock_id == stock_id)).first()
+                if sales_count and sales_count > 0:
+                    return {"success": False, "error": "Cannot delete stock with existing sales records"}
+
+                session.delete(stock)
+                return {"success": True, "message": "Stock deleted successfully"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def reduce_stock_quantity(stock_id: int, quantity: int) -> dict[str, Any]:
+        """Reduce stock quantity (for sales/damage)"""
+        try:
+            with get_session() as session:
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                if stock.quantity < quantity:
+                    return {"success": False, "error": f"Insufficient stock. Available: {stock.quantity}"}
+
+                stock.quantity -= quantity
+                stock.updated_at = datetime.now()
+
+                return {"success": True, "new_quantity": stock.quantity}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def increase_stock_quantity(stock_id: int, quantity: int) -> dict[str, Any]:
+        """Increase stock quantity (for returns)"""
+        try:
+            with get_session() as session:
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                stock.quantity += quantity
+                stock.updated_at = datetime.now()
+
+                return {"success": True, "new_quantity": stock.quantity}
         except Exception as e:
             return {"success": False, "error": str(e)}
