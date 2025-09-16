@@ -169,53 +169,6 @@ class Ui_Return(object):
         self.table_return.verticalHeader().setVisible(False)
         self.table_return.setFixedWidth(int(950 * 0.95))  # Extended table width
 
-        # Sample return data
-        return_data = [
-            (
-                1,
-                "Item X",
-                "2",
-                "25.00",
-                "Defective",
-                "2023-09-05",
-            ),
-            (
-                2,
-                "Item Y",
-                "1",
-                "50.00",
-                "Wrong Item",
-                "2023-09-15",
-            ),
-            (
-                3,
-                "Item Z",
-                "3",
-                "15.00",
-                "Changed Mind",
-                "2023-09-25",
-            ),
-        ]
-
-        self.table_return.setRowCount(len(return_data))
-
-        for row, (uid, name, qty, price, reason, date) in enumerate(return_data):
-            self.table_return.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
-            self.table_return.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
-            self.table_return.setItem(row, 2, QtWidgets.QTableWidgetItem(qty))
-            self.table_return.setItem(row, 3, QtWidgets.QTableWidgetItem(price))
-            self.table_return.setItem(row, 4, QtWidgets.QTableWidgetItem(reason))
-            self.table_return.setItem(row, 5, QtWidgets.QTableWidgetItem(date))
-
-            # Action column with delete button
-            delete_btn = QtWidgets.QPushButton()
-            delete_btn.setObjectName("ReturnTableBtnDelete")
-            delete_btn.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            delete_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            delete_btn.setToolTip("Delete")
-            delete_btn.setFixedSize(30, 30)
-            self.table_return.setCellWidget(row, 6, delete_btn)
-
         table_lcds_h.addWidget(self.table_return, stretch=9)
 
         # === LCDs Section (Vertical on right of table, pinned to bottom) ===

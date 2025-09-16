@@ -11,7 +11,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 1. fill form to add employees (name, phone & Ghana card are compulsory)
 2. no need to delete employee(s)
 3. filter records by phone or Ghana card (auto filter as you type in the filter input)
-4. double-click any column to edit it from the table
+4. double-click any column on the table to edit it from the table
 
        ======StocUI======
 1. fill forms to save to stock (all fields are compulsory)
@@ -30,8 +30,8 @@ Note: quantity columns have progressBar to visually display item quantity
 1. login with email / phone and password
 2. login as "admin" enable all features otherwise, disable stock, Report, Employee & Account buttons om home page
 
-       ======Sales UI======
-1. QTableWidget display all the items in stock
+       ====== Sales UI======
+1. table display all the items in stock
 2. Search input filter item from the items displayed in QTableWidget as you type
 3. inputs (quantity in stock, stock price & Category) display a selected item details on the QTableWidget
 4. in a case where system date is wrong, date input help set date for the checkout details
@@ -63,9 +63,9 @@ Note: quantity columns have progressBar to visually display item quantity
        Total price -> sum up all damage items prices
        Total profit -> sum up all the damaged items profit
 
-       NOTE: damaged item's quantities must be subtracted from the stock
+       NOTE: damaged (item's quantities, total  Selling price, total profit), etc must be subtracted from the stock stock quantity, selling price & profits respectively
 
-       ======Expenditure UI Page======
+       ====== Expenditure UI Page======
 1. all inputs are mandatory to fill out
 2. click a row to fill back datasets into their respective inputs for Update
 3. click delete "icon" to delete a particular row
@@ -88,7 +88,7 @@ Note: quantity columns have progressBar to visually display item quantity
 NOTE: items return are added back to stock automatically
 
 
-       ======Report UI Page======
+       ====== Report UI Page======
 1. report use ReportLab library to display records
 2. narrow search by setting dates and category to search
 3. generate button preview the search

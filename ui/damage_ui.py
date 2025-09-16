@@ -166,61 +166,12 @@ class Ui_Damage(object):
         self.table_damage.verticalHeader().setVisible(False)
         self.table_damage.setFixedWidth(int(950 * 0.95))
 
-        # Sample damage data
-        damage_data = [
-            (
-                1,
-                "Item A",
-                "5",
-                "10.00",
-                "broken",
-                "2023-09-01",
-            ),
-            (
-                2,
-                "Item B",
-                "3",
-                "15.00",
-                "expired",
-                "2023-09-10",
-            ),
-            (
-                3,
-                "Item C",
-                "2",
-                "20.00",
-                "leakage",
-                "2023-09-20",
-            ),
-        ]
-
-        self.table_damage.setRowCount(len(damage_data))
-
-        for row, (uid, name, qty, price, status, date) in enumerate(damage_data):
-            self.table_damage.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
-            self.table_damage.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
-            self.table_damage.setItem(row, 2, QtWidgets.QTableWidgetItem(qty))
-            self.table_damage.setItem(row, 3, QtWidgets.QTableWidgetItem(price))
-            self.table_damage.setItem(row, 4, QtWidgets.QTableWidgetItem(status))
-            self.table_damage.setItem(row, 5, QtWidgets.QTableWidgetItem(date))
-
-            # Action column with delete button
-            delete_btn = QtWidgets.QPushButton()
-            delete_btn.setObjectName("DamageTableBtnDelete")
-            delete_btn.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            delete_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            delete_btn.setToolTip("Delete")
-            delete_btn.setFixedSize(30, 30)
-            self.table_damage.setCellWidget(row, 6, delete_btn)
-
         table_lcds_h.addWidget(self.table_damage, stretch=9)
 
         # === LCDs Section (Vertical on right of table, pinned to bottom) ===
         lcds_v = QtWidgets.QVBoxLayout()
         lcds_v.setSpacing(8)
-        lcds_v.setAlignment(
-            QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
-        )
+        lcds_v.setAlignment(QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight)
 
         def _lcd_block(title, obj_name):
             w = QtWidgets.QWidget()
@@ -230,9 +181,7 @@ class Ui_Damage(object):
             lbl = QtWidgets.QLabel(title)
             lbl.setObjectName(f"label_{obj_name}")
             lbl.setStyleSheet("color: black; font-weight: bold;")
-            lbl.setAlignment(
-                QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft
-            )
+            lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
             lcd = QtWidgets.QLCDNumber()
             lcd.setObjectName(obj_name)
             lcd.setDigitCount(9)

@@ -128,7 +128,7 @@ class Ui_Employees(object):
         # === Table Section ===
         self.table_employees = QtWidgets.QTableWidget()
         self.table_employees.setObjectName("tableEmployees")
-        self.table_employees.setColumnCount(9)  # added Action column
+        self.table_employees.setColumnCount(8)  # Removed Action column
         self.table_employees.setHorizontalHeaderLabels(
             [
                 "ID",
@@ -139,7 +139,6 @@ class Ui_Employees(object):
                 "Designation",
                 "Salary",
                 "Date Added",
-                "Action",
             ]
         )
         self.table_employees.horizontalHeader().setStretchLastSection(True)
@@ -155,62 +154,5 @@ class Ui_Employees(object):
         )
         self.table_employees.setAlternatingRowColors(True)
         self.table_employees.verticalHeader().setVisible(False)
-
-        # Sample employee data
-        employees_data = [
-            (
-                1,
-                "John Doe",
-                "0244000011",
-                "GHA-123456789",
-                "Accra",
-                "Cashier",
-                "1500",
-                "2025-08-01",
-            ),
-            (
-                2,
-                "Mary Jane",
-                "0244000022",
-                "GHA-987654321",
-                "Kumasi",
-                "Manager",
-                "3500",
-                "2025-08-10",
-            ),
-            (
-                3,
-                "Peter Mensah",
-                "0244000033",
-                "GHA-555111222",
-                "Takoradi",
-                "Sales Rep",
-                "2000",
-                "2025-08-20",
-            ),
-        ]
-
-        self.table_employees.setRowCount(len(employees_data))
-
-        for row, (uid, name, phone, card, addr, desig, salary, date) in enumerate(
-            employees_data
-        ):
-            self.table_employees.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
-            self.table_employees.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
-            self.table_employees.setItem(row, 2, QtWidgets.QTableWidgetItem(phone))
-            self.table_employees.setItem(row, 3, QtWidgets.QTableWidgetItem(card))
-            self.table_employees.setItem(row, 4, QtWidgets.QTableWidgetItem(addr))
-            self.table_employees.setItem(row, 5, QtWidgets.QTableWidgetItem(desig))
-            self.table_employees.setItem(row, 6, QtWidgets.QTableWidgetItem(salary))
-            self.table_employees.setItem(row, 7, QtWidgets.QTableWidgetItem(date))
-
-            # Action column with delete button
-            delete_btn = QtWidgets.QPushButton()
-            delete_btn.setObjectName("EmpTableBtnDelete")
-            delete_btn.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            delete_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            delete_btn.setToolTip("Delete")
-            delete_btn.setFixedSize(30, 30)
-            self.table_employees.setCellWidget(row, 8, delete_btn)
 
         employees_layout.addWidget(self.table_employees)

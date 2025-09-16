@@ -176,49 +176,6 @@ class Ui_Expenditure(object):
         self.table_expenditure.verticalHeader().setVisible(False)
         self.table_expenditure.setFixedWidth(int(950 * 0.95))
 
-        # Sample expenditure data
-        expenditure_data = [
-            (
-                1,
-                "2023-09-01",
-                "Office Rent",
-                "5000.00",
-                "Utilities",
-            ),
-            (
-                2,
-                "2023-09-10",
-                "Stationery Supplies",
-                "200.00",
-                "Supplies",
-            ),
-            (
-                3,
-                "2023-09-20",
-                "Staff Salaries",
-                "10000.00",
-                "Salaries",
-            ),
-        ]
-
-        self.table_expenditure.setRowCount(len(expenditure_data))
-
-        for row, (uid, date, desc, amount, category) in enumerate(expenditure_data):
-            self.table_expenditure.setItem(row, 0, QtWidgets.QTableWidgetItem(str(uid)))
-            self.table_expenditure.setItem(row, 1, QtWidgets.QTableWidgetItem(date))
-            self.table_expenditure.setItem(row, 2, QtWidgets.QTableWidgetItem(desc))
-            self.table_expenditure.setItem(row, 3, QtWidgets.QTableWidgetItem(amount))
-            self.table_expenditure.setItem(row, 4, QtWidgets.QTableWidgetItem(category))
-
-            # Action column with delete button
-            delete_btn = QtWidgets.QPushButton()
-            delete_btn.setObjectName("ExpenditureTableBtnDelete")
-            delete_btn.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            delete_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            delete_btn.setToolTip("Delete")
-            delete_btn.setFixedSize(30, 30)
-            self.table_expenditure.setCellWidget(row, 5, delete_btn)
-
         table_lcds_h.addWidget(self.table_expenditure, stretch=9)
 
         # === LCDs Section (Vertical on right of table, pinned to bottom) ===
@@ -245,7 +202,7 @@ class Ui_Expenditure(object):
             w_layout.addWidget(lcd)
             return w, lcd
 
-        box_total_expenditures, self.lcdTotalExpenditures = _lcd_block(
+        box_total_expenditures, self.lcdWeeklyExpenditures = _lcd_block(
             "Weekly Expenditures", "lcdWeeklyExpenditures"
         )
         box_monthly_expenditures, self.lcdMonthlyExpenditures = _lcd_block(

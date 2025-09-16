@@ -80,8 +80,17 @@ class AccountController:
         password = self.ui.input_password.text().strip()
         role = self.ui.input_role.currentText()
 
+        # Validate all fields are compulsory
         if not all([name, phone, email, password, role]):
-            QMessageBox.warning(self.account_window, "Input Error", "All fields are required.")
+            QMessageBox.warning(self.account_window, "Input Error", "All fields (Name, Phone, Email, Password, Role) are required.")
+            return
+
+        # Basic input validation
+        if not self.is_valid_email(email):
+            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid email address.")
+            return
+        if not self.is_valid_phone(phone):
+            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid phone number.")
             return
 
         result = AccountAPI.create_user(name, phone, email, password, role)
@@ -105,8 +114,17 @@ class AccountController:
         role = self.ui.input_role.currentText()
         user_id = int(self.ui.table_users.item(selected_row, 0).text())
 
+        # Validate all fields except password are compulsory
         if not all([name, phone, email, role]):
-            QMessageBox.warning(self.account_window, "Input Error", "All fields except password are required.")
+            QMessageBox.warning(self.account_window, "Input Error", "All fields (Name, Phone, Email, Role) are required.")
+            return
+
+        # Basic input validation
+        if not self.is_valid_email(email):
+            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid email address.")
+            return
+        if not self.is_valid_phone(phone):
+            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid phone number.")
             return
 
         result = AccountAPI.update_user(user_id, name, phone, email, password if password else None, role)
@@ -127,7 +145,7 @@ class AccountController:
             self.ui.input_name.setText(user.get("name", ""))
             self.ui.input_phone.setText(user.get("phone", ""))
             self.ui.input_email.setText(user.get("email", ""))
-            self.ui.input_password.clear()
+            self.ui.input_password.clear()  # Clear password for security
             self.ui.input_role.setCurrentText(user.get("role", "Admin"))
 
     def handle_table_delete(self, row):
@@ -147,6 +165,18 @@ class AccountController:
         self.ui.input_email.clear()
         self.ui.input_password.clear()
         self.ui.input_role.setCurrentIndex(0)
+
+    def is_valid_email(self, email):
+        # Simple email validation (can be enhanced)
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(email_pattern, email) is not None
+
+    def is_valid_phone(self, phone):
+        # Simple phone validation (e.g., 10 digits or + followed by digits)
+        import re
+        phone_pattern = r'^\+?\d{10,}$'
+        return re.match(phone_pattern, phone) is not None
 
     def show(self):
         self.account_window.show()
