@@ -160,3 +160,45 @@ StockAPI.delete_stock(stock_id: int)
 ```
 
 ---
+
+## Sales Management
+
+```python
+# Create a new sale with multiple items
+SaleAPI.create_sale(
+    cashier_id: int,
+    sale_items: list[dict],   # [{"stock_id": int, "quantity_sold": int}, ...]
+    amount_paid: float,
+    discount_amount: float = 0,
+    payment_method: str = "cash",
+    sale_date: str | None = None   # format: YYYY-MM-DD
+)
+# payment_method options: "cash", "card", "mobile_money" (etc, depending on enum)
+# Returns: {"success": bool, "sale_id": int, "gross_total": float,
+#           "discount": float, "total": float, "items_sold": int,
+#           "message": str, "error": str}
+
+# Get daily sales summary
+SaleAPI.get_daily_sales_summary(sale_date: str | None = None)   # format: YYYY-MM-DD
+# If no date is given → defaults to today
+# Returns: {"success": bool, "daily_sales": float, "daily_profit": float,
+#           "items_sold": int, "total_discount": float,
+#           "transactions_count": int, "error": str}
+
+# Get sale receipt data (for printing)
+SaleAPI.get_sale_receipt_data(sale_id: int)
+# Returns: {"success": bool, "sale_id": int, "sale_date": date,
+#           "sale_time": datetime, "cashier_name": str,
+#           "items": [{"item_name", "quantity", "unit_price", "total"}, ...],
+#           "gross_total": float, "discount": float, "net_total": float,
+#           "amount_paid": float, "change": float, "payment_method": str,
+#           "error": str}
+```
+
+---
+
+## Damage Management
+
+```python
+
+```

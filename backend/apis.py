@@ -4,7 +4,7 @@ from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.schemas import (
-    AccountRead, EmployeeRead, StockRead
+    AccountRead, EmployeeRead, StockRead, SaleRead
 )
 
 from backend.storage.models import (
@@ -56,7 +56,7 @@ class AccountAPI:
                 )
 
                 session.add(account)
-                session.commit()
+                session.flush()
                 session.refresh(account)
 
                 return {
@@ -112,7 +112,8 @@ class AccountAPI:
         name: str | None = None,
         phone: str | None = None,
         email: str | None = None,
-        password: str | None = None
+        password: str | None = None,
+        role: str | None = None
     ) -> dict[str, Any]:
         """Update account details"""
         try:
@@ -121,11 +122,11 @@ class AccountAPI:
                 if not account:
                     return {"success": False, "error": "Account not found"}
 
-                # # Validate role
-                # try:
-                #     user_role = UserRole(role)
-                # except ValueError:
-                #     return {"success": False, "error": f"Invalid role: {role}"}
+                # Validate role
+                try:
+                    user_role = UserRole(role)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid role: {role}"}
 
                 # Check for conflicts with other accounts
                 existing = session.exec(
@@ -147,6 +148,7 @@ class AccountAPI:
                 account.email = email
                 account.password = password
                 account.updated_at = datetime.now()
+                account.role = user_role
 
                 return {
                     "success": True,
@@ -216,7 +218,7 @@ class EmployeeAPI:
                 )
 
                 session.add(employee)
-                session.commit()
+                session.flush()
                 session.refresh(employee)
 
                 return {"success": True, "employee": EmployeeRead.model_validate(employee).model_dump()}
@@ -383,7 +385,7 @@ class StockAPI:
                     )
 
                     session.add(stock)
-                    session.commit()
+                    session.flush()
                     session.refresh(stock)
 
                     return {"success": True, "stock_item": StockRead.model_validate(stock).model_dump()}
@@ -485,7 +487,7 @@ class StockAPI:
                 stock.expiry_date = parsed_expiry
                 stock.updated_at = datetime.now()
 
-                session.commit()
+                session.flush()
                 session.refresh(stock)
                 return {"success": True, "stock": StockRead.model_validate(stock).model_dump()}
         except Exception as e:
@@ -511,25 +513,6 @@ class StockAPI:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def reduce_stock_quantity(stock_id: int, quantity: int) -> dict[str, Any]:
-        """Reduce stock quantity (for sales/damage)"""
-        try:
-            with get_session() as session:
-                stock = session.get(Stock, stock_id)
-                if not stock:
-                    return {"success": False, "error": "Stock item not found"}
-
-                if stock.quantity < quantity:
-                    return {"success": False, "error": f"Insufficient stock. Available: {stock.quantity}"}
-
-                stock.quantity -= quantity
-                stock.updated_at = datetime.now()
-
-                return {"success": True, "new_quantity": stock.quantity}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @staticmethod
     def increase_stock_quantity(stock_id: int, quantity: int) -> dict[str, Any]:
         """Increase stock quantity (for returns)"""
         try:
@@ -542,5 +525,197 @@ class StockAPI:
                 stock.updated_at = datetime.now()
 
                 return {"success": True, "new_quantity": stock.quantity}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+class SaleAPI:
+    """CRUD operations for Sales management with business logic"""
+
+    @staticmethod
+    def create_sale(
+        cashier_id: int,
+        sale_items: list[dict],
+        amount_paid: float,
+        discount_amount: float = 0,
+        payment_method: str = "cash",
+        sale_date: str | None = None
+    ) -> dict[str, Any]:
+        """Create a new sale with multiple items"""
+        try:
+            with get_session() as session:
+                try:
+                    pay_method = PaymentMethod(payment_method)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid payment method: {payment_method}"}
+
+                parsed_date = date.today()
+                if sale_date:
+                    try:
+                        parsed_date = datetime.strptime(sale_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid sale date format (YYYY-MM-DD)"}
+
+                # Validate cashier exists
+                cashier = session.get(Account, cashier_id)
+                if not cashier:
+                    return {"success": False, "error": "Cashier not found"}
+
+                # Calculate totals and validate stock
+                gross_total = 0
+                validated_items = []
+
+                for item in sale_items:
+                    stock_id = item.get("stock_id")
+                    quantity_sold = item.get("quantity_sold", 0)
+
+                    stock = session.get(Stock, stock_id)
+                    if not stock:
+                        return {"success": False, "error": f"Stock item {stock_id} not found"}
+
+                    if stock.quantity < quantity_sold:
+                        return {"success": False, "error": f"Insufficient stock for {stock.item_name}. Available: {stock.quantity}"}
+
+                    item_total = stock.selling_price * quantity_sold
+                    gross_total += item_total
+
+                    validated_items.append({
+                        "stock": stock,
+                        "quantity_sold": quantity_sold,
+                        "item_total": item_total
+                    })
+
+                total = gross_total - discount_amount
+                if amount_paid < total:
+                    return {"success": False, "error": f"Insufficient payment. Required: {total}"}
+
+                # Create sale
+                sale = Sale(
+                    sale_date=parsed_date,
+                    discount_amount=discount_amount,
+                    amount_paid=amount_paid,
+                    change_given=amount_paid - total,
+                    payment_method=pay_method,
+                    cashier_id=cashier_id
+                )
+
+                session.add(sale)
+                session.flush()
+
+                items_sold = 0
+
+                # Create sale items and reduce stock
+                for item_data in validated_items:
+                    sale_item = SaleItem(
+                        sale_id=sale.id,
+                        stock_id=item_data["stock"].id,
+                        quantity_sold=item_data["quantity_sold"]
+                    )
+                    session.add(sale_item)
+                    items_sold += item_data['quantity_sold']
+
+                    # Reduce stock quantity
+                    item_data["stock"].quantity -= item_data["quantity_sold"]
+                    item_data["stock"].updated_at = datetime.now()
+
+                session.flush()
+                session.refresh(sale)
+
+                return {
+                    "success": True,
+                    "sale_id": sale.id,
+                    "gross_total": gross_total,
+                    "discount": discount_amount,
+                    "total": total,
+                    "items_sold": items_sold,
+                    "message": "Sale created successfully"
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_daily_sales_summary(sale_date: str | None = None) -> dict[str, Any]:
+        """Get daily sales summary for LCDs"""
+        try:
+            with get_session() as session:
+                target_date = date.today()
+                if sale_date:
+                    try:
+                        target_date = datetime.strptime(sale_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid date format (YYYY-MM-DD)"}
+
+                # Get daily sales
+                sales = session.exec(select(Sale).where(Sale.sale_date == target_date)).all()
+
+                daily_sales = sum(
+                    (sum(
+                        item.quantity_sold * session.get(Stock, item.stock_id).selling_price
+                        for item in session.exec(select(SaleItem).where(SaleItem.sale_id == sale.id))
+                    ) - sale.discount_amount) for sale in sales
+                )
+
+                # Calculate total items sold and profit
+                total_items_sold = 0
+                daily_profit = 0
+
+                for sale in sales:
+                    sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale.id)).all()
+                    for item in sale_items:
+                        stock = session.get(Stock, item.stock_id)
+                        total_items_sold += item.quantity_sold
+                        daily_profit += (stock.selling_price - stock.cost_price) * item.quantity_sold
+
+                return {
+                    "success": True,
+                    "daily_sales": daily_sales,
+                    "daily_profit": daily_profit,
+                    "items_sold": total_items_sold,
+                    "total_discount": sum(sale.discount_amount for sale in sales),
+                    "transactions_count": len(sales)
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_sale_receipt_data(sale_id: int) -> dict[str, Any]:
+        """Get sale data for receipt printing"""
+        try:
+            with get_session() as session:
+                sale = session.get(Sale, sale_id)
+                if not sale:
+                    return {"success": False, "error": "Sale not found"}
+
+                sale_items = session.exec(select(SaleItem).where(SaleItem.sale_id == sale_id)).all()
+
+                items = []
+                gross_total = 0
+
+                for sale_item in sale_items:
+                    stock = session.get(Stock, sale_item.stock_id)
+                    item_total = stock.selling_price * sale_item.quantity_sold
+                    gross_total += item_total
+
+                    items.append({
+                        "item_name": stock.item_name,
+                        "quantity": sale_item.quantity_sold,
+                        "unit_price": stock.selling_price,
+                        "total": item_total
+                    })
+
+                return {
+                    "success": True,
+                    "sale_id": sale.id,
+                    "sale_date": sale.sale_date,
+                    "sale_time": sale.sale_time,
+                    "cashier_name": sale.cashier.name,
+                    "items": items,
+                    "gross_total": gross_total,
+                    "discount": sale.discount_amount,
+                    "net_total": gross_total - sale.discount_amount,
+                    "amount_paid": sale.amount_paid,
+                    "change": sale.change_given,
+                    "payment_method": sale.payment_method.value
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
