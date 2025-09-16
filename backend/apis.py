@@ -3,11 +3,16 @@ from typing import Any
 from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
+from backend.schemas import (
+    AccountRead, EmployeeRead
+)
+
 from backend.storage.models import (
     Account, Employee, Stock, Sale, SaleItem, Damage,
     Expenditure, Return, UserRole, EmployeeDesignation,
     PaymentMethod, StockType, DamageStatus, ExpenditureCategory, ReturnReason
 )
+
 
 
 class AccountAPI:
@@ -56,7 +61,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={'password'})
+                    "account": AccountRead.model_validate(account).model_dump()
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -80,7 +85,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={'password'})
+                    "account": AccountRead.model_validate(account).model_dump()
                 }
         except Exception as e:
             # print(e)
@@ -95,7 +100,7 @@ class AccountAPI:
                 return {
                     "success": True,
                     "accounts": [
-                        acc.model_dump(exclude={'password'})  for acc in accounts
+                        AccountRead.model_validate(acc).model_dump()  for acc in accounts
                     ]
                 }
         except Exception as e:
@@ -145,7 +150,7 @@ class AccountAPI:
 
                 return {
                     "success": True,
-                    "account": account.model_dump(exclude={'password'})
+                    "account": AccountRead.model_validate(account).model_dump()
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -214,7 +219,7 @@ class EmployeeAPI:
                 session.commit()
                 session.refresh(employee)
 
-                return {"success": True, "employee": employee.model_dump()}
+                return {"success": True, "employee": EmployeeRead.model_validate(employee).model_dump()}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -227,7 +232,8 @@ class EmployeeAPI:
                 return {
                     "success": True,
                     "employees": [
-                        emp.model_dump() for emp in employees
+                        Employee.model_validate(emp).model_dump()
+                        for emp in employees
                     ]
                 }
         except Exception as e:
@@ -250,7 +256,8 @@ class EmployeeAPI:
                 return {
                     "success": True,
                     "employees": [
-                        emp.model_dump() for emp in employees
+                        Employee.model_validate(emp).model_dump()
+                        for emp in employees
                     ]
                 }
         except Exception as e:
@@ -301,7 +308,7 @@ class EmployeeAPI:
                     return {"success": False, "error": f"Field '{field}' cannot be updated"}
 
                 employee.updated_at = datetime.now()
-                return {"success": True, "employee": employee.model_dump()}
+                return {"success": True, "employee": Employee.model_validate(employee).model_dump()}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
