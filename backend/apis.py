@@ -4,7 +4,7 @@ from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.schemas import (
-    AccountRead, EmployeeRead, StockRead, ExpenditureRead
+    AccountRead, EmployeeRead, StockRead, ExpenditureRead, ReturnRead
 )
 
 from backend.storage.models import (
@@ -1081,6 +1081,228 @@ class ExpenditureAPI:
                     "expenditures": [
                         ExpenditureRead.model_validate(exp).model_dump()
                         for exp in expenditures
+                    ]
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+class ReturnAPI:
+    """CRUD operations for Return management with stock restoration"""
+
+    @staticmethod
+    def process_return(sale_id: int, stock_id: int, quantity: int, reason: str,
+                      return_date: str | None = None) -> dict[str, Any]:
+        """Process item return and restore to stock"""
+        try:
+            with get_session() as session:
+                # Validate inputs
+                sale = session.get(Sale, sale_id)
+                if not sale:
+                    return {"success": False, "error": "Sale not found"}
+
+                stock = session.get(Stock, stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock item not found"}
+
+                # Validate return reason
+                try:
+                    return_reason = ReturnReason(reason)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid return reason: {reason}"}
+
+                # Check if item was actually sold in this sale
+                sale_item = session.exec(
+                    select(SaleItem).where(
+                        and_(SaleItem.sale_id == sale_id, SaleItem.stock_id == stock_id)
+                    )
+                ).first()
+
+                if not sale_item:
+                    return {"success": False, "error": "Item was not sold in this sale"}
+
+                if quantity > sale_item.quantity_sold:
+                    return {"success": False, "error": f"Cannot return {quantity} items. Only {sale_item.quantity_sold} were sold"}
+
+                # Parse return date
+                parsed_date = date.today()
+                if return_date:
+                    try:
+                        parsed_date = datetime.strptime(return_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        return {"success": False, "error": "Invalid return date format (YYYY-MM-DD)"}
+
+                # Create return record
+                return_record = Return(
+                    sale_id=sale_id,
+                    stock_id=stock_id,
+                    quantity=quantity,
+                    reason=return_reason,
+                    return_date=parsed_date
+                )
+
+                # Restore stock quantity
+                stock.quantity += quantity
+                stock.updated_at = datetime.now()
+
+                session.add(return_record)
+                session.flush()
+                session.refresh(return_record)
+
+                return {
+                    "success": True,
+                    "returned_item": {
+                        "id": return_record.id,
+                        "sale_id": return_record.sale_id,
+                        "stock_id": return_record.stock_id,
+                        "item_name": return_record.stock.item_name,
+                        "quantity": return_record.quantity,
+                        "reason": return_record.reason.value,
+                        "return_date": return_record.return_date,
+                        "unit_price": return_record.stock.selling_price
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_all_returns() -> dict[str, Any]:
+        """Get all returns with summary calculations"""
+        try:
+            with get_session() as session:
+                returns = session.exec(select(Return)).all()
+
+                total_items = sum(ret.quantity for ret in returns)
+                total_refund = sum(
+                    ret.quantity * session.get(Stock, ret.stock_id).selling_price
+                    for ret in returns
+                )
+                total_loss = sum(
+                    ret.quantity * session.get(Stock, ret.stock_id).profit_per_unit
+                    for ret in returns
+                )
+
+                return {
+                    "success": True,
+                    "returned_items": [
+                        {
+                            "id": return_record.id,
+                            "sale_id": return_record.sale_id,
+                            "stock_id": return_record.stock_id,
+                            "item_name": return_record.stock.item_name,
+                            "quantity": return_record.quantity,
+                            "reason": return_record.reason.value,
+                            "return_date": return_record.return_date,
+                            "unit_price": return_record.stock.selling_price
+                        } for return_record in returns
+                    ],
+                    "summary": {
+                        "total_items": total_items,
+                        "total_refund": total_refund,
+                        "total_loss": total_loss
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def update_return(return_id: int, quantity: int, reason: str, return_date: str) -> dict[str, Any]:
+        """Update return record and adjust stock accordingly"""
+        try:
+            with get_session() as session:
+                return_record = session.get(Return, return_id)
+                if not return_record:
+                    return {"success": False, "error": "Return record not found"}
+
+                # Validate return reason
+                try:
+                    return_reason = ReturnReason(reason)
+                except ValueError:
+                    return {"success": False, "error": f"Invalid return reason: {reason}"}
+
+                # Parse return date
+                try:
+                    parsed_date = datetime.strptime(return_date, "%Y-%m-%d").date()
+                except ValueError:
+                    return {"success": False, "error": "Invalid return date format (YYYY-MM-DD)"}
+
+                # Adjust stock quantity based on quantity difference
+                old_quantity = return_record.quantity
+                quantity_diff = quantity - old_quantity
+
+                # Check if we can adjust the stock
+                if quantity_diff < 0 and return_record.stock.quantity < abs(quantity_diff):
+                    return {"success": False, "error": "Cannot reduce return quantity: insufficient stock"}
+
+                # Update stock quantity
+                return_record.stock.quantity += quantity_diff
+                return_record.stock.updated_at = datetime.now()
+
+                # Update return record
+                return_record.quantity = quantity
+                return_record.reason = return_reason
+                return_record.return_date = parsed_date
+
+                return {
+                    "success": True,
+                    "returned_item": {
+                        "id": return_record.id,
+                        "sale_id": return_record.sale_id,
+                        "stock_id": return_record.stock_id,
+                        "item_name": return_record.stock.item_name,
+                        "quantity": return_record.quantity,
+                        "reason": return_record.reason.value,
+                        "return_date": return_record.return_date,
+                        "unit_price": return_record.stock.selling_price
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_return(return_id: int) -> dict[str, Any]:
+        """Delete return record and adjust stock"""
+        try:
+            with get_session() as session:
+                return_record = session.get(Return, return_id)
+                if not return_record:
+                    return {"success": False, "error": "Return record not found"}
+
+                # Remove the returned quantity from stock (reverse the return)
+                stock = session.get(Stock, return_record.stock_id)
+                if stock.quantity < return_record.quantity:
+                    return {"success": False, "error": "Cannot delete return: insufficient stock to reverse"}
+
+                stock.quantity -= return_record.quantity
+                stock.updated_at = datetime.now()
+
+                session.delete(return_record)
+                return {"success": True, "message": "Return deleted and stock adjusted"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def filter_returns(search_term: str) -> dict[str, Any]:
+        """Filter returns by item name"""
+        try:
+            with get_session() as session:
+                returns = session.exec(
+                    select(Return).join(Stock).where(Stock.item_name.contains(search_term))
+                ).all()
+
+                return {
+                    "success": True,
+                    "returned_items": [
+                        {
+                            "id": return_record.id,
+                            "sale_id": return_record.sale_id,
+                            "stock_id": return_record.stock_id,
+                            "item_name": return_record.stock.item_name,
+                            "quantity": return_record.quantity,
+                            "reason": return_record.reason.value,
+                            "return_date": return_record.return_date,
+                            "unit_price": return_record.stock.selling_price
+                        } for return_record in returns
                     ]
                 }
         except Exception as e:

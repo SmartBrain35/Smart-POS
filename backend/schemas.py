@@ -1,9 +1,6 @@
 from datetime import datetime, date
 from pydantic import BaseModel
-from backend.storage.models import (
-    UserRole, EmployeeDesignation, StockType, PaymentMethod,
-    ExpenditureCategory
-)
+from backend.storage.models import UserRole, EmployeeDesignation, StockType, ExpenditureCategory
 
 
 class AccountRead(BaseModel):
@@ -47,22 +44,6 @@ class StockRead(BaseModel):
     expiry_date: date | None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-        use_enum_values = True
-
-
-class SaleRead(BaseModel):
-    id: int
-    sale_date: date
-    sale_time: datetime
-    discount_amount: float
-    amount_paid: float
-    change_given: float
-    payment_method: PaymentMethod
-    cashier_id: int
-    created_at: datetime
 
     class Config:
         from_attributes = True

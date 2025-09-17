@@ -263,3 +263,36 @@ ExpenditureAPI.filter_expenditures(search_term: str)
 # Returns: {"success": bool, "expenditures": [{}...], "error": str}
 # expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
 ```
+
+## Return Management
+
+```python
+# Process item return (restore to stock)
+ReturnAPI.process_return(sale_id: int, stock_id: int, quantity: int, reason: str, return_date: str | None = None)
+# reason options: values from ReturnReason enum
+# return_date format: "YYYY-MM-DD" (optional, defaults to today)
+# Returns: {"success": bool, "returned_item": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+
+# Get all returns (with summaries)
+ReturnAPI.get_all_returns()
+# Returns: {"success": bool, "returned_items": [{}...], "summary": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+# summary: {"total_items": int, "total_refund": float, "total_loss": float}
+
+# Update return
+ReturnAPI.update_return(return_id: int, quantity: int, reason: str, return_date: str)
+# reason options: values from ReturnReason enum
+# return_date format: "YYYY-MM-DD"
+# Returns: {"success": bool, "returned_item": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+
+# Delete return
+ReturnAPI.delete_return(return_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+
+# Filter returns by item name
+ReturnAPI.filter_returns(search_term: str)
+# Returns: {"success": bool, "returned_items": [{}...], "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+```
