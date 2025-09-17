@@ -4,7 +4,7 @@ from sqlmodel import select, and_, or_, func
 from backend.storage.database import get_session
 from backend.auth import hash_password, verify_password
 from backend.schemas import (
-    AccountRead, EmployeeRead, StockRead, ExpenditureRead, ReturnRead
+    AccountRead, EmployeeRead, StockRead, ExpenditureRead
 )
 
 from backend.storage.models import (

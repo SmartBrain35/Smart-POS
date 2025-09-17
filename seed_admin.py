@@ -8,7 +8,6 @@ result = AccountAPI.create_account(
 )
 
 if result['success']:
-    print(result['account'])
     print('Admin seeded successfully')
 else:
     print(result['error'])
