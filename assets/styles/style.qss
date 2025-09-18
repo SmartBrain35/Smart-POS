@@ -196,13 +196,12 @@ QPushButton#btnAccountClear:hover {
 }
 
 /* Table */
-QTableWidget#tableUsers, #tableRecentActivity{
+QTableWidget#tableUsers{
     border: 1px solid #0a0404ff;
-    gridline-color: #000000ff;;
     selection-background-color: #00aaff;
-    alternate-background-color: #f9f9f9;
+    alternate-background-color: #cccccc;
     color: black;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 #tableBtnEdit, #tableBtnDelete {

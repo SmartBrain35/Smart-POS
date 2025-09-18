@@ -6,7 +6,8 @@ from backend.auth import hash_password, verify_password
 from backend.schemas import (
     AccountRead, EmployeeRead, StockRead, ExpenditureRead
 )
-
+from enum import Enum
+from sqlalchemy import Column, TEXT
 from backend.storage.models import (
     Account,
     Employee,
@@ -24,20 +25,7 @@ from backend.storage.models import (
     ExpenditureCategory,
     ReturnReason,
 )
-
-
-from datetime import datetime
-from sqlalchemy import select, or_, and_, func
-from backend.models import Account, UserRole, Sale
-from backend.utils import get_session, hash_password, verify_password
-from typing import Any, dict
-
-from datetime import datetime
-from sqlalchemy import select, or_, and_, func
 from backend.storage.models import Account, UserRole, Sale
-from backend.utils import get_session, hash_password, verify_password
-from typing import Any, dict
-
 
 class AccountAPI:
     """CRUD operations for Account management with authentication logic"""
@@ -51,7 +39,7 @@ class AccountAPI:
             with get_session() as session:
                 # Validate role
                 try:
-                    user_role = UserRole(role.lower())
+                    user_role = UserRole(role)
                 except ValueError:
                     return {"success": False, "error": f"Invalid role: {role}"}
 
@@ -82,7 +70,10 @@ class AccountAPI:
                 session.commit()
                 session.refresh(account)
 
-                return {"success": True, "account": account.dict(exclude={"password"})}
+                return {
+                    "success": True,
+                    "account": account.model_dump(exclude={"password"}),
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -106,7 +97,10 @@ class AccountAPI:
                 if not verify_password(password, account.password):
                     return {"success": False, "error": "Invalid password"}
 
-                return {"success": True, "account": account.dict(exclude={"password"})}
+                return {
+                    "success": True,
+                    "account": account.model_dump(exclude={"password"}),
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -118,20 +112,25 @@ class AccountAPI:
                 accounts = session.exec(select(Account)).all()
                 return {
                     "success": True,
-                    "accounts": [acc.dict(exclude={"password"}) for acc in accounts],
+                    "accounts": [
+                        acc.model_dump(exclude={"password"}) for acc in accounts
+                    ],
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def get_user_by_id(account_id: int) -> dict[str, Any]:
-        """Get a single account by ID"""
+    def get_account_by_id(account_id: int) -> dict[str, Any]:
+        """Fetch single account by id"""
         try:
             with get_session() as session:
                 account = session.get(Account, account_id)
                 if not account:
                     return {"success": False, "error": "Account not found"}
-                return {"success": True, "account": account.dict(exclude={"password"})}
+                return {
+                    "success": True,
+                    "account": account.model_dump(exclude={"password"}),
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -151,25 +150,19 @@ class AccountAPI:
                 if not account:
                     return {"success": False, "error": "Account not found"}
 
-                # Validate role if provided
-                if role:
-                    try:
-                        user_role = UserRole(role.lower())
-                    except ValueError:
-                        return {"success": False, "error": f"Invalid role: {role}"}
-                    account.role = user_role
-
                 # Check for conflicts with other accounts
                 if phone or email:
                     existing = session.exec(
                         select(Account).where(
                             and_(
                                 Account.id != account_id,
-                                or_(Account.phone == phone, Account.email == email),
+                                or_(
+                                    Account.phone == phone if phone else False,
+                                    Account.email == email if email else False,
+                                ),
                             )
                         )
                     ).first()
-
                     if existing:
                         field = "phone" if existing.phone == phone else "email"
                         return {
@@ -177,7 +170,7 @@ class AccountAPI:
                             "error": f"Another account with this {field} already exists",
                         }
 
-                # Update fields if provided
+                # Apply updates
                 if name:
                     account.name = name
                 if phone:
@@ -186,25 +179,33 @@ class AccountAPI:
                     account.email = email
                 if password:
                     account.password = hash_password(password)
-                account.updated_at = datetime.now()
+                if role:
+                    try:
+                        account.role = UserRole(role)
+                    except ValueError:
+                        return {"success": False, "error": f"Invalid role: {role}"}
 
+                account.updated_at = datetime.now()
+                session.add(account)
                 session.commit()
                 session.refresh(account)
 
-                return {"success": True, "account": account.dict(exclude={"password"})}
+                return {
+                    "success": True,
+                    "account": account.model_dump(exclude={"password"}),
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
     def delete_account(account_id: int) -> dict[str, Any]:
-        """Delete an account"""
+        """Delete an account if it has no linked sales"""
         try:
             with get_session() as session:
                 account = session.get(Account, account_id)
                 if not account:
                     return {"success": False, "error": "Account not found"}
 
-                # Check if account has sales records
                 sales_count = session.exec(
                     select(func.count(Sale.id)).where(Sale.cashier_id == account_id)
                 ).first()
@@ -219,6 +220,7 @@ class AccountAPI:
                 return {"success": True, "message": "Account deleted successfully"}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
 
 
 class EmployeeAPI:

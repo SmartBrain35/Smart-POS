@@ -10,6 +10,16 @@ from ui.damage_ui import Ui_Damage
 from ui.expenditure_ui import Ui_Expenditure
 from ui.account_ui import Ui_Account
 from ui.settings_ui import Ui_Settings
+from controllers.accountController import AccountController
+import logging
+
+home_logger = logging.getLogger("HomePage")
+home_logger.setLevel(logging.DEBUG)
+if not home_logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    home_logger.addHandler(ch)
+
 
 class HomePage(QtWidgets.QMainWindow):
     def __init__(self):
@@ -29,8 +39,10 @@ class HomePage(QtWidgets.QMainWindow):
         self.page_loaded = [False] * len(self.page_configs)
         self.pages = {}
         self.current_button = None
+        self.account_controller = None  # Ensure single instance
         self.setupUi(self)
         self.setup_connections()
+        home_logger.debug("HomePage initialized, switching to Dashboard")
         self.switch_page(0, "Dashboard")  # Load and show dashboard initially
 
     def setupUi(self, Home):
@@ -88,52 +100,39 @@ class HomePage(QtWidgets.QMainWindow):
         # Sidebar Title
         self.logo = QtWidgets.QLabel("SMART-POS")
         self.logo.setAlignment(QtCore.Qt.AlignCenter)
-        font = QtGui.QFont("Segoe UI", 20, QtGui.QFont.Bold)
+        font = QtGui.QFont("Segoe UI", 16, QtGui.QFont.Bold)
         self.logo.setFont(font)
-        self.logo.setStyleSheet("color: #00c2ff; margin-bottom: 25px;")
+        self.logo.setStyleSheet("color: #ecf0f1; font-weight: 700; color: #00aaff")
         self.sidebarLayout.addWidget(self.logo)
 
-        # Sidebar Buttons
         button_style = """
             QPushButton {
-                background-color: transparent;
+                background: transparent;
                 color: white;
-                padding: 12px 15px;
-                padding-left: 40px; /* Increased padding to add space after icon */
-                text-align: left;
                 border: none;
-                font-size: 15px;
-                font-weight: bold;
-                border-radius: 5px;
-                margin: 2px 0;
+                text-align: left;
+                padding: 10px;
+                font-size: 14px;
+                border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #00c2ff;
-                color: black;
-            }
-            QPushButton:pressed {
-                background-color: #0086b3;
+                background-color: #00aaff;
                 color: white;
             }
-            QPushButton[active=true] {
-                background-color: #00c2ff;
-                color: black;
-                border-left: 4px solid #ffffff; /* Fixed typo from #a190b */
+            QPushButton[active="true"] {
+                background: #00aaff;
+                color: white;
+                font-weight: bold;
             }
-            QPushButton > QIcon {
-                color: white; /* Default icon color */
-                margin-right: 10px; /* Additional spacing between icon and text */
-            }
-            QPushButton:hover > QIcon {
-                color: black; /* Icon color on hover */
-            }
-            QPushButton:pressed > QIcon {
-                color: white; /* Icon color when pressed */
-            }
-            QPushButton[active=true] > QIcon {
-                color: black; /* Icon color when active */
+            QPushButton[active="true"]:hover {
+                background: qlineargradient(
+                    spread:pad, x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgba(41,128,185,1),
+                    stop:1 rgba(31,97,141,1)
+                );
             }
         """
+
         button_configs = [
             ("Dashboard", 0, "assets/icons/dashboard.png"),
             ("Stock", 1, "assets/icons/stock.png"),
@@ -194,15 +193,24 @@ class HomePage(QtWidgets.QMainWindow):
 
     def load_page(self, index):
         if self.page_loaded[index]:
+            home_logger.debug(f"Page {index} already loaded, skipping.")
             return
         ui_class, attr_name = self.page_configs[index]
         page = self.stackedWidget.widget(index)
-        ui_instance = ui_class()
-        ui_instance.setupUi(page)
-        self.pages[attr_name] = page
-        setattr(self, attr_name, page)
-        setattr(self, f"ui_{attr_name.split('_')[1]}", ui_instance)
-        self.page_loaded[index] = True
+        try:
+            ui_instance = ui_class()
+            ui_instance.setupUi(page)
+            self.pages[attr_name] = page
+            setattr(self, attr_name, page)
+            setattr(self, f"ui_{attr_name.split('_')[1]}", ui_instance)
+            home_logger.debug(f"UI setup complete for {attr_name}")
+            if attr_name == "page_account" and self.account_controller is None:
+                self.account_controller = AccountController(ui_instance, page)
+                home_logger.debug("AccountController instantiated successfully")
+            self.page_loaded[index] = True
+            home_logger.debug(f"Page {index} ({attr_name}) loaded successfully.")
+        except Exception as e:
+            home_logger.exception(f"Error loading page {index} ({attr_name}): {e}")
 
     def setup_connections(self):
         for name, btn in self.buttons.items():
@@ -218,6 +226,7 @@ class HomePage(QtWidgets.QMainWindow):
             btn.installEventFilter(self)
 
     def switch_page(self, index, title, button=None):
+        home_logger.debug(f"Switching to page {index} ({title})")
         if index is not None:
             self.load_page(index)
             self.stackedWidget.setCurrentIndex(index)
@@ -242,6 +251,7 @@ class HomePage(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_Enter,
                 QtCore.Qt.Key_Space,
             ):
+                home_logger.debug(f"Button {obj.text()} triggered via key press")
                 obj.click()
                 return True
         return super().eventFilter(obj, event)
