@@ -1,69 +1,202 @@
-from PySide6 import QMessageBox, QMainWindow, QtGui, QtCore, QtWidgets
+# account_controller.py
+import logging
+import re
+import threading
+import functools
+
+import PySide6.QtCore as QtCore
+import PySide6.QtGui as QtGui
+import PySide6.QtWidgets as QtWidgets
+
 from ui.account_ui import Ui_Account
 from backend.apis import AccountAPI
+
+# configure module logger
+logger = logging.getLogger("AccountController")
+logger.setLevel(logging.DEBUG)
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    logger.addHandler(ch)
+
 
 class AccountController:
     def __init__(self, parent=None):
         self.parent = parent
-        self.account_window = QMainWindow()
+        self.account_window = QtWidgets.QMainWindow()
         self.ui = Ui_Account()
         self.ui.setupUi(self.account_window)
-        
-        # Connect UI signals to controller methods
+
+        # connect UI signals
         self.ui.btn_register.clicked.connect(self.handle_register)
         self.ui.btn_edit.clicked.connect(self.handle_edit)
         self.ui.btn_clear.clicked.connect(self.handle_clear)
-        
-        # Connect table action buttons
-        self.connect_table_buttons()
 
-        # Load initial data
-        self.load_users()
+        # improve table behavior
+        self.ui.table_users.setSortingEnabled(False)
+        self.ui.table_users.setSelectionMode(
+            QtWidgets.QAbstractItemView.SingleSelection
+        )
+        self.ui.table_users.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.ui.table_users.cellDoubleClicked.connect(self._on_table_double_clicked)
 
-    def connect_table_buttons(self):
-        for row in range(self.ui.table_users.rowCount()):
-            action_widget = self.ui.table_users.cellWidget(row, 5)
-            if action_widget:
-                for btn in action_widget.findChildren(QtWidgets.QPushButton):
-                    if btn.objectName() == "tableBtnEdit":
-                        btn.clicked.connect(lambda checked, r=row: self.handle_table_edit(r))
-                    elif btn.objectName() == "tableBtnDelete":
-                        btn.clicked.connect(lambda checked, r=row: self.handle_table_delete(r))
+        # load users asynchronously
+        self.load_users_async()
 
-    def load_users(self):
-        # Clear existing rows
-        self.ui.table_users.setRowCount(0)
-        
-        # Fetch users from API
-        users = AccountAPI.get_all_users()
-        if users:
-            self.ui.table_users.setRowCount(len(users))
-            for row, user in enumerate(users):
-                self.ui.table_users.setItem(row, 0, QtWidgets.QTableWidgetItem(str(user.get("id", ""))))
-                self.ui.table_users.setItem(row, 1, QtWidgets.QTableWidgetItem(user.get("name", "")))
-                self.ui.table_users.setItem(row, 2, QtWidgets.QTableWidgetItem(user.get("phone", "")))
-                self.ui.table_users.setItem(row, 3, QtWidgets.QTableWidgetItem(user.get("email", "")))
-                self.ui.table_users.setItem(row, 4, QtWidgets.QTableWidgetItem(user.get("role", "")))
+    # -------------------------
+    # Utility / Normalization
+    # -------------------------
+    def normalize_user(self, user):
+        """
+        Normalize a user row to a dict with keys: id, name, phone, email, role.
+        Accepts dict-like, ORM objects (attributes), tuples (ordered), etc.
+        """
+        if user is None:
+            return {"id": "", "name": "", "phone": "", "email": "", "role": ""}
 
-                # Action cell
+        # if it's already a dict-like
+        try:
+            if isinstance(user, dict):
+                return {
+                    "id": user.get("id", ""),
+                    "name": user.get("name", ""),
+                    "phone": user.get("phone", ""),
+                    "email": user.get("email", ""),
+                    "role": user.get("role", ""),
+                }
+        except Exception:
+            pass
+
+        # If it exposes attributes (e.g. ORM object)
+        for attr in ("id", "pk", "user_id"):
+            if hasattr(user, attr):
+                return {
+                    "id": getattr(user, attr),
+                    "name": getattr(user, "name", getattr(user, "full_name", "")),
+                    "phone": getattr(user, "phone", ""),
+                    "email": getattr(user, "email", ""),
+                    "role": getattr(user, "role", ""),
+                }
+
+        # If it's an iterable/tuple/list, attempt to map by position
+        try:
+            if isinstance(user, (list, tuple)):
+                # try common ordering: id, name, phone, email, role
+                u0 = user + ("",) * (5 - len(user))
+                return {
+                    "id": u0[0],
+                    "name": u0[1],
+                    "phone": u0[2],
+                    "email": u0[3],
+                    "role": u0[4],
+                }
+        except Exception:
+            pass
+
+        # fallback: string representation
+        return {
+            "id": str(user),
+            "name": str(user),
+            "phone": "",
+            "email": "",
+            "role": "",
+        }
+
+    # -------------------------
+    # Async loading
+    # -------------------------
+    def load_users_async(self):
+        """Start background thread to fetch users and populate table on completion."""
+        logger.debug("Starting background thread to load users")
+        t = threading.Thread(target=self._fetch_users_worker, daemon=True)
+        t.start()
+
+    def _fetch_users_worker(self):
+        """Runs in background thread: call API and then schedule UI update."""
+        try:
+            users = AccountAPI.get_all_users()
+            logger.debug("Fetched users (raw): %s", repr(users))
+        except Exception as e:
+            logger.exception("Error fetching users: %s", e)
+            users = []
+        # schedule UI update on main thread
+        QtCore.QTimer.singleShot(0, functools.partial(self.populate_users_table, users))
+
+    # -------------------------
+    # Table population
+    # -------------------------
+    def populate_users_table(self, users):
+        """
+        Populate the QTableWidget. This runs on the main GUI thread.
+        Accepts a list (possibly empty) or None.
+        """
+        try:
+            self.ui.table_users.setUpdatesEnabled(False)
+            self.ui.table_users.blockSignals(True)
+
+            # Defensive: ensure users is a list
+            if users is None:
+                users = []
+
+            # if API returned a single object, coerce to list
+            if not isinstance(users, (list, tuple)):
+                users = [users]
+
+            # Normalize all user items
+            normalized = [self.normalize_user(u) for u in users]
+
+            # Clear table
+            self.ui.table_users.setRowCount(0)
+            self.ui.table_users.setRowCount(len(normalized))
+
+            for row, user in enumerate(normalized):
+                uid = user.get("id", "")
+                name = user.get("name", "") or ""
+                phone = user.get("phone", "") or ""
+                email = user.get("email", "") or ""
+                role = user.get("role", "") or ""
+
+                # insert items
+                self.ui.table_users.setItem(
+                    row, 0, QtWidgets.QTableWidgetItem(str(uid))
+                )
+                self.ui.table_users.setItem(row, 1, QtWidgets.QTableWidgetItem(name))
+                self.ui.table_users.setItem(row, 2, QtWidgets.QTableWidgetItem(phone))
+                self.ui.table_users.setItem(row, 3, QtWidgets.QTableWidgetItem(email))
+                self.ui.table_users.setItem(row, 4, QtWidgets.QTableWidgetItem(role))
+
+                # create action widget with stable callbacks (use partial to bind uid)
                 action_widget = QtWidgets.QWidget()
                 action_layout = QtWidgets.QHBoxLayout(action_widget)
                 action_layout.setContentsMargins(0, 0, 0, 0)
-                action_layout.setSpacing(15)
+                action_layout.setSpacing(8)
 
                 btn_edit = QtWidgets.QPushButton()
                 btn_edit.setObjectName("tableBtnEdit")
-                btn_edit.setIcon(QtGui.QIcon("assets/icons/edit.png"))
-                btn_edit.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                 btn_edit.setToolTip("Edit User")
-                btn_edit.setFixedSize(30, 30)
+                btn_edit.setFixedSize(28, 28)
+                # small icon guard: don't fail if icon is missing
+                try:
+                    btn_edit.setIcon(QtGui.QIcon("assets/icons/edit.png"))
+                except Exception:
+                    pass
 
                 btn_delete = QtWidgets.QPushButton()
                 btn_delete.setObjectName("tableBtnDelete")
-                btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-                btn_delete.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                 btn_delete.setToolTip("Delete User")
-                btn_delete.setFixedSize(30, 30)
+                btn_delete.setFixedSize(28, 28)
+                try:
+                    btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
+                except Exception:
+                    pass
+
+                # connect with partial so uid captured correctly
+                btn_edit.clicked.connect(
+                    functools.partial(self.handle_table_edit_by_id, uid)
+                )
+                btn_delete.clicked.connect(
+                    functools.partial(self.handle_table_delete_by_id, uid)
+                )
 
                 action_layout.addStretch()
                 action_layout.addWidget(btn_edit)
@@ -71,8 +204,23 @@ class AccountController:
                 action_layout.addStretch()
 
                 self.ui.table_users.setCellWidget(row, 5, action_widget)
-                self.connect_table_buttons()  # Reconnect signals for new rows
 
+            # optionally resize rows for better performance (avoid heavy resize calls)
+            self.ui.table_users.resizeColumnsToContents()
+            logger.debug("Populated table with %d rows", len(normalized))
+
+        except Exception as e:
+            logger.exception("Error populating users table: %s", e)
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Error", f"Failed to load users: {e}"
+            )
+        finally:
+            self.ui.table_users.blockSignals(False)
+            self.ui.table_users.setUpdatesEnabled(True)
+
+    # -------------------------
+    # Handlers (UI actions)
+    # -------------------------
     def handle_register(self):
         name = self.ui.input_name.text().strip()
         phone = self.ui.input_phone.text().strip()
@@ -80,31 +228,70 @@ class AccountController:
         password = self.ui.input_password.text().strip()
         role = self.ui.input_role.currentText()
 
-        # Validate all fields are compulsory
         if not all([name, phone, email, password, role]):
-            QMessageBox.warning(self.account_window, "Input Error", "All fields (Name, Phone, Email, Password, Role) are required.")
+            QtWidgets.QMessageBox.warning(
+                self.account_window,
+                "Input Error",
+                "All fields (Name, Phone, Email, Password, Role) are required.",
+            )
             return
 
-        # Basic input validation
         if not self.is_valid_email(email):
-            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid email address.")
-            return
-        if not self.is_valid_phone(phone):
-            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid phone number.")
+            QtWidgets.QMessageBox.warning(
+                self.account_window,
+                "Input Error",
+                "Please enter a valid email address.",
+            )
             return
 
-        result = AccountAPI.create_user(name, phone, email, password, role)
-        if result["success"]:
-            QMessageBox.information(self.account_window, "Success", "User registered successfully.")
+        if not self.is_valid_phone(phone):
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Input Error", "Please enter a valid phone number."
+            )
+            return
+
+        # call API in background so UI doesn't block
+        def _create():
+            try:
+                result = AccountAPI.create_user(name, phone, email, password, role)
+            except Exception as e:
+                logger.exception("Create user failed: %s", e)
+                result = {"success": False, "error": str(e)}
+            # schedule UI feedback
+            QtCore.QTimer.singleShot(
+                0, functools.partial(self._after_create_user, result)
+            )
+
+        threading.Thread(target=_create, daemon=True).start()
+
+    def _after_create_user(self, result):
+        if result.get("success"):
+            QtWidgets.QMessageBox.information(
+                self.account_window, "Success", "User registered successfully."
+            )
             self.clear_fields()
-            self.load_users()
+            self.load_users_async()
         else:
-            QMessageBox.warning(self.account_window, "Error", result["error"])
+            err = result.get("error", "Unknown error")
+            QtWidgets.QMessageBox.warning(self.account_window, "Error", str(err))
 
     def handle_edit(self):
         selected_row = self.ui.table_users.currentRow()
         if selected_row == -1:
-            QMessageBox.warning(self.account_window, "Selection Error", "Please select a user to edit.")
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Selection Error", "Please select a user to edit."
+            )
+            return
+
+        try:
+            user_id_item = self.ui.table_users.item(selected_row, 0)
+            if user_id_item is None:
+                raise ValueError("Selected row has no ID")
+            user_id = int(user_id_item.text())
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Error", f"Invalid selection: {e}"
+            )
             return
 
         name = self.ui.input_name.text().strip()
@@ -112,53 +299,120 @@ class AccountController:
         email = self.ui.input_email.text().strip()
         password = self.ui.input_password.text().strip()
         role = self.ui.input_role.currentText()
-        user_id = int(self.ui.table_users.item(selected_row, 0).text())
 
-        # Validate all fields except password are compulsory
         if not all([name, phone, email, role]):
-            QMessageBox.warning(self.account_window, "Input Error", "All fields (Name, Phone, Email, Role) are required.")
+            QtWidgets.QMessageBox.warning(
+                self.account_window,
+                "Input Error",
+                "All fields (Name, Phone, Email, Role) are required.",
+            )
             return
 
-        # Basic input validation
         if not self.is_valid_email(email):
-            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid email address.")
-            return
-        if not self.is_valid_phone(phone):
-            QMessageBox.warning(self.account_window, "Input Error", "Please enter a valid phone number.")
+            QtWidgets.QMessageBox.warning(
+                self.account_window,
+                "Input Error",
+                "Please enter a valid email address.",
+            )
             return
 
-        result = AccountAPI.update_user(user_id, name, phone, email, password if password else None, role)
-        if result["success"]:
-            QMessageBox.information(self.account_window, "Success", "User updated successfully.")
+        if not self.is_valid_phone(phone):
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Input Error", "Please enter a valid phone number."
+            )
+            return
+
+        # background update
+        def _update():
+            try:
+                result = AccountAPI.update_user(
+                    user_id, name, phone, email, password if password else None, role
+                )
+            except Exception as e:
+                logger.exception("Update user failed: %s", e)
+                result = {"success": False, "error": str(e)}
+            QtCore.QTimer.singleShot(
+                0, functools.partial(self._after_update_user, result)
+            )
+
+        threading.Thread(target=_update, daemon=True).start()
+
+    def _after_update_user(self, result):
+        if result.get("success"):
+            QtWidgets.QMessageBox.information(
+                self.account_window, "Success", "User updated successfully."
+            )
             self.clear_fields()
-            self.load_users()
+            self.load_users_async()
         else:
-            QMessageBox.warning(self.account_window, "Error", result["error"])
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Error", result.get("error", "Unknown error")
+            )
 
     def handle_clear(self):
         self.clear_fields()
 
-    def handle_table_edit(self, row):
-        user_id = int(self.ui.table_users.item(row, 0).text())
-        user = AccountAPI.get_user_by_id(user_id)
-        if user:
+    # -------------------------
+    # Table action helpers (by id)
+    # -------------------------
+    def handle_table_edit_by_id(self, user_id):
+        """Load user details into form by id"""
+        try:
+            user = AccountAPI.get_user_by_id(user_id)
+            user = self.normalize_user(user)
             self.ui.input_name.setText(user.get("name", ""))
             self.ui.input_phone.setText(user.get("phone", ""))
             self.ui.input_email.setText(user.get("email", ""))
-            self.ui.input_password.clear()  # Clear password for security
-            self.ui.input_role.setCurrentText(user.get("role", "Admin"))
-
-    def handle_table_delete(self, row):
-        user_id = int(self.ui.table_users.item(row, 0).text())
-        reply = QMessageBox.question(self.account_window, "Confirm Delete", "Are you sure you want to delete this user?",
-                                     QMessageBox.Yes | QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            result = AccountAPI.delete_user(user_id)
-            if result["success"]:
-                self.load_users()
+            self.ui.input_password.clear()
+            # set the role safely
+            role = user.get("role", "") or ""
+            idx = self.ui.input_role.findText(role)
+            if idx >= 0:
+                self.ui.input_role.setCurrentIndex(idx)
             else:
-                QMessageBox.warning(self.account_window, "Error", result["error"])
+                # if not found, keep default (or add)
+                self.ui.input_role.setCurrentIndex(0)
+            # highlight row that holds this user_id
+            self._select_row_by_user_id(user_id)
+        except Exception as e:
+            logger.exception("Error loading user for edit: %s", e)
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Error", f"Failed to load user: {e}"
+            )
 
+    def handle_table_delete_by_id(self, user_id):
+        reply = QtWidgets.QMessageBox.question(
+            self.account_window,
+            "Confirm Delete",
+            "Are you sure you want to delete this user?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+
+        def _delete():
+            try:
+                result = AccountAPI.delete_user(user_id)
+            except Exception as e:
+                logger.exception("Delete user failed: %s", e)
+                result = {"success": False, "error": str(e)}
+            QtCore.QTimer.singleShot(
+                0, functools.partial(self._after_delete_user, result)
+            )
+
+        threading.Thread(target=_delete, daemon=True).start()
+
+    def _after_delete_user(self, result):
+        if result.get("success"):
+            self.load_users_async()
+        else:
+            QtWidgets.QMessageBox.warning(
+                self.account_window, "Error", result.get("error", "Unknown error")
+            )
+
+    # -------------------------
+    # Helpers & validators
+    # -------------------------
     def clear_fields(self):
         self.ui.input_name.clear()
         self.ui.input_phone.clear()
@@ -166,16 +420,36 @@ class AccountController:
         self.ui.input_password.clear()
         self.ui.input_role.setCurrentIndex(0)
 
+    def _select_row_by_user_id(self, user_id):
+        """Find the row that has the given user_id in column 0 and select it."""
+        for r in range(self.ui.table_users.rowCount()):
+            item = self.ui.table_users.item(r, 0)
+            if item and str(item.text()) == str(user_id):
+                self.ui.table_users.selectRow(r)
+                return
+
+    def _on_table_double_clicked(self, row, col):
+        """Double-click a row to populate the edit form."""
+        try:
+            item = self.ui.table_users.item(row, 0)
+            if not item:
+                return
+            uid = item.text()
+            # try to use int if possible
+            try:
+                uid_val = int(uid)
+            except Exception:
+                uid_val = uid
+            self.handle_table_edit_by_id(uid_val)
+        except Exception as e:
+            logger.exception("Error on table double click: %s", e)
+
     def is_valid_email(self, email):
-        # Simple email validation (can be enhanced)
-        import re
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return re.match(email_pattern, email) is not None
 
     def is_valid_phone(self, phone):
-        # Simple phone validation (e.g., 10 digits or + followed by digits)
-        import re
-        phone_pattern = r'^\+?\d{10,}$'
+        phone_pattern = r"^\+?\d{7,15}$"
         return re.match(phone_pattern, phone) is not None
 
     def show(self):

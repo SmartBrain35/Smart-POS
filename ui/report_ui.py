@@ -1,3 +1,4 @@
+import logging
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -9,15 +10,23 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLCDNumber,
     QSizePolicy,
+    QMessageBox,
 )
-from PySide6.QtCore import Qt, QDate, QUrl
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtGui import QIcon, QCursor
-from PySide6.QtPrintSupport import QPrinter, QPrintDialog
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtPdf import QPdfDocument
+from PySide6.QtPdfWidgets import QPdfView
+
+# Configure logging for debugging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
 
 
 class Ui_Report(object):
     def setupUi(self, Report):
+        logging.debug("Setting up Ui_Report")
         Report.setObjectName("ReportPage")
         self.report_layout = QVBoxLayout(Report)
         self.report_layout.setContentsMargins(15, 15, 15, 15)
@@ -49,83 +58,108 @@ class Ui_Report(object):
 
         content_layout.addWidget(self.right_side)
         self.report_layout.addWidget(self.content_widget, stretch=1)
+        logging.debug("Ui_Report setup completed")
 
     def setup_filter_section(self):
         self.filter_section = QWidget()
         self.filter_section.setObjectName("FilterSection")
         filter_layout = QGridLayout(self.filter_section)
+        filter_layout.setColumnStretch(0, 0)
+        filter_layout.setColumnStretch(1, 1)
+        filter_layout.setColumnStretch(2, 0)
+        filter_layout.setColumnStretch(3, 1)
+        filter_layout.setColumnStretch(4, 0)
+        filter_layout.setColumnStretch(5, 1)
+        filter_layout.setColumnStretch(6, 0)
+        filter_layout.setColumnStretch(7, 0)
 
-        self.report_date_from = QDateEdit(QDate.currentDate().addMonths(-1))
-        self.report_date_from.setCalendarPopup(True)
-        self.report_date_from.setFixedHeight(35)
-        self.report_date_from.setObjectName("InputDateFrom")
+        filter_configs = [
+            ("From:", "report_date_from", QDateEdit, QDate.currentDate().addMonths(-1)),
+            ("To:", "report_date_to", QDateEdit, QDate.currentDate()),
+            ("Category:", "report_category", QComboBox, None),
+        ]
 
-        self.report_date_to = QDateEdit(QDate.currentDate())
-        self.report_date_to.setCalendarPopup(True)
-        self.report_date_to.setFixedHeight(35)
-        self.report_date_to.setObjectName("InputDateTo")
+        self.filter_widgets = {}
+        col = 0
+        for label_text, obj_name, widget_type, default in filter_configs:
+            lbl = QLabel(label_text)
 
-        self.report_category = QComboBox()
-        self.report_category.addItems(
-            ["All", "Sales", "Expenditures", "Damages", "Returns", "Stock"]
-        )
-        self.report_category.setFixedHeight(35)
-        self.report_category.setObjectName("InputCategory")
+            if widget_type == QDateEdit:
+                widget = QDateEdit(default)
+                widget.setCalendarPopup(True)
+            elif widget_type == QComboBox:
+                widget = QComboBox()
+                widget.addItems(
+                    ["All", "Sales", "Expenditures", "Damages", "Returns", "Stock"]
+                )
+
+            widget.setObjectName(obj_name)
+            widget.setMinimumHeight(35)
+            widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+            filter_layout.addWidget(lbl, 0, col)
+            filter_layout.addWidget(widget, 0, col + 1)
+
+            self.filter_widgets[obj_name] = widget
+            col += 2
+
+        self.report_date_from = self.filter_widgets["report_date_from"]
+        self.report_date_to = self.filter_widgets["report_date_to"]
+        self.report_category = self.filter_widgets["report_category"]
 
         self.btn_generate_report = QPushButton("Generate PDF Report")
-        self.btn_generate_report.setFixedHeight(35)
         self.btn_generate_report.setObjectName("BtnGenerateReport")
+        self.btn_generate_report.setMinimumHeight(35)
+        self.btn_generate_report.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        filter_layout.addWidget(self.btn_generate_report, 0, col)
 
         self.btn_clear_report = QPushButton("Clear")
-        self.btn_clear_report.setFixedHeight(35)
         self.btn_clear_report.setObjectName("BtnClearReport")
-
-        filter_layout.addWidget(QLabel("From:"), 0, 0)
-        filter_layout.addWidget(self.report_date_from, 0, 1)
-
-        filter_layout.addWidget(QLabel("To:"), 0, 2)
-        filter_layout.addWidget(self.report_date_to, 0, 3)
-
-        filter_layout.addWidget(QLabel("Category:"), 1, 0)
-        filter_layout.addWidget(self.report_category, 1, 1)
-
-        filter_layout.addWidget(self.btn_generate_report, 1, 2)
-        filter_layout.addWidget(self.btn_clear_report, 1, 3)
+        self.btn_clear_report.setMinimumHeight(35)
+        self.btn_clear_report.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        filter_layout.addWidget(self.btn_clear_report, 0, col + 1)
 
     def setup_lcd_section(self):
         self.lcd_section = QWidget()
         self.lcd_section.setObjectName("LcdSection")
         lcd_layout = QVBoxLayout(self.lcd_section)
 
-        revenue_box, self.lcd_revenue = self.create_lcd("Total Revenue", "LcdRevenue")
-        exp_box, self.lcd_expenditures = self.create_lcd(
-            "Total Expenditures", "LcdExpenditures"
-        )
-        profit_box, self.lcd_profit = self.create_lcd("Net Profit", "LcdProfit")
+        lcd_configs = [
+            ("Total Revenue", "LcdRevenue"),
+            ("Total Expenditures", "LcdExpenditures"),
+            ("Net Profit", "LcdProfit"),
+        ]
 
-        lcd_layout.addWidget(revenue_box)
-        lcd_layout.addWidget(exp_box)
-        lcd_layout.addWidget(profit_box)
+        self.lcds = {}
+        for title, obj_name in lcd_configs:
+            box, lcd = self.create_lcd(title, obj_name)
+            lcd_layout.addWidget(box)
+            self.lcds[obj_name] = lcd
+
+        self.lcd_revenue = self.lcds["LcdRevenue"]
+        self.lcd_expenditures = self.lcds["LcdExpenditures"]
+        self.lcd_profit = self.lcds["LcdProfit"]
 
     def setup_pdf_viewer(self):
         self.pdf_container = QWidget()
         self.pdf_container.setObjectName("PdfContainer")
-        pdf_layout = QHBoxLayout(self.pdf_container)
-        pdf_layout.setContentsMargins(0, 0, 0, 0)
+        self.pdf_layout = QHBoxLayout(self.pdf_container)
+        self.pdf_layout.setContentsMargins(0, 0, 0, 0)
 
-        pdf_layout.addStretch()
-        self.pdf_viewer = QWebEngineView()
-        self.pdf_viewer.setMinimumSize(700, 900)
-        self.pdf_viewer.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        self.pdf_layout.addStretch()
+        # Initialize QPdfView directly
+        self.pdf_viewer = QPdfView()
         self.pdf_viewer.setObjectName("PdfViewer")
-        pdf_layout.addWidget(self.pdf_viewer)
-        pdf_layout.addStretch()
+        self.pdf_viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.pdf_layout.addWidget(self.pdf_viewer)
+        self.pdf_layout.addStretch()
 
-        # Add Print Button (new feature)
         self.btn_print_report = QPushButton("Print Report")
-        self.btn_print_report.setFixedHeight(35)
         self.btn_print_report.setObjectName("BtnPrintReport")
-        pdf_layout.addWidget(self.btn_print_report)
+        self.btn_print_report.setMinimumHeight(35)
+        self.btn_print_report.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.pdf_layout.addWidget(self.btn_print_report)
+        logging.debug("PDF viewer setup with QPdfView")
 
     def create_lcd(self, title, obj_name):
         wrapper = QWidget()
@@ -137,7 +171,7 @@ class Ui_Report(object):
         lcd = QLCDNumber()
         lcd.setObjectName(obj_name)
         lcd.setDigitCount(9)
-        lcd.setFixedHeight(40)
+        lcd.setMinimumHeight(40)
 
         layout.addWidget(label)
         layout.addWidget(lcd)

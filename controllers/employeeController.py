@@ -1,4 +1,4 @@
-from PySide6 import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
+from PySide6.QtWidgets import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
 from ui.employees_ui import Ui_Employees
 from backend.apis import EmployeeAPI
 from datetime import datetime

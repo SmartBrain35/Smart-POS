@@ -1,3 +1,5 @@
+###account ui
+
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
@@ -111,3 +113,5 @@ class Ui_Account(object):
         self.table_users.verticalHeader().setVisible(False)
 
         account_layout.addWidget(self.table_users, stretch=1)
+
+

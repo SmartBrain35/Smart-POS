@@ -1,4 +1,5 @@
-from PySide6 import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
+
+from PySide6.QtWidgets import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
 from ui.damage_ui import Ui_Damage
 from backend.apis import DamageAPI, StockAPI
 from datetime import datetime

@@ -1,4 +1,4 @@
-from PySide6 import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
+from PySide6.QtWidgets import QtCore, QtGui, QtWidgets, QMessageBox, QMainWindow
 from ui.expenditure_ui import Ui_Expenditure
 from backend.apis import ExpenditureAPI
 from datetime import datetime

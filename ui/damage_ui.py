@@ -9,11 +9,14 @@ class Ui_Damage(object):
 
         # === Form Section (Grid Layout, labels on top with tight spacing) ===
         form_container = QtWidgets.QWidget()
-        form_container.setFixedWidth(950)  # wider form for damage
         form_layout = QtWidgets.QGridLayout(form_container)
         form_layout.setContentsMargins(20, 20, 20, 20)
         form_layout.setHorizontalSpacing(35)
         form_layout.setVerticalSpacing(25)
+        form_layout.setColumnStretch(0, 1)
+        form_layout.setColumnStretch(1, 1)
+        form_layout.setColumnStretch(2, 1)
+        form_layout.setColumnStretch(3, 1)
 
         label_style = "color: black; font-weight: bold;"
 
@@ -23,91 +26,130 @@ class Ui_Damage(object):
             vbox.setContentsMargins(0, 0, 0, 0)
             vbox.setSpacing(4)
             lbl = QtWidgets.QLabel(label_text + (" *" if compulsory else ""))
-            if compulsory:
-                lbl.setStyleSheet("color: red; font-weight: bold;")
-            else:
-                lbl.setStyleSheet(label_style)
+            lbl.setStyleSheet(
+                "color: red; font-weight: bold;" if compulsory else label_style
+            )
             vbox.addWidget(lbl)
             vbox.addWidget(widget)
             return wrapper
 
-        # Item Name (compulsory)
-        self.damage_item_name = QtWidgets.QLineEdit()
-        self.damage_item_name.setObjectName("damageItemNameInput")
-        self.damage_item_name.setPlaceholderText("Enter item name")
-        self.damage_item_name.setFixedHeight(40)  # increase input height
-        form_layout.addWidget(
-            create_field("Item Name:", self.damage_item_name, compulsory=True),
-            0,
-            0,
-            1,
-            2,
-        )
+        # Field configurations
+        field_configs = [
+            (
+                "Item Name:",
+                "damageItemNameInput",
+                QtWidgets.QLineEdit,
+                "Enter item name",
+                True,
+                0,
+                0,
+                1,
+                2,
+                {"readOnly": False},
+            ),
+            (
+                "Quantity:",
+                "damageQuantityInput",
+                QtWidgets.QLineEdit,
+                "Enter quantity",
+                True,
+                0,
+                2,
+                1,
+                2,
+                {"readOnly": False},
+            ),
+            (
+                "Price:",
+                "damagePriceInput",
+                QtWidgets.QLineEdit,
+                "Enter price",
+                True,
+                1,
+                0,
+                1,
+                2,
+                {"readOnly": True},
+            ),
+            (
+                "Damage Status:",
+                "damageStatusInput",
+                QtWidgets.QComboBox,
+                ["broken", "expired", "leakage", "other"],
+                True,
+                1,
+                2,
+                1,
+                2,
+                {},
+            ),
+        ]
 
-        # Quantity (compulsory)
-        self.damage_quantity = QtWidgets.QLineEdit()
-        self.damage_quantity.setObjectName("damageQuantityInput")
-        self.damage_quantity.setPlaceholderText("Enter quantity")
-        self.damage_quantity.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Quantity:", self.damage_quantity, compulsory=True), 0, 2, 1, 2
-        )
+        self.fields = {}
+        for (
+            label_text,
+            obj_name,
+            widget_type,
+            default,
+            compulsory,
+            row,
+            col,
+            rowspan,
+            colspan,
+            props,
+        ) in field_configs:
+            if widget_type == QtWidgets.QComboBox:
+                widget = QtWidgets.QComboBox()
+                widget.addItems(default)
+            else:
+                widget = QtWidgets.QLineEdit()
+                widget.setPlaceholderText(default)
+            widget.setObjectName(obj_name)
+            widget.setMinimumHeight(40)
+            widget.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            )
+            for prop, value in props.items():
+                getattr(widget, f"set{prop[0].upper() + prop[1:]}")(value)
+            form_layout.addWidget(
+                create_field(label_text, widget, compulsory), row, col, rowspan, colspan
+            )
+            self.fields[obj_name] = widget
 
-        # Price (compulsory, disabled)
-        self.damage_price = QtWidgets.QLineEdit()
-        self.damage_price.setObjectName("damagePriceInput")
-        self.damage_price.setPlaceholderText("Enter price")
-        self.damage_price.setFixedHeight(40)
-        self.damage_price.setReadOnly(True)  # Disable price input
-        form_layout.addWidget(
-            create_field("Price:", self.damage_price, compulsory=True), 1, 0, 1, 2
-        )
-
-        # Damage Status (ComboBox, compulsory)
-        self.damage_status = QtWidgets.QComboBox()
-        self.damage_status.setObjectName("damageStatusInput")
-        self.damage_status.addItems(["broken", "expired", "leakage", "other"])
-        self.damage_status.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Damage Status:", self.damage_status, compulsory=True),
-            1,
-            2,
-            1,
-            2,
-        )
+        self.damage_item_name = self.fields["damageItemNameInput"]
+        self.damage_quantity = self.fields["damageQuantityInput"]
+        self.damage_price = self.fields["damagePriceInput"]
+        self.damage_status = self.fields["damageStatusInput"]
 
         # Buttons Row
-        btn_width = int(
-            form_container.width() * 0.2
-        )  # Reduced button width to create gaps
-
-        self.btn_save_damage = QtWidgets.QPushButton("SAVE")
-        self.btn_save_damage.setObjectName("btnSaveDamage")
-        self.btn_save_damage.setFixedWidth(btn_width)
-        self.btn_save_damage.setFixedHeight(40)  # Same height as inputs
-
-        self.btn_edit_damage = QtWidgets.QPushButton("EDIT")
-        self.btn_edit_damage.setObjectName("btnEditDamage")
-        self.btn_edit_damage.setFixedWidth(btn_width)
-        self.btn_edit_damage.setFixedHeight(40)  # Same height as inputs
-
-        self.btn_delete_damage = QtWidgets.QPushButton("DELETE")
-        self.btn_delete_damage.setObjectName("btnDeleteDamage")
-        self.btn_delete_damage.setFixedWidth(btn_width)
-        self.btn_delete_damage.setFixedHeight(40)  # Same height as inputs
-
-        self.btn_clear_damage = QtWidgets.QPushButton("CLEAR")
-        self.btn_clear_damage.setObjectName("btnClearDamage")
-        self.btn_clear_damage.setFixedWidth(btn_width)
-        self.btn_clear_damage.setFixedHeight(40)  # Same height as inputs
+        button_configs = [
+            ("SAVE", "btn_save_damage", "btnSaveDamage"),
+            ("EDIT", "btn_edit_damage", "btnEditDamage"),
+            ("DELETE", "btn_delete_damage", "btnDeleteDamage"),
+            ("CLEAR", "btn_clear_damage", "btnClearDamage"),
+        ]
 
         btn_row = QtWidgets.QHBoxLayout()
-        btn_row.setSpacing(20)  # Horizontal spaces between buttons
+        btn_row.setSpacing(20)
         btn_row.addStretch()
-        btn_row.addWidget(self.btn_save_damage)
-        btn_row.addWidget(self.btn_edit_damage)
-        btn_row.addWidget(self.btn_delete_damage)
-        btn_row.addWidget(self.btn_clear_damage)
+
+        self.buttons = {}
+        for text, attr_name, obj_name in button_configs:
+            btn = QtWidgets.QPushButton(text)
+            btn.setObjectName(obj_name)
+            btn.setMinimumHeight(40)
+            btn.setMinimumWidth(100)
+            btn.setSizePolicy(
+                QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed
+            )
+            btn_row.addWidget(btn)
+            self.buttons[attr_name] = btn
+
+        self.btn_save_damage = self.buttons["btn_save_damage"]
+        self.btn_edit_damage = self.buttons["btn_edit_damage"]
+        self.btn_delete_damage = self.buttons["btn_delete_damage"]
+        self.btn_clear_damage = self.buttons["btn_clear_damage"]
+
         btn_row.addStretch()
         form_layout.addLayout(btn_row, 2, 0, 1, 4)
 
@@ -118,7 +160,7 @@ class Ui_Damage(object):
         form_wrapper.addStretch()
         damage_layout.addLayout(form_wrapper)
 
-        # === Filter Input (Top-left corner of table) ===
+        # === Filter Input ===
         filter_container = QtWidgets.QHBoxLayout()
         filter_container.setSpacing(10)
         filter_container.setAlignment(QtCore.Qt.AlignLeft)
@@ -126,8 +168,10 @@ class Ui_Damage(object):
         self.filter_input_damage = QtWidgets.QLineEdit()
         self.filter_input_damage.setObjectName("filterInputDamage")
         self.filter_input_damage.setPlaceholderText("Filter by Item Name...")
-        self.filter_input_damage.setFixedHeight(40)
-        self.filter_input_damage.setFixedWidth(300)
+        self.filter_input_damage.setMinimumHeight(40)
+        self.filter_input_damage.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
         filter_container.addWidget(self.filter_input_damage)
         filter_container.addStretch()
 
@@ -138,12 +182,9 @@ class Ui_Damage(object):
         table_lcds_h = QtWidgets.QHBoxLayout()
         table_lcds_h.setSpacing(2)
 
-        # === Table Section ===
         self.table_damage = QtWidgets.QTableWidget()
         self.table_damage.setObjectName("tableDamage")
-        self.table_damage.setColumnCount(
-            7
-        )  # ID, Item Name, Quantity, Price, Damage Status, Date Added, Action
+        self.table_damage.setColumnCount(7)
         self.table_damage.setHorizontalHeaderLabels(
             [
                 "ID",
@@ -155,20 +196,20 @@ class Ui_Damage(object):
                 "Action",
             ]
         )
-        self.table_damage.horizontalHeader().setStretchLastSection(True)
-        self.table_damage.horizontalHeader().setSectionResizeMode(
-            QtWidgets.QHeaderView.Stretch
-        )
+        header = self.table_damage.horizontalHeader()
+        header.setStretchLastSection(True)
+        header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.table_damage.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.table_damage.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table_damage.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table_damage.setAlternatingRowColors(True)
         self.table_damage.verticalHeader().setVisible(False)
-        self.table_damage.setFixedWidth(int(950 * 0.95))
-
+        self.table_damage.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         table_lcds_h.addWidget(self.table_damage, stretch=9)
 
-        # === LCDs Section (Vertical on right of table, pinned to bottom) ===
+        # === LCDs Section ===
         lcds_v = QtWidgets.QVBoxLayout()
         lcds_v.setSpacing(8)
         lcds_v.setAlignment(QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight)
@@ -186,22 +227,28 @@ class Ui_Damage(object):
             lcd.setObjectName(obj_name)
             lcd.setDigitCount(9)
             lcd.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
-            lcd.setFixedHeight(50)
-            lcd.setFixedWidth(180)
+            lcd.setMinimumHeight(50)
+            lcd.setMinimumWidth(180)
             w_layout.addWidget(lbl)
             w_layout.addWidget(lcd)
             return w, lcd
 
-        box_total_items, self.lcdTotalItems = _lcd_block("Total Items", "lcdTotalItems")
-        box_total_price, self.lcdTotalPrice = _lcd_block("Total Price", "lcdTotalPrice")
-        box_total_profit, self.lcdTotalProfit = _lcd_block(
-            "Total Profit", "lcdTotalProfit"
-        )
+        lcd_configs = [
+            ("Total Items", "lcdTotalItems"),
+            ("Total Price", "lcdTotalPrice"),
+            ("Total Profit", "lcdTotalProfit"),
+        ]
+
+        self.lcds = {}
+        for title, obj_name in lcd_configs:
+            box, lcd = _lcd_block(title, obj_name)
+            lcds_v.addWidget(box)
+            self.lcds[obj_name] = lcd
+
+        self.lcdTotalItems = self.lcds["lcdTotalItems"]
+        self.lcdTotalPrice = self.lcds["lcdTotalPrice"]
+        self.lcdTotalProfit = self.lcds["lcdTotalProfit"]
 
         lcds_v.addStretch()
-        lcds_v.addWidget(box_total_items)
-        lcds_v.addWidget(box_total_price)
-        lcds_v.addWidget(box_total_profit)
-
         table_lcds_h.addLayout(lcds_v, stretch=1)
         damage_layout.addLayout(table_lcds_h)

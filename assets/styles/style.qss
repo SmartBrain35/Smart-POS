@@ -19,27 +19,46 @@
 
 
 /* DateEdit calendar popup styling */
-#dateRetailExpiry QCalendarWidget {
+#dateRetailExpiry QCalendarWidget,
+#report_date_from QCalendarWidget,
+#report_date_to QCalendarWidget {
     background: black; /* Black background for calendar */
     color: white; /* White font for visibility */
 }
-#dateRetailExpiry QCalendarWidget QAbstractItemView {
+
+/* Calendar day grid (item view) */
+#dateRetailExpiry QCalendarWidget QAbstractItemView,
+#report_date_from QCalendarWidget QAbstractItemView,
+#report_date_to QCalendarWidget QAbstractItemView {
     background: black;
     color: white;
     selection-background-color: #00aaff;
     selection-color: white;
 }
-#dateRetailExpiry QCalendarWidget QWidget#qt_calendar_navigationbar {
+
+/* Calendar navigation bar */
+#dateRetailExpiry QCalendarWidget QWidget#qt_calendar_navigationbar,
+#report_date_from QCalendarWidget QWidget#qt_calendar_navigationbar,
+#report_date_to QCalendarWidget QWidget#qt_calendar_navigationbar {
     background: #1e2a38;
 }
-#dateRetailExpiry QCalendarWidget QToolButton {
+
+/* Calendar tool buttons (month navigation, year dropdown) */
+#dateRetailExpiry QCalendarWidget QToolButton,
+#report_date_from QCalendarWidget QToolButton,
+#report_date_to QCalendarWidget QToolButton {
     color: white;
     background: #1e2a38;
 }
-#dateRetailExpiry QCalendarWidget QMenu {
+
+/* Calendar month/year dropdown menu */
+#dateRetailExpiry QCalendarWidget QMenu,
+#report_date_from QCalendarWidget QMenu,
+#report_date_to QCalendarWidget QMenu {
     background: black;
     color: white;
 }
+
 
 
 /* Buttons (uniform width) */
@@ -834,31 +853,26 @@ QHeaderView::section {
     color: #333333;
 }
 
-#InputDateFrom, #InputDateTo, #InputCategory {
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    padding: 5px;
-    background-color: white;
+#report_category, #report_date_from, #report_date_to{
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1d2530;
+    color: white;
+    font-weight: bold;
 }
 
-#BtnGenerateReport {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px;
+#BtnGenerateReport, #BtnClearReport {
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: black;
+    background-color: #00aaff;
 }
 
 #BtnGenerateReport:hover {
     background-color: #45a049;
-}
-
-#BtnClearReport {
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px;
 }
 
 #BtnClearReport:hover {
@@ -885,27 +899,16 @@ QHeaderView::section {
 }
 
 #Label_LcdRevenue, #Label_LcdExpenditures, #Label_LcdProfit {
-    font-size: 14px;
+    color: black;
     font-weight: bold;
-    color: #555555;
 }
 
-#LcdRevenue {
-    background-color: #e0ffe0;
-    color: #008000;
-    border: 1px solid #cccccc;
-}
-
-#LcdExpenditures {
-    background-color: #ffe0e0;
-    color: #800000;
-    border: 1px solid #cccccc;
-}
-
-#LcdProfit {
-    background-color: #e0e0ff;
-    color: #000080;
-    border: 1px solid #cccccc;
+#LcdRevenue, #LcdExpenditures, #LcdProfit{
+    background: #1d2530;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    border-radius: 6px;
+    padding: 2px;
 }
 
 #PdfContainer {

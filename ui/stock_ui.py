@@ -15,6 +15,11 @@ class Ui_Stock(object):
         form_layout.setVerticalSpacing(10)
         form_layout.setHorizontalSpacing(25)
 
+        # Set column stretches for responsiveness
+        form_layout.setColumnStretch(0, 1)
+        form_layout.setColumnStretch(1, 2)
+        form_layout.setColumnStretch(2, 1)
+
         label_style = "color: black; font-weight: bold;"
 
         def vfield(label_text, widget):
@@ -141,13 +146,15 @@ class Ui_Stock(object):
         self.stock_filter_input.setPlaceholderText("Filter by item name...")
         self.stock_filter_input.setObjectName("inputRetailFilter")
         self.stock_filter_input.setFixedHeight(40)
-        self.stock_filter_input.setFixedWidth(270)
+        self.stock_filter_input.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
         filter_h.addWidget(self.stock_filter_input)
 
         self.btn_filter_stock = QtWidgets.QPushButton("Search")
         self.btn_filter_stock.setObjectName("btnRetailFilter")
         self.btn_filter_stock.setFixedHeight(40)
-        self.btn_filter_stock.setFixedWidth(120)
+        self.btn_filter_stock.setMinimumWidth(120)
         filter_h.addWidget(self.btn_filter_stock)
 
         left_v.addLayout(filter_h)
@@ -163,6 +170,9 @@ class Ui_Stock(object):
         self.table_stock.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table_stock.setAlternatingRowColors(True)
         self.table_stock.setMinimumHeight(300)
+        self.table_stock.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         left_v.addWidget(self.table_stock, stretch=1)
 
         # --- LCDs in 4x2 Grid ---
@@ -172,25 +182,33 @@ class Ui_Stock(object):
         lcds_grid.setHorizontalSpacing(6)
         lcds_grid.setVerticalSpacing(12)
 
-        box1, self.lcd1 = self.make_lcd("Wholesale Items", "lcdsWholesaleItems")
-        box2, self.lcd2 = self.make_lcd("Wholesale Costs", "lcdsWholesaleCosts")
-        box3, self.lcd3 = self.make_lcd("Wholesale Value", "lcdsWholesaleValues")
-        box4, self.lcd4 = self.make_lcd("Wholesale Profit", "lcdsWholesaleProfits")
+        # List of LCD configurations
+        lcd_configs = [
+            ("Wholesale Items", "lcdsWholesaleItems", 0, 0),
+            ("Wholesale Costs", "lcdsWholesaleCosts", 1, 0),
+            ("Wholesale Value", "lcdsWholesaleValues", 2, 0),
+            ("Wholesale Profit", "lcdsWholesaleProfits", 3, 0),
+            ("Retail Items", "lcdRetailItems", 0, 1),
+            ("Retail Costs", "lcdRetailCosts", 1, 1),
+            ("Retail Value", "lcdRetailValues", 2, 1),
+            ("Retail Profit", "lcdRetailProfits", 3, 1),
+        ]
 
-        box5, self.lcd5 = self.make_lcd("Retail Items", "lcdRetailItems")
-        box6, self.lcd6 = self.make_lcd("Retail Costs", "lcdRetailCosts")
-        box7, self.lcd7 = self.make_lcd("Retail Value", "lcdRetailValues")
-        box8, self.lcd8 = self.make_lcd("Retail Profit", "lcdRetailProfits")
+        self.lcds = {}
+        for title, obj_name, row, col in lcd_configs:
+            box, lcd = self.make_lcd(title, obj_name)
+            lcds_grid.addWidget(box, row, col)
+            self.lcds[obj_name] = lcd
 
-        lcds_grid.addWidget(box1, 0, 0)
-        lcds_grid.addWidget(box2, 1, 0)
-        lcds_grid.addWidget(box3, 2, 0)
-        lcds_grid.addWidget(box4, 3, 0)
-
-        lcds_grid.addWidget(box5, 0, 1)
-        lcds_grid.addWidget(box6, 1, 1)
-        lcds_grid.addWidget(box7, 2, 1)
-        lcds_grid.addWidget(box8, 3, 1)
+        # Assign to self.lcd1 etc. for backward compatibility if needed
+        self.lcd1 = self.lcds["lcdsWholesaleItems"]
+        self.lcd2 = self.lcds["lcdsWholesaleCosts"]
+        self.lcd3 = self.lcds["lcdsWholesaleValues"]
+        self.lcd4 = self.lcds["lcdsWholesaleProfits"]
+        self.lcd5 = self.lcds["lcdRetailItems"]
+        self.lcd6 = self.lcds["lcdRetailCosts"]
+        self.lcd7 = self.lcds["lcdRetailValues"]
+        self.lcd8 = self.lcds["lcdRetailProfits"]
 
         # --- Table + LCDs side by side ---
         table_lcd_h = QtWidgets.QHBoxLayout()
@@ -224,8 +242,8 @@ class Ui_Stock(object):
         lcd.setObjectName(obj_name)
         lcd.setDigitCount(7)
         lcd.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
-        lcd.setFixedWidth(150)
-        lcd.setFixedHeight(40)
+        lcd.setMinimumWidth(150)
+        lcd.setMinimumHeight(40)
 
         vbox.addWidget(lbl)
         vbox.addWidget(lcd)

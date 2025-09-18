@@ -1,13 +1,11 @@
 from dotenv import load_dotenv
-
-load_dotenv()
-
-import os, sys
-
+import os
+import sys
 from backend.storage.database import init_db
 from PySide6.QtWidgets import QApplication
 from controllers.login import LoginController
-from PySide6.QtCore import Qt
+
+load_dotenv()
 
 
 def main():

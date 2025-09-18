@@ -6,7 +6,8 @@ from PySide6.QtCharts import (
     QBarSet,
     QCategoryAxis,
     QValueAxis,
-    QLineSeries,
+    QPieSeries,
+    QPieSlice,
 )
 from PySide6.QtWidgets import QGraphicsOpacityEffect, QDialog, QListWidget
 
@@ -22,17 +23,9 @@ class Ui_Dashboard(object):
         header_container_layout = QtWidgets.QHBoxLayout(header_container)
         header_container_layout.setContentsMargins(0, 0, 0, 0)
 
-        header_label = QtWidgets.QLabel("Smart POS Dashboard Overview")
-        header_label.setAlignment(QtCore.Qt.AlignCenter)
-        header_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; color: #00c2ff;"
-        )
-        header_label.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
-        )
-
         self.alert_button = QtWidgets.QPushButton("🔔", header_container)
         self.alert_button.setFlat(True)
+
         self.alert_button.setStyleSheet(
             """
             QPushButton {
@@ -49,7 +42,7 @@ class Ui_Dashboard(object):
         self.alert_button.setFixedSize(40, 40)
         self.alert_button.clicked.connect(self.show_notification_ui)
 
-        header_container_layout.addWidget(header_label)
+        header_container_layout.addStretch()
         header_container_layout.addWidget(self.alert_button)
 
         dashboard_layout.addWidget(header_container)
@@ -108,70 +101,19 @@ class Ui_Dashboard(object):
 
         # Sales Trend Line Chart
         sales_chart_view = self.create_sales_trend_chart()
+        sales_chart_view.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         graphs_layout.addWidget(sales_chart_view)
 
-        # Top Items Bar Chart
+        # Top Items Pie Chart
         top_items_chart_view = self.create_top_items_chart()
+        top_items_chart_view.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         graphs_layout.addWidget(top_items_chart_view)
 
         dashboard_layout.addLayout(graphs_layout)
-
-        # === Recent Activity Table ===
-        recent_table = QtWidgets.QTableWidget()
-        recent_table.setObjectName("tableRecentActivity")
-        recent_table.setColumnCount(4)
-        recent_table.setHorizontalHeaderLabels(
-            ["Time", "Type", "Description", "Amount"]
-        )
-        recent_table.horizontalHeader().setStretchLastSection(True)
-        recent_table.horizontalHeader().setSectionResizeMode(
-            QtWidgets.QHeaderView.Stretch
-        )
-        recent_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        recent_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        recent_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        recent_table.setAlternatingRowColors(True)
-        recent_table.verticalHeader().setVisible(False)
-
-        # Sample data
-        recent_data = [
-            ("2025-09-15 14:30", "Sale", "Invoice #1234", "GHS 250"),
-            ("2025-09-15 13:45", "Return", "Item X returned", "GHS -50"),
-            ("2025-09-14 12:00", "Damage", "Item Y damaged", "GHS -30"),
-            ("2025-09-14 11:15", "Expenditure", "Office supplies", "GHS -100"),
-        ]
-
-        recent_table.setRowCount(len(recent_data))
-        for row, (time, typ, desc, amt) in enumerate(recent_data):
-            recent_table.setItem(row, 0, QtWidgets.QTableWidgetItem(time))
-            recent_table.setItem(row, 1, QtWidgets.QTableWidgetItem(typ))
-            recent_table.setItem(row, 2, QtWidgets.QTableWidgetItem(desc))
-            recent_table.setItem(row, 3, QtWidgets.QTableWidgetItem(amt))
-
-        recent_table.setStyleSheet(
-            """
-            QTableWidget {
-                background-color: #1e1e2f;
-                alternate-background-color: #28283a;
-                gridline-color: #3a3a4c;
-                color: white;
-            }
-            QTableWidget::item:selected {
-                background-color: #3a3a4c;
-            }
-            QTableWidget::item:hover {
-                background-color: #3a3a4c;
-            }
-            QHeaderView::section {
-                background-color: #28283a;
-                color: white;
-                padding: 5px;
-                border: 1px solid #3a3a4c;
-            }
-            """
-        )
-
-        dashboard_layout.addWidget(recent_table, stretch=1)
 
         # System Tray Notification
         self.tray_icon = QtWidgets.QSystemTrayIcon(Dashboard)
@@ -281,38 +223,23 @@ class Ui_Dashboard(object):
         chart.setTitle("Top Selling Items")
         chart.setAnimationOptions(QChart.SeriesAnimations)
 
-        series = QBarSeries()
-        set0 = QBarSet("Sales")
+        series = QPieSeries()
         # Sample data
         items = ["Item A", "Item B", "Item C", "Item D", "Item E"]
         quantities = [500, 400, 300, 250, 200]
-        for q in quantities:
-            set0.append(q)
-        series.append(set0)
+        for item, q in zip(items, quantities):
+            series.append(item, q)
         chart.addSeries(series)
 
-        axisX = QCategoryAxis()
-        for i, item in enumerate(items):
-            axisX.append(item, i)
-        chart.addAxis(axisX, QtCore.Qt.AlignBottom)
-        series.attachAxis(axisX)
-
-        axisY = QValueAxis()
-        axisY.setTitleText("Quantity Sold")
-        chart.addAxis(axisY, QtCore.Qt.AlignLeft)
-        series.attachAxis(axisY)
-
-        def on_bar_hover(status, index, barset):
-            if status:
-                item = items[index]
-                value = barset.at(index)
+        def on_slice_hover(pie_slice, state):
+            if state:
                 QtWidgets.QToolTip.showText(
-                    QtGui.QCursor.pos(), f"{item}: {value} sold"
+                    QtGui.QCursor.pos(), f"{pie_slice.label()}: {pie_slice.value()} sold"
                 )
             else:
                 QtWidgets.QToolTip.hideText()
 
-        series.hovered.connect(on_bar_hover)
+        series.hovered.connect(on_slice_hover)
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QtGui.QPainter.Antialiasing)
