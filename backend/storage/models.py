@@ -32,6 +32,7 @@ class DamageStatus(str, Enum):
     LEAKAGE = "leakage"
     BROKEN = "broken"
     EXPIRED = "expired"
+    OTHER = "other"
 
 
 class ExpenditureCategory(str, Enum):
@@ -146,6 +147,7 @@ class Damage(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     stock_id: int = Field(foreign_key="stocks.id")
     quantity_damaged: int = Field(ge=1)
+    damage_status: DamageStatus = Field(default=DamageStatus.BROKEN)
     damage_date: date = Field(default_factory=date.today, index=True)
     created_at: datetime = Field(default_factory=datetime.now)
 

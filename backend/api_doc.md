@@ -160,3 +160,139 @@ StockAPI.delete_stock(stock_id: int)
 ```
 
 ---
+
+## Sales Management
+
+```python
+# Create a new sale with multiple items
+SaleAPI.create_sale(
+    cashier_id: int,
+    sale_items: list[dict],   # [{"stock_id": int, "quantity_sold": int}, ...]
+    amount_paid: float,
+    discount_amount: float = 0,
+    payment_method: str = "cash",
+    sale_date: str | None = None   # format: YYYY-MM-DD
+)
+# payment_method options: "cash", "card", "mobile_money" (etc, depending on enum)
+# Returns: {"success": bool, "sale_id": int, "gross_total": float,
+#           "discount": float, "total": float, "items_sold": int,
+#           "message": str, "error": str}
+
+# Get daily sales summary
+SaleAPI.get_daily_sales_summary(sale_date: str | None = None)   # format: YYYY-MM-DD
+# If no date is given → defaults to today
+# Returns: {"success": bool, "daily_sales": float, "daily_profit": float,
+#           "items_sold": int, "total_discount": float,
+#           "transactions_count": int, "error": str}
+
+# Get sale receipt data (for printing)
+SaleAPI.get_sale_receipt_data(sale_id: int)
+# Returns: {"success": bool, "sale_id": int, "sale_date": date,
+#           "sale_time": datetime, "cashier_name": str,
+#           "items": [{"item_name", "quantity", "unit_price", "total"}, ...],
+#           "gross_total": float, "discount": float, "net_total": float,
+#           "amount_paid": float, "change": float, "payment_method": str,
+#           "error": str}
+```
+
+---
+
+## Damage Management
+
+```python
+# Record a damaged stock item
+DamageAPI.record_damage(stock_id: int, quantity_damaged: int, status: str = "broken")
+# status options: "broken", "expired", "lost" (etc, depending on enum)
+# Returns: {"success": bool, "damaged_item": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "unit_price", "damage_satus", "damage_date"}
+
+# Get damages (optionally filter by item name)
+DamageAPI.get_damages(search_term: str | None = None)
+# Returns: {"success": bool, "damaged_items": [{}...], "summary": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "damage_date", "unit_price", "damage_satus"}
+# summary: {"total_items": int, "total_price": float, "total_profit_loss": float}
+
+# Update a damage record
+DamageAPI.update_damage(
+    damage_id: int,
+    stock_id: int,
+    quantity_damaged: int,
+    damage_date: str,      # format: YYYY-MM-DD
+    status: str = "broken"
+)
+# Returns: {"success": bool, "damaged_item": {...}, "error": str}
+# damaged_item: {"id", "stock_id", "item_name", "quantity_damaged",
+#                "unit_price", "damage_satus", "damage_date"}
+
+# Delete a damage record (restores stock quantity)
+DamageAPI.delete_damage(damage_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+```
+
+## Expenditure Management
+
+```python
+# Create new expenditure
+ExpenditureAPI.create_expenditure(description: str, amount: float, category: str, expense_date: str | None = None)
+# category options: values from ExpenditureCategory enum
+# expense_date format: "YYYY-MM-DD" (optional, defaults to today)
+# Returns: {"success": bool, "expenditure": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+
+# Get all expenditures (with summaries)
+ExpenditureAPI.get_all_expenditures()
+# Returns: {"success": bool, "expenditures": [{}...], "summary": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+# summary: {"weekly_total": float, "monthly_total": float, "yearly_total": float}
+
+# Update expenditure
+ExpenditureAPI.update_expenditure(expenditure_id: int, description: str, amount: float, category: str, expense_date: str)
+# category options: values from ExpenditureCategory enum
+# expense_date format: "YYYY-MM-DD"
+# Returns: {"success": bool, "expenditure": {...}, "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+
+# Delete expenditure
+ExpenditureAPI.delete_expenditure(expenditure_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+
+# Filter expenditures by description
+ExpenditureAPI.filter_expenditures(search_term: str)
+# Returns: {"success": bool, "expenditures": [{}...], "error": str}
+# expenditure: {"id", "description", "amount", "category", "expense_date", "created_at", "updated_at"}
+```
+
+## Return Management
+
+```python
+# Process item return (restore to stock)
+ReturnAPI.process_return(sale_id: int, stock_id: int, quantity: int, reason: str, return_date: str | None = None)
+# reason options: values from ReturnReason enum
+# return_date format: "YYYY-MM-DD" (optional, defaults to today)
+# Returns: {"success": bool, "returned_item": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+
+# Get all returns (with summaries)
+ReturnAPI.get_all_returns()
+# Returns: {"success": bool, "returned_items": [{}...], "summary": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+# summary: {"total_items": int, "total_refund": float, "total_loss": float}
+
+# Update return
+ReturnAPI.update_return(return_id: int, quantity: int, reason: str, return_date: str)
+# reason options: values from ReturnReason enum
+# return_date format: "YYYY-MM-DD"
+# Returns: {"success": bool, "returned_item": {...}, "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+
+# Delete return
+ReturnAPI.delete_return(return_id: int)
+# Returns: {"success": bool, "message": str, "error": str}
+
+# Filter returns by item name
+ReturnAPI.filter_returns(search_term: str)
+# Returns: {"success": bool, "returned_items": [{}...], "error": str}
+# returned_item: {"id", "sale_id", "stock_id", "item_name", "quantity", "reason", "return_date", "unit_price"}
+```
