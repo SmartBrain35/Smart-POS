@@ -168,6 +168,7 @@ QLineEdit#inputAccountName,
 QLineEdit#inputAccountPhone,
 QLineEdit#inputAccountEmail,
 QLineEdit#inputAccountPassword,
+QLineEdit#filterInputAccount,
 QComboBox#inputAccountRole {
     border: 2px solid #00ccff;
     border-radius: 6px;
