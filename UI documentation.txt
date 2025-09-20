@@ -73,6 +73,11 @@ Note: quantity columns have progressBar to visually display item quantity
 5. clear button clear and set all the inputs to default
 6. LCDs display overall sun up of expenditures in weekly monthly & yearly
 7. auto filter input as you type
+Note for rollover:
+       8. when the week is over, add the weekly LCD value to the monthly LCD and reset it to 0 
+       9. when the month is over add monthly LCD value to yearly LCD and reset to week when weekly accomulated
+       10. do same for the yearly LCD
+
 
        ======Return UI Page======
 1. all inputs are mandatory to fill out
@@ -95,8 +100,10 @@ NOTE: items return are added back to stock automatically
 4. clear button to set all LCD and inputs to default values
 5. each category selected will have its corresponding LCD label
        e.g: category = expenditure, then LCD label changes to meet the information being preview
+6. subtract total Monthly Expenditure from monthly sales profits
 
-              ======Dashbord UI Page======
+
+       ======Dashbord UI Page======
 1. display values as the KPI cards show e.g "total transaction", Low stock"..etc.
 2. Charts
        top Selling Items -> display items according to thier buying damageStatusInput
