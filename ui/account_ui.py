@@ -9,7 +9,7 @@ class Ui_Account(object):
 
         # === Form Section (Grid Layout, labels on top, tighter spacing) ===
         form_container = QtWidgets.QWidget()
-        form_container.setFixedWidth(850)
+        form_container.setMinimumWidth(850)  # Changed to minimum for responsiveness
         form_layout = QtWidgets.QGridLayout(form_container)
         form_layout.setContentsMargins(20, 20, 20, 20)
         form_layout.setHorizontalSpacing(25)
@@ -93,6 +93,21 @@ class Ui_Account(object):
         form_wrapper.addStretch()
         account_layout.addLayout(form_wrapper)
 
+        # === Filter Input (top-right of table, 30% width) ===
+        filter_container = QtWidgets.QHBoxLayout()
+        filter_container.setSpacing(10)
+        self.filter_input = QtWidgets.QLineEdit()
+        self.filter_input.setObjectName("filterInputAccount")
+        self.filter_input.setPlaceholderText("Filter by Name or Email...")
+        self.filter_input.setFixedHeight(40)
+        self.filter_input.setMaximumWidth(
+            int(form_container.minimumWidth() * 0.3)
+        )  # 30% of form width
+        self.filter_input.textChanged.connect(self.filter_table)
+        filter_container.addStretch()  # Push to right
+        filter_container.addWidget(self.filter_input)
+        account_layout.addLayout(filter_container)
+
         # === Table Section ===
         self.table_users = QtWidgets.QTableWidget()
         self.table_users.setObjectName("tableUsers")
@@ -111,3 +126,14 @@ class Ui_Account(object):
         self.table_users.verticalHeader().setVisible(False)
 
         account_layout.addWidget(self.table_users, stretch=1)
+
+    def filter_table(self, text):
+        # Manual filter for QTableWidget by hiding rows
+        for row in range(self.table_users.rowCount()):
+            match = False
+            for col in [1, 3]:  # Name (col 1), Email (col 3)
+                item = self.table_users.item(row, col)
+                if item and text.lower() in item.text().lower():
+                    match = True
+                    break
+            self.table_users.setRowHidden(row, not match)

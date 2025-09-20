@@ -11,6 +11,7 @@ from ui.expenditure_ui import Ui_Expenditure
 from ui.account_ui import Ui_Account
 from ui.settings_ui import Ui_Settings
 from controllers.accountController import AccountController
+from controllers.employeeController import EmployeesController
 import logging
 
 home_logger = logging.getLogger("HomePage")
@@ -40,6 +41,7 @@ class HomePage(QtWidgets.QMainWindow):
         self.pages = {}
         self.current_button = None
         self.account_controller = None  # Ensure single instance
+        self.employees_controller = None  # Ensure single instance
         self.setupUi(self)
         self.setup_connections()
         home_logger.debug("HomePage initialized, switching to Dashboard")
@@ -112,7 +114,7 @@ class HomePage(QtWidgets.QMainWindow):
                 border: none;
                 text-align: left;
                 padding: 10px;
-                font-size: 14px;
+                font-size: 17px;
                 border-radius: 6px;
             }
             QPushButton:hover {
@@ -147,25 +149,22 @@ class HomePage(QtWidgets.QMainWindow):
             ("Logout", None, "assets/icons/logout.png"),
         ]
 
-        screen = QtWidgets.QApplication.primaryScreen()
-        dpi = screen.logicalDotsPerInch()
-        icon_size = QtCore.QSize(24, 24) if dpi < 120 else QtCore.QSize(32, 32)
-
         self.buttons = {}
         for name, index, icon_path in button_configs:
             btn = QtWidgets.QPushButton(name)
+            btn.setIcon(QtGui.QIcon(icon_path))
+            btn.setIconSize(QtCore.QSize(25, 25))
             btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
             btn.setStyleSheet(button_style)
-            btn.setIcon(QtGui.QIcon(icon_path))
-            btn.setIconSize(icon_size)
             btn.setSizePolicy(
                 QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
             )
-            btn.setMinimumHeight(45)
-            btn.setProperty("index", index)
-            btn.setFocusPolicy(QtCore.Qt.StrongFocus)
+            btn.setProperty("active", False)
+            if index is not None:
+                btn.setProperty("index", index)
             self.sidebarLayout.addWidget(btn)
-            self.buttons[name.lower()] = btn
+            self.buttons[name] = btn
+
         self.sidebarLayout.addStretch()
 
     def setup_header(self):
@@ -207,6 +206,9 @@ class HomePage(QtWidgets.QMainWindow):
             if attr_name == "page_account" and self.account_controller is None:
                 self.account_controller = AccountController(ui_instance, page)
                 home_logger.debug("AccountController instantiated successfully")
+            if attr_name == "page_employees" and self.employees_controller is None:
+                self.employees_controller = EmployeesController(ui_instance, page)
+                home_logger.debug("EmployeesController instantiated successfully")
             self.page_loaded[index] = True
             home_logger.debug(f"Page {index} ({attr_name}) loaded successfully.")
         except Exception as e:
@@ -214,7 +216,7 @@ class HomePage(QtWidgets.QMainWindow):
 
     def setup_connections(self):
         for name, btn in self.buttons.items():
-            if name == "logout":
+            if name == "Logout":
                 btn.clicked.connect(self.logout)
             else:
                 btn.clicked.connect(

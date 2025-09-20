@@ -3,132 +3,114 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 class Ui_Employees(object):
     def setupUi(self, Employees):
+        Employees.setObjectName("page_employees")
+
         employees_layout = QtWidgets.QVBoxLayout(Employees)
         employees_layout.setContentsMargins(20, 20, 20, 20)
-        employees_layout.setSpacing(20)
+        employees_layout.setSpacing(10)
 
-        # === Form Section (Grid Layout, labels on top with tight spacing) ===
+        # === Form Section ===
         form_container = QtWidgets.QWidget()
-        form_container.setFixedWidth(950)
+        form_container.setObjectName("formContainer")
         form_layout = QtWidgets.QGridLayout(form_container)
-        form_layout.setContentsMargins(20, 20, 20, 20)
-        form_layout.setHorizontalSpacing(35)
-        form_layout.setVerticalSpacing(25)
+        form_layout.setContentsMargins(10, 10, 10, 10)
+        form_layout.setHorizontalSpacing(20)
+        form_layout.setVerticalSpacing(8)  # reduce spacing for tighter layout
 
         label_style = "color: black; font-weight: bold;"
 
-        def create_field(label_text, widget, compulsory=False):
+        def form_field(label_text, widget, compulsory=False):
             wrapper = QtWidgets.QWidget()
             vbox = QtWidgets.QVBoxLayout(wrapper)
             vbox.setContentsMargins(0, 0, 0, 0)
-            vbox.setSpacing(4)
+            vbox.setSpacing(2)  # minimal spacing between label and input
+
             lbl = QtWidgets.QLabel(label_text + (" *" if compulsory else ""))
             if compulsory:
                 lbl.setStyleSheet("color: red; font-weight: bold;")
             else:
                 lbl.setStyleSheet(label_style)
+
             vbox.addWidget(lbl)
             vbox.addWidget(widget)
             return wrapper
 
-        # Name (compulsory)
-        self.emp_name = QtWidgets.QLineEdit()
-        self.emp_name.setObjectName("empNameInput")
-        self.emp_name.setPlaceholderText("Enter employee name")
-        self.emp_name.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Name:", self.emp_name, compulsory=True), 0, 0, 1, 2
-        )
+        def styled_lineedit(object_name, placeholder):
+            le = QtWidgets.QLineEdit()
+            le.setObjectName(object_name)
+            le.setPlaceholderText(placeholder)
+            le.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            )
+            le.setMinimumHeight(36)
+            return le
 
-        # Phone (compulsory)
-        self.emp_phone = QtWidgets.QLineEdit()
-        self.emp_phone.setObjectName("empPhoneInput")
-        self.emp_phone.setPlaceholderText("Enter phone number")
-        self.emp_phone.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Phone:", self.emp_phone, compulsory=True), 0, 2, 1, 2
-        )
+        # Name
+        self.emp_name = styled_lineedit("empNameInput", "Enter employee name")
+        form_layout.addWidget(form_field("Name", self.emp_name, True), 0, 0)
 
-        # Ghana Card ID (compulsory)
-        self.emp_card = QtWidgets.QLineEdit()
-        self.emp_card.setObjectName("empCardInput")
-        self.emp_card.setPlaceholderText("Enter Ghana card ID")
-        self.emp_card.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Ghana Card ID:", self.emp_card, compulsory=True), 1, 0, 1, 2
-        )
+        # Phone
+        self.emp_phone = styled_lineedit("empPhoneInput", "Enter phone number")
+        form_layout.addWidget(form_field("Phone", self.emp_phone, True), 0, 1)
+
+        # Ghana Card
+        self.emp_card = styled_lineedit("empCardInput", "Enter Ghana card ID")
+        form_layout.addWidget(form_field("Ghana Card ID", self.emp_card, True), 1, 0)
 
         # Address
-        self.emp_address = QtWidgets.QLineEdit()
-        self.emp_address.setObjectName("empAddressInput")
-        self.emp_address.setPlaceholderText("Enter address")
-        self.emp_address.setFixedHeight(40)
-        form_layout.addWidget(create_field("Address:", self.emp_address), 1, 2, 1, 2)
+        self.emp_address = styled_lineedit("empAddressInput", "Enter address")
+        form_layout.addWidget(form_field("Address", self.emp_address), 1, 1)
 
-        # Designation (changed to ComboBox)
+        # Designation
         self.emp_designation = QtWidgets.QComboBox()
         self.emp_designation.setObjectName("empDesignationInput")
         self.emp_designation.addItems(["Admin", "Manager", "Sales Rep"])
-        self.emp_designation.setFixedHeight(40)
-        form_layout.addWidget(
-            create_field("Designation:", self.emp_designation), 2, 0, 1, 2
-        )
+        self.emp_designation.setMinimumHeight(36)
+        form_layout.addWidget(form_field("Designation", self.emp_designation), 2, 0)
 
         # Salary
-        self.emp_salary = QtWidgets.QLineEdit()
-        self.emp_salary.setObjectName("empSalaryInput")
-        self.emp_salary.setPlaceholderText("Enter salary")
-        self.emp_salary.setFixedHeight(40)
-        form_layout.addWidget(create_field("Salary:", self.emp_salary), 2, 2, 1, 2)
+        self.emp_salary = styled_lineedit("empSalaryInput", "Enter salary")
+        form_layout.addWidget(form_field("Salary", self.emp_salary), 2, 1)
 
         # Buttons Row
-        btn_width = int(form_container.width() * 0.35)
-
         self.btn_add_employee = QtWidgets.QPushButton("ADD EMPLOYEE")
         self.btn_add_employee.setObjectName("btnAddEmployee")
-        self.btn_add_employee.setFixedWidth(btn_width)
+        self.btn_add_employee.setMinimumHeight(36)
 
         self.btn_clear_employee = QtWidgets.QPushButton("CLEAR")
         self.btn_clear_employee.setObjectName("btnClearEmployee")
-        self.btn_clear_employee.setFixedWidth(btn_width)
+        self.btn_clear_employee.setMinimumHeight(36)
 
         btn_row = QtWidgets.QHBoxLayout()
         btn_row.addStretch()
         btn_row.addWidget(self.btn_add_employee)
         btn_row.addWidget(self.btn_clear_employee)
         btn_row.addStretch()
-        form_layout.addLayout(btn_row, 3, 0, 1, 4)
+        form_layout.addLayout(btn_row, 3, 0, 1, 2)
 
-        # Center the form
-        form_wrapper = QtWidgets.QHBoxLayout()
-        form_wrapper.addStretch()
-        form_wrapper.addWidget(form_container)
-        form_wrapper.addStretch()
-        employees_layout.addLayout(form_wrapper)
+        # Form shouldn't steal vertical space
+        form_container.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum
+        )
+        employees_layout.addWidget(form_container)
 
         # === Filter Section ===
         filter_container = QtWidgets.QHBoxLayout()
-        filter_container.setSpacing(10)
+        filter_container.setContentsMargins(0, 0, 0, 0)
 
-        self.btn_filter = QtWidgets.QPushButton("Filter")
-        self.btn_filter.setObjectName("btnFilter")
+        self.filter_input = styled_lineedit(
+            "filterInput", "Filter by Phone or Ghana Card ID..."
+        )
+        self.filter_input.setMaximumWidth(350)
 
-        self.filter_input = QtWidgets.QLineEdit()
-        self.filter_input.setObjectName("filterInput")
-        self.filter_input.setPlaceholderText("Filter by Phone or Ghana Card ID...")
-        self.filter_input.setFixedHeight(40)
-        self.filter_input.setFixedWidth(int(form_container.width() * 0.3))  # 30% width
-
-        filter_container.addWidget(self.btn_filter)
-        filter_container.addWidget(self.filter_input)
         filter_container.addStretch()
-
+        filter_container.addWidget(self.filter_input)
         employees_layout.addLayout(filter_container)
 
         # === Table Section ===
         self.table_employees = QtWidgets.QTableWidget()
         self.table_employees.setObjectName("tableEmployees")
-        self.table_employees.setColumnCount(8)  # Removed Action column
+        self.table_employees.setColumnCount(9)
         self.table_employees.setHorizontalHeaderLabels(
             [
                 "ID",
@@ -139,6 +121,7 @@ class Ui_Employees(object):
                 "Designation",
                 "Salary",
                 "Date Added",
+                "Action",
             ]
         )
         self.table_employees.horizontalHeader().setStretchLastSection(True)
@@ -154,5 +137,10 @@ class Ui_Employees(object):
         )
         self.table_employees.setAlternatingRowColors(True)
         self.table_employees.verticalHeader().setVisible(False)
+
+        # Let the table take all leftover space
+        self.table_employees.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
 
         employees_layout.addWidget(self.table_employees)

@@ -237,7 +237,6 @@ QTableWidget#tableUsers{
     font-size: 15px;
 }
 
-
 /* === Buttons (shared look) === */
 #btnAddEmployee,
 #btnClearEmployee,
@@ -291,21 +290,21 @@ QPushButton[id^="btnDelete_"]:hover {
 
 
 /* === Table Styling === */
-#tableEmployees {
-    gridline-color: #000000ff;;
-    font-size: 14px;
-    alternate-background-color: #f9f9f9;
-    background-color: #ffffff;
+QTableWidget#tableEmployees {
+    border: 1px solid #0a0404ff;
     selection-background-color: #00aaff;
-    selection-color: white;
-    border: 1px solid #0c0606ff;
-    border-radius: 6px;
+    alternate-background-color: #cccccc;
     color: black;
+    font-size: 15px;
 }
 
 #tableEmployees::item {
     padding: 6px;
+    border: none;
+    background: transparent;
 }
+
+
 #tableEmployees QHeaderView::section {
     background-color: #1d2530;
     color: white;
