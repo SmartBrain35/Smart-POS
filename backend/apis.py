@@ -698,6 +698,9 @@ class SaleAPI:
             return {"success": False, "error": str(e)}
 
 
+# ==========================
+# DAMAGE API
+# ==========================
 class DamageAPI:
     """Damage management API aligned with Damage UI."""
 
@@ -724,49 +727,93 @@ class DamageAPI:
                 stock.updated_at = datetime.now()
 
                 session.commit()
+                session.refresh(damage)
 
                 return {
                     "success": True,
-                    "damage": {
-                        "id": damage.id,
-                        "stock_id": stock_id,
-                        "item_name": stock.item_name,
-                        "quantity_damaged": quantity_damaged,
-                        "price": stock.selling_price,
-                        "damage_status": status,
-                        "created_at": damage.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                    },
+                    "damage_id": damage.id,
+                    "remaining_stock": stock.quantity,
+                    "message": "Damage recorded and stock updated"
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def get_all_damages() -> dict[str, Any]:
+    def get_damage_summary(filter_date: str | None = None) -> dict[str, Any]:
+        """Get damage summary with totals for LCDs"""
         try:
             with get_session() as session:
-                damages = session.exec(select(Damage)).all()
-                result = []
-                for d in damages:
-                    stock = session.get(Stock, d.stock_id)
-                    result.append(
+                query = select(Damage)
+
+                if filter_date:
+                    try:
+                        target_date = datetime.strptime(filter_date, "%Y-%m-%d").date()
+                        query = query.where(Damage.damage_date == target_date)
+                    except ValueError:
+                        return {"success": False, "error": "Invalid date format (YYYY-MM-DD)"}
+
+                damages = session.exec(query).all()
+
+                total_items = sum(damage.quantity_damaged for damage in damages)
+                total_price = sum(
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price
+                    for damage in damages
+                )
+                total_profit_loss = sum(
+                    damage.quantity_damaged * session.get(Stock, damage.stock_id).profit_per_unit
+                    for damage in damages
+                )
+
+                return {
+                    "success": True,
+                    "damages": [
                         {
-                            "id": d.id,
-                            "stock_id": d.stock_id,
-                            "item_name": stock.item_name if stock else "Unknown",
-                            "quantity_damaged": d.quantity_damaged,
-                            "price": stock.selling_price if stock else 0,
-                            "damage_status": d.damage_status.value,
-                            "created_at": d.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                        }
-                    )
-                return {"success": True, "damages": result}
+                            "id": damage.id,
+                            "stock_id": damage.stock_id,
+                            "item_name": session.get(Stock, damage.stock_id).item_name,
+                            "quantity_damaged": damage.quantity_damaged,
+                            "damage_date": damage.damage_date.isoformat(),
+                            "unit_price": session.get(Stock, damage.stock_id).selling_price,
+                            "total_value": damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price,
+                            "profit_loss": damage.quantity_damaged * session.get(Stock, damage.stock_id).profit_per_unit
+                        } for damage in damages
+                    ],
+                    "summary": {
+                        "total_items": total_items,
+                        "total_price": total_price,
+                        "total_profit_loss": total_profit_loss
+                    }
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def filter_damages(search_term: str) -> dict[str, Any]:
+        """Filter damages by item name"""
+        try:
+            with get_session() as session:
+                damages = session.exec(
+                    select(Damage).join(Stock).where(Stock.item_name.contains(search_term))
+                ).all()
+
+                return {
+                    "success": True,
+                    "damages": [
+                        {
+                            "id": damage.id,
+                            "stock_id": damage.stock_id,
+                            "item_name": session.get(Stock, damage.stock_id).item_name,
+                            "quantity_damaged": damage.quantity_damaged,
+                            "damage_date": damage.damage_date.isoformat(),
+                            "unit_price": session.get(Stock, damage.stock_id).selling_price,
+                            "total_value": damage.quantity_damaged * session.get(Stock, damage.stock_id).selling_price
+                        } for damage in damages
+                    ]
+                }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
 
-# ==========================
-# EXPENDITURE API
-# ==========================
 class ExpenditureAPI:
     """Expenditure management API aligned with Expenditure UI."""
 
