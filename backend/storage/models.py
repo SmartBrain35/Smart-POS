@@ -48,7 +48,7 @@ class ReturnReason(str, Enum):
 
 
 class Account(SQLModel, table=True):
-    __tablename__ = 'accounts'
+    __tablename__ = "accounts"
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
@@ -63,7 +63,7 @@ class Account(SQLModel, table=True):
 
 
 class Employee(SQLModel, table=True):
-    __tablename__ = 'employees'
+    __tablename__ = "employees"
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
@@ -78,7 +78,7 @@ class Employee(SQLModel, table=True):
 
 
 class Stock(SQLModel, table=True):
-    __tablename__ = 'stocks'
+    __tablename__ = "stocks"
 
     id: int | None = Field(default=None, primary_key=True)
     item_name: str = Field(index=True)
@@ -87,12 +87,19 @@ class Stock(SQLModel, table=True):
     selling_price: float = Field(ge=0)
     category: StockType = Field(default=StockType.RETAIL)
     expiry_date: date | None = None
+    is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
-    sale_item: "SaleItem" = Relationship(back_populates="stock")
-    damaged_item: "Damage" = Relationship(back_populates="stock")
-    returned_item: "Return" = Relationship(back_populates="stock")
+    sale_items: list["SaleItem"] = Relationship(
+        back_populates="stock"
+    )  # Changed to plural
+    damaged_items: list["Damage"] = Relationship(
+        back_populates="stock"
+    )  # Changed to plural
+    returned_items: list["Return"] = Relationship(
+        back_populates="stock"
+    )  # Changed to plural
 
     @property
     def profit_per_unit(self) -> float:
@@ -112,7 +119,7 @@ class Stock(SQLModel, table=True):
 
 
 class Sale(SQLModel, table=True):
-    __tablename__ = 'sales'
+    __tablename__ = "sales"
 
     id: int | None = Field(default=None, primary_key=True)
     sale_date: date = Field(default_factory=date.today, index=True)
@@ -124,38 +131,13 @@ class Sale(SQLModel, table=True):
     cashier_id: int = Field(foreign_key="accounts.id")
     created_at: datetime = Field(default_factory=datetime.now)
 
-    cashier: Account = Relationship(back_populates='sales')
+    cashier: Account = Relationship(back_populates="sales")
     sale_items: list["SaleItem"] = Relationship(back_populates="sale")
     returned_items: list["Return"] = Relationship(back_populates="sale")
 
 
-class SaleItem(SQLModel, table=True):
-    __tablename__ = 'sale_items'
-
-    id: int | None = Field(default=None, primary_key=True)
-    sale_id: int = Field(foreign_key="sales.id")
-    stock_id: int = Field(foreign_key="stocks.id")
-    quantity_sold: int = Field(ge=1)
-
-    sale: Sale = Relationship(back_populates="sale_items")
-    stock: Stock = Relationship(back_populates="sale_item")
-
-
-class Damage(SQLModel, table=True):
-    __tablename__ = 'damages'
-
-    id: int | None = Field(default=None, primary_key=True)
-    stock_id: int = Field(foreign_key="stocks.id")
-    quantity_damaged: int = Field(ge=1)
-    damage_status: DamageStatus = Field(default=DamageStatus.BROKEN)
-    damage_date: date = Field(default_factory=date.today, index=True)
-    created_at: datetime = Field(default_factory=datetime.now)
-
-    stock: Stock = Relationship(back_populates="damaged_item")
-
-
 class Expenditure(SQLModel, table=True):
-    __tablename__ = 'expenditures'
+    __tablename__ = "expenditures"
 
     id: int | None = Field(default=None, primary_key=True)
     description: str = Field(sa_column=Column(TEXT, nullable=False, index=True))
@@ -166,8 +148,33 @@ class Expenditure(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
+class SaleItem(SQLModel, table=True):
+    __tablename__ = "sale_items"
+
+    id: int | None = Field(default=None, primary_key=True)
+    sale_id: int = Field(foreign_key="sales.id")
+    stock_id: int = Field(foreign_key="stocks.id")
+    quantity_sold: int = Field(ge=1)
+
+    sale: Sale = Relationship(back_populates="sale_items")
+    stock: Stock = Relationship(back_populates="sale_items")
+
+
+class Damage(SQLModel, table=True):
+    __tablename__ = "damages"
+
+    id: int | None = Field(default=None, primary_key=True)
+    stock_id: int = Field(foreign_key="stocks.id")
+    quantity_damaged: int = Field(ge=1)
+    damage_status: DamageStatus = Field(default=DamageStatus.BROKEN)
+    damage_date: date = Field(default_factory=date.today, index=True)
+    created_at: datetime = Field(default_factory=datetime.now)
+
+    stock: Stock = Relationship(back_populates="damaged_items")
+
+
 class Return(SQLModel, table=True):
-    __tablename__ = 'returns'
+    __tablename__ = "returns"
 
     id: int | None = Field(default=None, primary_key=True)
     sale_id: int = Field(foreign_key="sales.id")
@@ -177,5 +184,5 @@ class Return(SQLModel, table=True):
     return_date: date = Field(default_factory=date.today, index=True)
     created_at: datetime = Field(default_factory=datetime.now)
 
-    stock: Stock = Relationship(back_populates="returned_item")
+    stock: Stock = Relationship(back_populates="returned_items")
     sale: Sale = Relationship(back_populates="returned_items")

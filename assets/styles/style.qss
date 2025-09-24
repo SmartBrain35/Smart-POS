@@ -457,15 +457,12 @@ QComboBox QAbstractItemView{
 }
 
 /* Table */
-#tableItemList, #tableCheckoutCart {
-    border: 1px solid #1e2a38;
-    gridline-color: #000000ff;
-    background: white;
-    color: black;
-    alternate-background-color: #f6f6f6;
+#tableItemList, #tableCheckoutCart, #RetailTable {
+    border: 1px solid #0a0404ff;
     selection-background-color: #00aaff;
-    selection-color: white;
-    font-size: 14px;
+    alternate-background-color: #cccccc;
+    color: black;
+    font-size: 15px;
 }
 /* Fix header styling */
 QHeaderView::section {

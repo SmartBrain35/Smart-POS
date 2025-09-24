@@ -21,6 +21,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
 6. on stock table, the progressBar value in the quantity column should be same as item quantity
 7. 6 LCDs to display overall count & sum of stock items costs prices, selling prices & profits of the stock
+       so the Retail LCDs display all items information categorized under "retail" and vice versa
 8. "Category" field added to the UI to differentiate between items on sales and report UI
 
 Note: quantity columns have progressBar to visually display item quantity
@@ -61,9 +62,10 @@ Note: quantity columns have progressBar to visually display item quantity
 4. LDCs:
        Total items -> total items damaged
        Total price -> sum up all damage items prices
-       Total profit -> sum up all the damaged items profit
-
-       NOTE: damaged (item's quantities, total  Selling price, total profit), etc must be subtracted from the stock stock quantity, selling price & profits respectively
+       Total profit -> sum up all the damaged items profit (profit loss)
+5. double click to fill datasets back to thier inputs for update, delete
+6. clear button clear inputs
+       NOTE: recalculate stock
 
        ====== Expenditure UI Page======
 1. all inputs are mandatory to fill out
