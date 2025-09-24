@@ -457,7 +457,7 @@ QComboBox QAbstractItemView{
 }
 
 /* Table */
-#tableItemList, #tableCheckoutCart, #RetailTable {
+#tableItemList, #tableCheckoutCart, #table_stock {
     border: 1px solid #0a0404ff;
     selection-background-color: #00aaff;
     alternate-background-color: #cccccc;

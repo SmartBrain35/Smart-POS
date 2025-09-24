@@ -12,6 +12,9 @@ from ui.account_ui import Ui_Account
 from ui.settings_ui import Ui_Settings
 from controllers.accountController import AccountController
 from controllers.employeeController import EmployeesController
+from controllers.stockController import StockController
+from controllers.salesController import SalesController
+from controllers.damageController import DamageController
 import logging
 
 home_logger = logging.getLogger("HomePage")
@@ -41,8 +44,12 @@ class HomePage(QtWidgets.QMainWindow):
         self.pages = {}
 
         self.current_button = None
-        self.account_controller = None  # Ensure single instance
-        self.employees_controller = None  # Ensure single instance
+        self.account_controller = None
+        self.employees_controller = None
+        self.stock_controller = None
+        self.sales_controller = None
+        self.damage_controller = None
+
         self.setupUi(self)
         self.setup_connections()
         home_logger.debug("HomePage initialized, switching to Dashboard")
@@ -116,7 +123,7 @@ class HomePage(QtWidgets.QMainWindow):
                 border: none;
                 text-align: left;
                 font-size: 17px;
-                padding: 10px 8px 10px 15px; /* spacing for icons */
+                padding: 10px 8px 10px 15px;
                 border-radius: 6px;
             }
             QPushButton::menu-indicator { width: 0px; }
@@ -135,14 +142,14 @@ class HomePage(QtWidgets.QMainWindow):
             }
         """
 
-        # --- Logout Button Style (special) ---
+        # --- Logout Button Style ---
         logout_style = """
             QPushButton {
                 background: transparent;
                 color: #ff4d4d;
                 border: none;
                 text-align: left;
-                padding: 10px 8px 10px 15px; /* same spacing as others */
+                padding: 10px 8px 10px 15px;
                 font-size: 17px;
                 border-radius: 6px;
             }
@@ -185,7 +192,7 @@ class HomePage(QtWidgets.QMainWindow):
 
         self.sidebarLayout.addStretch()
 
-        # --- Logout button at bottom ---
+        # Logout button
         logout_btn = QtWidgets.QPushButton("  Logout")
         logout_btn.setIcon(QtGui.QIcon("assets/icons/logout.png"))
         logout_btn.setIconSize(QtCore.QSize(22, 22))
@@ -251,7 +258,63 @@ class HomePage(QtWidgets.QMainWindow):
             self.load_page(index)
             self.stackedWidget.setCurrentIndex(index)
             self.lbl_title.setText(title)
-            # Update active button state
+
+            # === Controllers ===
+            attr_name = self.page_configs[index][1]
+            ui_instance = getattr(self, f"ui_{attr_name.split('_')[1]}", None)
+            page = getattr(self, attr_name, None)
+
+            # account controller
+            if attr_name == "page_account":
+                if self.account_controller is None:
+                    self.account_controller = AccountController(ui_instance, page)
+                    home_logger.debug("AccountController instantiated")
+                else:
+                    if hasattr(self.account_controller, "refresh_table"):
+                        self.account_controller.refresh_table()
+                        home_logger.debug("AccountController refreshed")
+
+            # Employess controller
+            if attr_name == "page_employees":
+                if self.employees_controller is None:
+                    self.employees_controller = EmployeesController(ui_instance, page)
+                    home_logger.debug("EmployeesController instantiated")
+                else:
+                    if hasattr(self.employees_controller, "refresh_table"):
+                        self.employees_controller.refresh_table()
+                        home_logger.debug("EmployeesController refreshed")
+
+            # Stock controller
+            if attr_name == "page_stock":
+                if self.stock_controller is None:
+                    self.stock_controller = StockController(ui_instance, page)
+                    home_logger.debug("StockController instantiated")
+                else:
+                    if hasattr(self.stock_controller, "refresh_table"):
+                        self.stock_controller.refresh_table()
+                        home_logger.debug("StockController refreshed")
+
+            # Sales controller
+            if attr_name == "page_sales":
+                if self.sales_controller is None:
+                    self.sales_controller = SalesController(ui_instance, page)
+                    home_logger.debug("SalesController instantiated")
+                else:
+                    if hasattr(self.sales_controller, "refresh_table"):
+                        self.sales_controller.refresh_table()
+                        home_logger.debug("SalesController refreshed")
+
+            # Damage controller
+            if attr_name == "page_damage":
+                if self.damage_controller is None:
+                    self.damage_controller = DamageController(ui_instance, page)
+                    home_logger.debug("DamageController instantiated")
+                else:
+                    if hasattr(self.damage_controller, "refresh_table"):
+                        self.damage_controller.refresh_table()
+                        home_logger.debug("DamageController refreshed")
+
+            # Highlight buttons
             if self.current_button:
                 self.current_button.setProperty("active", False)
                 self.current_button.style().unpolish(self.current_button)

@@ -6,6 +6,8 @@ from backend.auth import hash_password, verify_password
 from backend.schemas import AccountRead, EmployeeRead, StockRead, ExpenditureRead
 from enum import Enum
 from sqlalchemy import Column, TEXT
+from typing import Dict, Any
+
 from backend.storage.models import (
     Account,
     Employee,
@@ -701,75 +703,14 @@ class SaleAPI:
 # ==========================
 # DAMAGE API
 # ==========================
-class DamageAPI:
-    """Damage management API aligned with Damage UI."""
-
-    @staticmethod
-    def record_damage(stock_id: int, quantity_damaged: int, status: str = "broken") -> dict[str, Any]:
-        try:
-            with get_session() as session:
-                stock = session.get(Stock, stock_id)
-                if not stock:
-                    return {"success": False, "error": "Stock not found"}
-                if stock.quantity < quantity_damaged:
-                    return {"success": False, "error": "Insufficient stock to damage"}
-
-                damage = Damage(
-                    stock_id=stock_id,
-                    quantity_damaged=quantity_damaged,
-                    damage_status=DamageStatus(status),
-                )
-                session.add(damage)
-
-                stock.quantity -= quantity_damaged
-                stock.updated_at = datetime.now()
-
-                session.commit()
-
-                return {
-                    "success": True,
-                    "damage": {
-                        "id": damage.id,
-                        "stock_id": stock_id,
-                        "item_name": stock.item_name,
-                        "quantity_damaged": quantity_damaged,
-                        "price": stock.selling_price,
-                        "damage_status": status,
-                        "created_at": damage.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                    },
-                }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @staticmethod
-    def get_all_damages() -> dict[str, Any]:
-        try:
-            with get_session() as session:
-                damages = session.exec(select(Damage)).all()
-                result = []
-                for d in damages:
-                    stock = session.get(Stock, d.stock_id)
-                    result.append({
-                        "id": d.id,
-                        "stock_id": d.stock_id,
-                        "item_name": stock.item_name if stock else "Unknown",
-                        "quantity_damaged": d.quantity_damaged,
-                        "price": stock.selling_price if stock else 0,
-                        "damage_status": d.damage_status.value,
-                        "created_at": d.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                    })
-                return {"success": True, "damages": result}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
 
 class DamageAPI:
-    """Damage management API aligned with Damage UI."""
+    """Damage management API with stock sync for production use."""
 
     @staticmethod
     def record_damage(
         stock_id: int, quantity_damaged: int, status: str = "broken"
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         try:
             with get_session() as session:
                 stock = session.get(Stock, stock_id)
@@ -785,6 +726,7 @@ class DamageAPI:
                 )
                 session.add(damage)
 
+                # Adjust stock
                 stock.quantity -= quantity_damaged
                 stock.updated_at = datetime.now()
 
@@ -792,6 +734,7 @@ class DamageAPI:
 
                 return {
                     "success": True,
+                    "message": "Damage recorded successfully",
                     "damage": {
                         "id": damage.id,
                         "stock_id": stock_id,
@@ -806,7 +749,65 @@ class DamageAPI:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def get_all_damages() -> dict[str, Any]:
+    def update_damage(
+        damage_id: int, new_quantity: int, new_status: str
+    ) -> Dict[str, Any]:
+        try:
+            with get_session() as session:
+                damage = session.get(Damage, damage_id)
+                if not damage:
+                    return {"success": False, "error": "Damage record not found"}
+
+                stock = session.get(Stock, damage.stock_id)
+                if not stock:
+                    return {"success": False, "error": "Stock not found"}
+
+                # Calculate quantity difference to adjust stock properly
+                qty_diff = new_quantity - damage.quantity_damaged
+
+                if qty_diff > 0 and stock.quantity < qty_diff:
+                    return {
+                        "success": False,
+                        "error": "Insufficient stock to increase damage quantity",
+                    }
+
+                # Update damage record
+                damage.quantity_damaged = new_quantity
+                damage.damage_status = DamageStatus(new_status)
+
+                # Adjust stock
+                stock.quantity -= qty_diff
+                stock.updated_at = datetime.now()
+
+                session.commit()
+
+                return {"success": True, "message": "Damage updated successfully"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def delete_damage(damage_id: int) -> Dict[str, Any]:
+        try:
+            with get_session() as session:
+                damage = session.get(Damage, damage_id)
+                if not damage:
+                    return {"success": False, "error": "Damage record not found"}
+
+                stock = session.get(Stock, damage.stock_id)
+                if stock:
+                    # Restore stock quantity when damage deleted
+                    stock.quantity += damage.quantity_damaged
+                    stock.updated_at = datetime.now()
+
+                session.delete(damage)
+                session.commit()
+
+                return {"success": True, "message": "Damage deleted and stock restored"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_all_damages() -> Dict[str, Any]:
         try:
             with get_session() as session:
                 damages = session.exec(select(Damage)).all()
@@ -829,6 +830,9 @@ class DamageAPI:
             return {"success": False, "error": str(e)}
 
 
+# ==========================
+# Expenditure API
+# ==========================
 class ExpenditureAPI:
     """Expenditure management API aligned with Expenditure UI."""
 

@@ -57,7 +57,7 @@ Note: quantity columns have progressBar to visually display item quantity
    Change input display the customer change as (LCD(total) - amount to be paid)
 
        ======Damage UI Page======
-1. all inputs are mandatory to fill
+1. all inputs are mandatory to fill (price pull from stock, itemname input auto filter from drop down list)
 3. auto filter input as you type
 4. LDCs:
        Total items -> total items damaged
@@ -65,6 +65,7 @@ Note: quantity columns have progressBar to visually display item quantity
        Total profit -> sum up all the damaged items profit (profit loss)
 5. double click to fill datasets back to thier inputs for update, delete
 6. clear button clear inputs
+7. action column have icons to delete invidual rows
        NOTE: recalculate stock
 
        ====== Expenditure UI Page======

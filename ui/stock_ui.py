@@ -147,19 +147,19 @@ class Ui_Stock(object):
         content_v.addLayout(filter_h)
 
         # --- Table ---
-        self.RetailTable = QtWidgets.QTableView()
-        self.RetailTable.setObjectName("RetailTable")
-        self.RetailTable.horizontalHeader().setStretchLastSection(True)
-        self.RetailTable.horizontalHeader().setSectionResizeMode(
+        self.table_stock = QtWidgets.QTableView()
+        self.table_stock.setObjectName("table_stock")
+        self.table_stock.horizontalHeader().setStretchLastSection(True)
+        self.table_stock.horizontalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.Stretch
         )
-        self.RetailTable.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.RetailTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.RetailTable.setAlternatingRowColors(True)
-        self.RetailTable.verticalHeader().setVisible(False)
-        self.RetailTable.setMinimumHeight(300)
+        self.table_stock.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.table_stock.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.table_stock.setAlternatingRowColors(True)
+        self.table_stock.verticalHeader().setVisible(False)
+        self.table_stock.setMinimumHeight(300)
 
-        content_v.addWidget(self.RetailTable, stretch=1)
+        content_v.addWidget(self.table_stock, stretch=1)
 
         # --- LCDs ---
         lcds_container = QtWidgets.QWidget()
