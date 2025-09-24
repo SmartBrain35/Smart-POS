@@ -21,6 +21,7 @@ Use EDIT button to save updated records, "CLEAR" buttons to manully clear inputs
 5. if item require expire date, check the box to set date otherwise, leave the checkBox unchecked
 6. on stock table, the progressBar value in the quantity column should be same as item quantity
 7. 6 LCDs to display overall count & sum of stock items costs prices, selling prices & profits of the stock
+       so the Retail LCDs display all items information categorized under "retail" and vice versa
 8. "Category" field added to the UI to differentiate between items on sales and report UI
 
 Note: quantity columns have progressBar to visually display item quantity

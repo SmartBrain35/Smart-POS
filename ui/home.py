@@ -12,6 +12,8 @@ from ui.account_ui import Ui_Account
 from ui.settings_ui import Ui_Settings
 from controllers.accountController import AccountController
 from controllers.employeeController import EmployeesController
+from controllers.stockController import StockController
+from controllers.salesController import SalesController
 import logging
 
 home_logger = logging.getLogger("HomePage")
@@ -39,13 +41,17 @@ class HomePage(QtWidgets.QMainWindow):
         ]
         self.page_loaded = [False] * len(self.page_configs)
         self.pages = {}
+
         self.current_button = None
-        self.account_controller = None  # Ensure single instance
-        self.employees_controller = None  # Ensure single instance
+        self.account_controller = None
+        self.employees_controller = None
+        self.stock_controller = None
+        self.sales_controller = None
+
         self.setupUi(self)
         self.setup_connections()
         home_logger.debug("HomePage initialized, switching to Dashboard")
-        self.switch_page(0, "Dashboard")  # Load and show dashboard initially
+        self.switch_page(0, "Dashboard")
 
     def setupUi(self, Home):
         Home.setObjectName("home")
@@ -107,20 +113,19 @@ class HomePage(QtWidgets.QMainWindow):
         self.logo.setStyleSheet("color: #ecf0f1; font-weight: 700; color: #00aaff")
         self.sidebarLayout.addWidget(self.logo)
 
+        # --- Normal Button Style ---
         button_style = """
             QPushButton {
                 background: transparent;
                 color: white;
                 border: none;
                 text-align: left;
-                padding: 10px;
                 font-size: 17px;
+                padding: 10px 8px 10px 15px; /* spacing for icons */
                 border-radius: 6px;
             }
-            QPushButton:hover {
-                background-color: #00aaff;
-                color: white;
-            }
+            QPushButton::menu-indicator { width: 0px; }
+            QPushButton:hover { background-color: #00aaff; color: white; }
             QPushButton[active="true"] {
                 background: #00aaff;
                 color: white;
@@ -135,6 +140,26 @@ class HomePage(QtWidgets.QMainWindow):
             }
         """
 
+        # --- Logout Button Style (special) ---
+        logout_style = """
+            QPushButton {
+                background: transparent;
+                color: #ff4d4d;
+                border: none;
+                text-align: left;
+                padding: 10px 8px 10px 15px; /* same spacing as others */
+                font-size: 17px;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 77, 77, 0.2);
+                color: white;
+            }
+            QPushButton:pressed {
+                background-color: rgba(255, 77, 77, 0.4);
+            }
+        """
+
         button_configs = [
             ("Dashboard", 0, "assets/icons/dashboard.png"),
             ("Stock", 1, "assets/icons/stock.png"),
@@ -146,26 +171,36 @@ class HomePage(QtWidgets.QMainWindow):
             ("Expenditure", 7, "assets/icons/expenditure.png"),
             ("Account", 8, "assets/icons/account.png"),
             ("Settings", 9, "assets/icons/settings.png"),
-            ("Logout", None, "assets/icons/logout.png"),
         ]
 
         self.buttons = {}
         for name, index, icon_path in button_configs:
-            btn = QtWidgets.QPushButton(name)
+            btn = QtWidgets.QPushButton(f"  {name}")
             btn.setIcon(QtGui.QIcon(icon_path))
-            btn.setIconSize(QtCore.QSize(25, 25))
+            btn.setIconSize(QtCore.QSize(22, 22))
             btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
             btn.setStyleSheet(button_style)
             btn.setSizePolicy(
                 QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
             )
             btn.setProperty("active", False)
-            if index is not None:
-                btn.setProperty("index", index)
+            btn.setProperty("index", index)
             self.sidebarLayout.addWidget(btn)
             self.buttons[name] = btn
 
         self.sidebarLayout.addStretch()
+
+        # --- Logout button at bottom ---
+        logout_btn = QtWidgets.QPushButton("  Logout")
+        logout_btn.setIcon(QtGui.QIcon("assets/icons/logout.png"))
+        logout_btn.setIconSize(QtCore.QSize(22, 22))
+        logout_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        logout_btn.setStyleSheet(logout_style)
+        logout_btn.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
+        self.sidebarLayout.addWidget(logout_btn)
+        self.buttons["Logout"] = logout_btn
 
     def setup_header(self):
         self.header = QtWidgets.QFrame(self.mainContent)
@@ -179,7 +214,6 @@ class HomePage(QtWidgets.QMainWindow):
         self.lbl_title.setFont(font)
         self.lbl_title.setStyleSheet("color: white;")
         self.headerLayout.addWidget(self.lbl_title)
-
         self.headerLayout.addStretch()
 
         self.userLabel = QtWidgets.QLabel("Welcome, Admin")
@@ -192,27 +226,15 @@ class HomePage(QtWidgets.QMainWindow):
 
     def load_page(self, index):
         if self.page_loaded[index]:
-            home_logger.debug(f"Page {index} already loaded, skipping.")
             return
         ui_class, attr_name = self.page_configs[index]
         page = self.stackedWidget.widget(index)
-        try:
-            ui_instance = ui_class()
-            ui_instance.setupUi(page)
-            self.pages[attr_name] = page
-            setattr(self, attr_name, page)
-            setattr(self, f"ui_{attr_name.split('_')[1]}", ui_instance)
-            home_logger.debug(f"UI setup complete for {attr_name}")
-            if attr_name == "page_account" and self.account_controller is None:
-                self.account_controller = AccountController(ui_instance, page)
-                home_logger.debug("AccountController instantiated successfully")
-            if attr_name == "page_employees" and self.employees_controller is None:
-                self.employees_controller = EmployeesController(ui_instance, page)
-                home_logger.debug("EmployeesController instantiated successfully")
-            self.page_loaded[index] = True
-            home_logger.debug(f"Page {index} ({attr_name}) loaded successfully.")
-        except Exception as e:
-            home_logger.exception(f"Error loading page {index} ({attr_name}): {e}")
+        ui_instance = ui_class()
+        ui_instance.setupUi(page)
+        self.pages[attr_name] = page
+        setattr(self, attr_name, page)
+        setattr(self, f"ui_{attr_name.split('_')[1]}", ui_instance)
+        self.page_loaded[index] = True
 
     def setup_connections(self):
         for name, btn in self.buttons.items():
@@ -222,22 +244,70 @@ class HomePage(QtWidgets.QMainWindow):
                 btn.clicked.connect(
                     lambda checked, idx=btn.property(
                         "index"
-                    ), ttl=name.capitalize(), b=btn: self.switch_page(idx, ttl, b)
+                    ), ttl=name, b=btn: self.switch_page(idx, ttl, b)
                 )
             btn.setFocusPolicy(QtCore.Qt.StrongFocus)
             btn.installEventFilter(self)
 
     def switch_page(self, index, title, button=None):
         home_logger.debug(f"Switching to page {index} ({title})")
+
         if index is not None:
             self.load_page(index)
             self.stackedWidget.setCurrentIndex(index)
             self.lbl_title.setText(title)
-            # Update active button state
+
+            # === Controllers ===
+            attr_name = self.page_configs[index][1]
+            ui_instance = getattr(self, f"ui_{attr_name.split('_')[1]}", None)
+            page = getattr(self, attr_name, None)
+
+            # Account
+            if attr_name == "page_account":
+                if self.account_controller is None:
+                    self.account_controller = AccountController(ui_instance, page)
+                    home_logger.debug("AccountController instantiated")
+                else:
+                    if hasattr(self.account_controller, "refresh_table"):
+                        self.account_controller.refresh_table()
+                        home_logger.debug("AccountController refreshed")
+
+            # Employees
+            if attr_name == "page_employees":
+                if self.employees_controller is None:
+                    self.employees_controller = EmployeesController(ui_instance, page)
+                    home_logger.debug("EmployeesController instantiated")
+                else:
+                    if hasattr(self.employees_controller, "refresh_table"):
+                        self.employees_controller.refresh_table()
+                        home_logger.debug("EmployeesController refreshed")
+
+            # Stock
+            if attr_name == "page_stock":
+                if self.stock_controller is None:
+                    self.stock_controller = StockController(ui_instance, page)
+                    home_logger.debug("StockController instantiated")
+                else:
+                    if hasattr(self.stock_controller, "refresh_table"):
+                        self.stock_controller.refresh_table()
+                        home_logger.debug("StockController refreshed")
+
+            #Sales
+            if attr_name == "page_sales":
+                if self.sales_controller is None:
+                    self.sales_controller = SalesController(ui_instance, page)
+                    home_logger.debug("SalesController instantiated")
+                else:
+                    if hasattr(self.sales_controller, "refresh_table"):
+                        self.sales_controller.refresh_table()
+                        home_logger.debug("SalesController refreshed")
+
+            # === Button highlight === 
             if self.current_button:
                 self.current_button.setProperty("active", False)
                 self.current_button.style().unpolish(self.current_button)
                 self.current_button.style().polish(self.current_button)
+
             if button:
                 self.current_button = button
                 button.setProperty("active", True)

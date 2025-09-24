@@ -1,213 +1,292 @@
-from PySide6 import QMessageBox, QMainWindow, QtWidgets
-from PySide6.QtCore import Qt, QTimer, QtCore
-from ui.stock_ui import Ui_Stock
-from backend.apis import StockAPI
-from PySide6.QtGui import QStandardItemModel, QStandardItem
-from datetime import datetime
+import logging
+from PySide6 import QtCore
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
+from backend.apis import StockAPI  # use the real backend
+from datetime import date as DateType
+from PySide6.QtWidgets import QMessageBox
 
+
+logger = logging.getLogger("StockController")
+
+
+# ------------------ Stock Table Model ------------------
+class StockTableModel(QAbstractTableModel):
+    def __init__(self, items: list[dict], parent=None):
+        super().__init__(parent)
+        self._items = items
+        self._headers = ["ID", "Name", "Qty", "Cost", "Sell", "Category", "Expiry"]
+
+    def rowCount(self, parent=QModelIndex()):
+        return len(self._items)
+
+    def columnCount(self, parent=QModelIndex()):
+        return len(self._headers)
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
+        item = self._items[index.row()]
+        col = index.column()
+
+        if role == Qt.DisplayRole:
+            if col == 0:
+                return item["id"]
+            if col == 1:
+                return item["item_name"]
+            if col == 2:
+                return item["quantity"]
+            if col == 3:
+                return f"{item['cost_price']:.2f}"
+            if col == 4:
+                return f"{item['selling_price']:.2f}"
+            if col == 5:
+                return item["category"]
+            if col == 6:
+                expiry = item.get("expiry_date")
+                if expiry:
+                    if isinstance(expiry, DateType):
+                        return expiry.isoformat()
+                    else:
+                        return str(expiry)
+                else:
+                    return "N/A"
+        return None
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self._headers[section]
+        return None
+
+    def get_item(self, row):
+        return self._items[row] if 0 <= row < len(self._items) else None
+
+    def update_items(self, items):
+        self.beginResetModel()
+        self._items = items
+        self.endResetModel()
+
+
+# ------------------ Controller ------------------
 class StockController:
-    def __init__(self, parent=None):
-        self.parent = parent
-        self.stock_window = QMainWindow()
-        self.ui = Ui_Stock()
-        self.ui.setupUi(self.stock_window)
+    def __init__(self, ui, page):
+        self.ui = ui
+        self.page = page
+        self.current_item_id = None
 
-        # Connect UI signals to controller methods
-        self.ui.btn_add_stock.clicked.connect(self.handle_add_stock)
-        self.ui.btn_edit_stock.clicked.connect(self.handle_edit_stock)
-        self.ui.btn_delete_stock.clicked.connect(self.handle_delete_stock)
-        self.ui.btn_clear_stock.clicked.connect(self.handle_clear)
-        self.ui.table_stock.clicked.connect(self.fill_form_from_selection)
-        self.ui.stock_filter_input.textChanged.connect(self.filter_stock)
+        # Connect buttons
+        self.ui.btnRetailAdd.clicked.connect(self.handle_add)
+        self.ui.btnRetailEdit.clicked.connect(self.handle_edit)
+        self.ui.btnRetailDelete.clicked.connect(self.handle_delete)
+        self.ui.btnRetailClear.clicked.connect(self.handle_clear)
 
-        # Setup model for table
-        self.model = QStandardItemModel()
-        self.ui.table_stock.setModel(self.model)
-        self.model.setHorizontalHeaderLabels(["ID", "Item Name", "Quantity", "Cost Price", "Selling Price", "Category", "Expiry Date"])
-        self.ui.table_stock.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        # Filter
+        self.ui.inputRetailFilter.textChanged.connect(self.handle_filter)
+        self.ui.btnRetailFilter.clicked.connect(self.handle_filter_btn)
 
-        # Load initial data
-        self.load_stock_data()
+        # Table model
+        self.model = StockTableModel([])
+        self.ui.RetailTable.setModel(self.model)
+        self.ui.RetailTable.doubleClicked.connect(self.handle_row_double_click)
 
-        # Setup auto-update for LCDs
-        self.update_lcds()
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_lcds)
-        self.timer.start(1000)  # Update every second
+        # Initial load
+        self.refresh_table()
 
-    def load_stock_data(self):
-        result = StockAPI.get_all_stock()
-        if result["success"]:
-            self.model.removeRows(0, self.model.rowCount())
-            for stock in result["stocks"]:
-                items = [
-                    QStandardItem(str(stock["id"])),
-                    QStandardItem(stock["item_name"]),
-                    QStandardItem(str(stock["quantity"])),
-                    QStandardItem(f"{stock['cost_price']:.2f}"),
-                    QStandardItem(f"{stock['selling_price']:.2f}"),
-                    QStandardItem(stock["category"]),
-                    QStandardItem(stock["expiry_date"] if stock["expiry_date"] else "")
-                ]
-                self.model.appendRow(items)
-                # Add progress bar for quantity
-                progress = QtWidgets.QProgressBar()
-                progress.setRange(0, 100)
-                progress.setValue(stock["quantity"])
-                self.ui.table_stock.setIndexWidget(self.model.index(self.model.rowCount() - 1, 2), progress)
-        else:
-            QMessageBox.warning(self.stock_window, "Error", result["error"])
+    # ---------------- Validation (unchanged) ----------------
+    def clear_validation_styles(self):
+        for field in [
+            self.ui.inputRetailName,
+            self.ui.inputRetailQty,
+            self.ui.inputRetailCost,
+            self.ui.inputRetailSelling,
+        ]:
+            field.setStyleSheet("")
 
-    def handle_add_stock(self):
-        item_name = self.ui.stock_name_input.text().strip()
-        quantity = self.ui.stock_qty_input.text().strip()
-        cost_price = self.ui.stock_cost_input.text().strip()
-        selling_price = self.ui.stock_selling_input.text().strip()
-        category = self.ui.stock_category_input.currentText()
-        expiry_date = self.ui.stock_expiry_date.date().toString("yyyy-MM-dd") if self.ui.stock_expiry_checkbox.isChecked() else None
+    def validate_inputs(self):
+        self.clear_validation_styles()
+        valid = True
 
-        # Validate all fields
-        if not all([item_name, quantity, cost_price, selling_price, category]):
-            QMessageBox.warning(self.stock_window, "Input Error", "All fields are compulsory.")
-            return
+        name = self.ui.inputRetailName.text().strip()
+        qty = self.ui.inputRetailQty.text().strip()
+        cost = self.ui.inputRetailCost.text().strip()
+        sell = self.ui.inputRetailSelling.text().strip()
 
+        def mark_invalid(widget):
+            widget.setStyleSheet("border: 2px solid red;")
+
+        if not name:
+            mark_invalid(self.ui.inputRetailName)
+            valid = False
+        if not qty.isdigit():
+            mark_invalid(self.ui.inputRetailQty)
+            valid = False
         try:
-            quantity = int(quantity)
-            cost_price = float(cost_price)
-            selling_price = float(selling_price)
-            if quantity <= 0 or cost_price < 0 or selling_price < 0:
-                raise ValueError
+            cost_val = float(cost)
         except ValueError:
-            QMessageBox.warning(self.stock_window, "Input Error", "Invalid numeric values.")
-            return
-
-        result = StockAPI.add_stock(item_name, quantity, cost_price, selling_price, category, expiry_date)
-        if result["success"]:
-            QMessageBox.information(self.stock_window, "Success", result["message"])
-            self.handle_clear()
-            self.load_stock_data()
-        else:
-            QMessageBox.warning(self.stock_window, "Error", result["error"])
-
-    def handle_edit_stock(self):
-        selected_row = self.ui.table_stock.currentIndex().row()
-        if selected_row == -1:
-            QMessageBox.warning(self.stock_window, "Selection Error", "Please select a stock item to edit.")
-            return
-
-        stock_id = int(self.model.data(self.model.index(selected_row, 0)))
-        item_name = self.ui.stock_name_input.text().strip()
-        quantity = self.ui.stock_qty_input.text().strip()
-        cost_price = self.ui.stock_cost_input.text().strip()
-        selling_price = self.ui.stock_selling_input.text().strip()
-        category = self.ui.stock_category_input.currentText()
-        expiry_date = self.ui.stock_expiry_date.date().toString("yyyy-MM-dd") if self.ui.stock_expiry_checkbox.isChecked() else None
-
-        if not all([item_name, quantity, cost_price, selling_price, category]):
-            QMessageBox.warning(self.stock_window, "Input Error", "All fields are compulsory.")
-            return
-
+            mark_invalid(self.ui.inputRetailCost)
+            valid = False
+            cost_val = 0
         try:
-            quantity = int(quantity)
-            cost_price = float(cost_price)
-            selling_price = float(selling_price)
-            if quantity < 0 or cost_price < 0 or selling_price < 0:
-                raise ValueError
+            sell_val = float(sell)
         except ValueError:
-            QMessageBox.warning(self.stock_window, "Input Error", "Invalid numeric values.")
+            mark_invalid(self.ui.inputRetailSelling)
+            valid = False
+            sell_val = 0
+
+        if valid and sell_val < cost_val:
+            mark_invalid(self.ui.inputRetailSelling)
+            valid = False
+
+        return valid
+
+    def get_form_data(self):
+        name = self.ui.inputRetailName.text().strip()
+        qty = int(self.ui.inputRetailQty.text().strip())
+        cost = float(self.ui.inputRetailCost.text().strip())
+        sell = float(self.ui.inputRetailSelling.text().strip())
+        category = self.ui.inputRetailCategory.currentText().strip().lower()
+
+        expiry = (
+            self.ui.dateRetailExpiry.date().toString("yyyy-MM-dd")
+            if self.ui.checkRetailExpiry.isChecked()
+            else None
+        )
+        return name, qty, cost, sell, category, expiry
+
+    # ---------------- Handlers ----------------
+    def handle_add(self):
+        if not self.validate_inputs():
+            return
+        name, qty, cost, sell, category, expiry = self.get_form_data()
+        result = StockAPI.create_stock(name, qty, cost, sell, category, expiry)
+        if not result["success"]:
+            QMessageBox.warning(
+                self.page, "Add Failed", result.get("error", "Unknown error")
+            )
+            logger.error(result["error"])
+            return
+        self.refresh_table()
+        self.handle_clear()
+
+    def handle_edit(self):
+        if self.current_item_id is None or not self.validate_inputs():
+            return
+        name, qty, cost, sell, category, expiry = self.get_form_data()
+        result = StockAPI.update_stock(
+            self.current_item_id, name, qty, cost, sell, category, expiry
+        )
+        if not result["success"]:
+            QMessageBox.warning(
+                self.page, "Edit Failed", result.get("error", "Unknown error")
+            )
+            logger.error(result["error"])
+            return
+        self.refresh_table()
+        self.handle_clear()
+
+    def handle_delete(self):
+        if self.current_item_id is None:
             return
 
-        result = StockAPI.update_stock(stock_id, item_name, quantity, cost_price, selling_price, category, expiry_date)
+        result = StockAPI.delete_stock(self.current_item_id)
+
         if result["success"]:
-            QMessageBox.information(self.stock_window, "Success", result["message"])
-            self.handle_clear()
-            self.load_stock_data()
-        else:
-            QMessageBox.warning(self.stock_window, "Error", result["error"])
-
-    def handle_delete_stock(self):
-        selected_row = self.ui.table_stock.currentIndex().row()
-        if selected_row == -1:
-            QMessageBox.warning(self.stock_window, "Selection Error", "Please select a stock item to delete.")
-            return
-
-        stock_id = int(self.model.data(self.model.index(selected_row, 0)))
-        reply = QMessageBox.question(self.stock_window, "Confirm Delete", "Are you sure you want to delete this stock?",
-                                     QMessageBox.Yes | QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            result = StockAPI.delete_stock(stock_id)
-            if result["success"]:
-                self.load_stock_data()
+            if result.get("archived", False):
+                title = "Stock Archived"
             else:
-                QMessageBox.warning(self.stock_window, "Error", result["error"])
+                title = "Stock Deleted"
+            msg = result["message"]
+            QMessageBox.information(self.page, title, msg)
+        else:
+            msg = result.get("error", "Unknown error")
+            QMessageBox.warning(self.page, "Operation Failed", msg)
+
+        self.refresh_table()
+        self.handle_clear()
 
     def handle_clear(self):
-        self.ui.stock_id_input.clear()
-        self.ui.stock_name_input.clear()
-        self.ui.stock_qty_input.clear()
-        self.ui.stock_cost_input.clear()
-        self.ui.stock_selling_input.clear()
-        self.ui.stock_category_input.setCurrentIndex(0)
-        self.ui.stock_expiry_checkbox.setChecked(False)
-        self.ui.stock_expiry_date.setEnabled(False)
+        self.ui.inputRetailId.clear()
+        self.ui.inputRetailName.clear()
+        self.ui.inputRetailQty.clear()
+        self.ui.inputRetailCost.clear()
+        self.ui.inputRetailSelling.clear()
+        self.ui.checkRetailExpiry.setChecked(False)
+        self.ui.inputRetailCategory.setCurrentIndex(0)
+        self.clear_validation_styles()
+        self.current_item_id = None
 
-    def fill_form_from_selection(self):
-        selected_row = self.ui.table_stock.currentIndex().row()
-        if selected_row != -1:
-            self.ui.stock_id_input.setText(self.model.data(self.model.index(selected_row, 0)))
-            self.ui.stock_name_input.setText(self.model.data(self.model.index(selected_row, 1)))
-            self.ui.stock_qty_input.setText(self.model.data(self.model.index(selected_row, 2)))
-            self.ui.stock_cost_input.setText(self.model.data(self.model.index(selected_row, 3)))
-            self.ui.stock_selling_input.setText(self.model.data(self.model.index(selected_row, 4)))
-            self.ui.stock_category_input.setCurrentText(self.model.data(self.model.index(selected_row, 5)))
-            expiry_date = self.model.data(self.model.index(selected_row, 6))
-            if expiry_date:
-                self.ui.stock_expiry_checkbox.setChecked(True)
-                self.ui.stock_expiry_date.setDate(QtCore.QDate.fromString(expiry_date, "yyyy-MM-dd"))
-                self.ui.stock_expiry_date.setEnabled(True)
-            else:
-                self.ui.stock_expiry_checkbox.setChecked(False)
-                self.ui.stock_expiry_date.setEnabled(False)
-
-    def filter_stock(self, text):
-        result = StockAPI.filter_stock(text)
-        if result["success"]:
-            self.model.removeRows(0, self.model.rowCount())
-            for stock in result["stocks"]:
-                items = [
-                    QStandardItem(str(stock["id"])),
-                    QStandardItem(stock["item_name"]),
-                    QStandardItem(str(stock["quantity"])),
-                    QStandardItem(f"{stock['cost_price']:.2f}"),
-                    QStandardItem(f"{stock['selling_price']:.2f}"),
-                    QStandardItem(stock["category"]),
-                    QStandardItem(stock["expiry_date"] if stock["expiry_date"] else "")
-                ]
-                self.model.appendRow(items)
-                progress = QtWidgets.QProgressBar()
-                progress.setRange(0, 100)
-                progress.setValue(stock["quantity"])
-                self.ui.table_stock.setIndexWidget(self.model.index(self.model.rowCount() - 1, 2), progress)
+    def handle_filter(self, text):
+        text = text.strip()
+        if not text:
+            self.refresh_table()
         else:
-            QMessageBox.warning(self.stock_window, "Error", result["error"])
+            items = self.model._items
+            filtered = [i for i in items if text.lower() in i["item_name"].lower()]
+            self.populate_table(filtered)
 
-    def update_lcds(self):
-        result = StockAPI.get_all_stock()
-        if result["success"]:
-            summary = result["summary"]
-            # Wholesale LCDs
-            wholesale_stocks = [s for s in result["stocks"] if s["category"] == "Wholesale"]
-            self.ui.lcd1.display(len(wholesale_stocks))  # Wholesale Items
-            self.ui.lcd2.display(sum(s["total_cost_value"] for s in wholesale_stocks))  # Wholesale Costs
-            self.ui.lcd3.display(sum(s["total_selling_value"] for s in wholesale_stocks))  # Wholesale Value
-            self.ui.lcd4.display(sum(s["total_profit_potential"] for s in wholesale_stocks))  # Wholesale Profit
+    def handle_filter_btn(self):
+        self.handle_filter(self.ui.inputRetailFilter.text().strip())
 
-            # Retail LCDs
-            retail_stocks = [s for s in result["stocks"] if s["category"] == "Retail"]
-            self.ui.lcd5.display(len(retail_stocks))  # Retail Items
-            self.ui.lcd6.display(sum(s["total_cost_value"] for s in retail_stocks))  # Retail Costs
-            self.ui.lcd7.display(sum(s["total_selling_value"] for s in retail_stocks))  # Retail Value
-            self.ui.lcd8.display(sum(s["total_profit_potential"] for s in retail_stocks))  # Retail Profit
+    def handle_row_double_click(self, index):
+        item = self.model.get_item(index.row())
+        if not item:
+            return
 
-    def show(self):
-        self.stock_window.show()
+        self.current_item_id = item["id"]
+        self.ui.inputRetailId.setText(str(item["id"]))
+        self.ui.inputRetailName.setText(item["item_name"])
+        self.ui.inputRetailQty.setText(str(item["quantity"]))
+        self.ui.inputRetailCost.setText(str(item["cost_price"]))
+        self.ui.inputRetailSelling.setText(str(item["selling_price"]))
+        self.ui.inputRetailCategory.setCurrentText(item["category"].capitalize())
+
+        expiry = item.get("expiry_date")
+        if expiry:
+            self.ui.checkRetailExpiry.setChecked(True)
+            if isinstance(expiry, DateType):  # real date object
+                qdate = QtCore.QDate(expiry.year, expiry.month, expiry.day)
+            else:  # fallback if string
+                qdate = QtCore.QDate.fromString(str(expiry), "yyyy-MM-dd")
+            self.ui.dateRetailExpiry.setDate(qdate)
+        else:
+            self.ui.checkRetailExpiry.setChecked(False)
+
+    # ---------------- Refresh ----------------
+    def refresh_table(self):
+        result = StockAPI.get_all()
+        if not result.get("success", True):
+            logger.error(result.get("error", "Failed to refresh stock"))
+            return
+        self.populate_table(result["items"])
+        logger.debug("StockController refreshed")
+
+    def populate_table(self, items):
+        self.model.update_items(items)
+
+        total = {
+            "retail": {"count": 0, "cost": 0.0, "sell": 0.0, "profit": 0.0},
+            "wholesale": {"count": 0, "cost": 0.0, "sell": 0.0, "profit": 0.0},
+        }
+
+        for item in items:
+            cat = item["category"].lower()
+            if cat in total:
+                q = item["quantity"]
+                c = item["cost_price"]
+                s = item["selling_price"]
+                total[cat]["count"] += q
+                total[cat]["cost"] += c * q
+                total[cat]["sell"] += s * q
+                total[cat]["profit"] += (s - c) * q
+
+        def display_lcd(lcd, value):
+            lcd.display(f"{value:.2f}")
+
+        display_lcd(self.ui.lcdRetailItems, total["retail"]["count"])
+        display_lcd(self.ui.lcdRetailCosts, total["retail"]["cost"])
+        display_lcd(self.ui.lcdRetailValues, total["retail"]["sell"])
+        display_lcd(self.ui.lcdRetailProfits, total["retail"]["profit"])
+
+        display_lcd(self.ui.lcdsWholesaleItems, total["wholesale"]["count"])
+        display_lcd(self.ui.lcdsWholesaleCosts, total["wholesale"]["cost"])
+        display_lcd(self.ui.lcdsWholesaleValues, total["wholesale"]["sell"])
+        display_lcd(self.ui.lcdsWholesaleProfits, total["wholesale"]["profit"])

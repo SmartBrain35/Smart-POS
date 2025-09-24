@@ -32,6 +32,7 @@ class Ui_Sales(object):
         self.tableItemList.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableItemList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableItemList.setAlternatingRowColors(True)
+        self.tableItemList.verticalHeader().setVisible(False)
         self.tableItemList.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch
         )
@@ -182,6 +183,7 @@ class Ui_Sales(object):
             QtWidgets.QAbstractItemView.SelectRows
         )
         self.tableCheckoutCart.setAlternatingRowColors(False)
+        self.tableCheckoutCart.verticalHeader().setVisible(False)
         header = self.tableCheckoutCart.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)

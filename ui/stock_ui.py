@@ -1,11 +1,10 @@
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtSql import QSqlTableModel
 
 
 class Ui_Stock(object):
     def setupUi(self, Stock):
         stock_layout = QtWidgets.QVBoxLayout(Stock)
-        stock_layout.setContentsMargins(10, 10, 10, 0)
+        stock_layout.setContentsMargins(10, 10, 0, 0)
         stock_layout.setSpacing(1)
 
         # ------------------- FORM CONTAINER -------------------
@@ -15,11 +14,7 @@ class Ui_Stock(object):
         form_layout.setVerticalSpacing(10)
         form_layout.setHorizontalSpacing(25)
 
-        # Set column stretches for responsiveness
-        form_layout.setColumnStretch(0, 1)
-        form_layout.setColumnStretch(1, 2)
-        form_layout.setColumnStretch(2, 1)
-
+        # Helpers
         label_style = "color: black; font-weight: bold;"
 
         def vfield(label_text, widget):
@@ -34,66 +29,70 @@ class Ui_Stock(object):
             return wrapper
 
         # ID
-        self.stock_id_input = QtWidgets.QLineEdit()
-        self.stock_id_input.setPlaceholderText("Auto / Enter ID")
-        self.stock_id_input.setObjectName("inputRetailId")
-        self.stock_id_input.setFixedHeight(40)
-        form_layout.addWidget(vfield("ID:", self.stock_id_input), 0, 0)
+        self.inputRetailId = QtWidgets.QLineEdit()
+        self.inputRetailId.setPlaceholderText("Auto / Enter ID")
+        self.inputRetailId.setObjectName("inputRetailId")
+        self.inputRetailId.setReadOnly(True)
+        self.inputRetailId.setFixedHeight(40)
+        form_layout.addWidget(vfield("ID:", self.inputRetailId), 0, 0)
 
         # Item Name
-        self.stock_name_input = QtWidgets.QLineEdit()
-        self.stock_name_input.setPlaceholderText("Enter item name")
-        self.stock_name_input.setObjectName("inputRetailName")
-        self.stock_name_input.setFixedHeight(40)
-        form_layout.addWidget(vfield("Item Name:", self.stock_name_input), 0, 1)
+        self.inputRetailName = QtWidgets.QLineEdit()
+        self.inputRetailName.setPlaceholderText("Enter item name")
+        self.inputRetailName.setObjectName("inputRetailName")
+        self.inputRetailName.setFixedHeight(40)
+        form_layout.addWidget(vfield("Item Name:", self.inputRetailName), 0, 1)
 
         # Quantity
-        self.stock_qty_input = QtWidgets.QLineEdit()
-        self.stock_qty_input.setPlaceholderText("Enter quantity (integer)")
-        self.stock_qty_input.setObjectName("inputRetailQty")
-        self.stock_qty_input.setFixedHeight(40)
-        form_layout.addWidget(vfield("Quantity:", self.stock_qty_input), 0, 2)
+        self.inputRetailQty = QtWidgets.QLineEdit()
+        self.inputRetailQty.setPlaceholderText("Enter quantity (integer)")
+        self.inputRetailQty.setObjectName("inputRetailQty")
+        self.inputRetailQty.setFixedHeight(40)
+        form_layout.addWidget(vfield("Quantity:", self.inputRetailQty), 0, 2)
 
         # Cost Price
-        self.stock_cost_input = QtWidgets.QLineEdit()
-        self.stock_cost_input.setPlaceholderText("Unit cost price")
-        self.stock_cost_input.setObjectName("inputRetailCost")
-        self.stock_cost_input.setFixedHeight(40)
-        form_layout.addWidget(vfield("Cost Price:", self.stock_cost_input), 1, 0)
+        self.inputRetailCost = QtWidgets.QLineEdit()
+        self.inputRetailCost.setPlaceholderText("Unit cost price")
+        self.inputRetailCost.setObjectName("inputRetailCost")
+        self.inputRetailCost.setFixedHeight(40)
+        form_layout.addWidget(vfield("Cost Price:", self.inputRetailCost), 1, 0)
 
         # Selling Price
-        self.stock_selling_input = QtWidgets.QLineEdit()
-        self.stock_selling_input.setPlaceholderText("Unit selling price")
-        self.stock_selling_input.setObjectName("inputRetailSelling")
-        self.stock_selling_input.setFixedHeight(40)
-        form_layout.addWidget(vfield("Selling Price:", self.stock_selling_input), 1, 1)
+        self.inputRetailSelling = QtWidgets.QLineEdit()
+        self.inputRetailSelling.setPlaceholderText("Unit selling price")
+        self.inputRetailSelling.setObjectName("inputRetailSelling")
+        self.inputRetailSelling.setFixedHeight(40)
+        form_layout.addWidget(vfield("Selling Price:", self.inputRetailSelling), 1, 1)
 
         # Expiry date + checkbox
-        self.stock_expiry_checkbox = QtWidgets.QCheckBox("")
-        self.stock_expiry_checkbox.setFixedWidth(18)
-        self.stock_expiry_date = QtWidgets.QDateEdit()
-        self.stock_expiry_date.setCalendarPopup(True)
-        self.stock_expiry_date.setDate(QtCore.QDate.currentDate())
-        self.stock_expiry_date.setEnabled(False)
-        self.stock_expiry_checkbox.toggled.connect(self.stock_expiry_date.setEnabled)
-        self.stock_expiry_checkbox.setObjectName("checkRetailExpiry")
-        self.stock_expiry_date.setFixedHeight(40)
+        self.checkRetailExpiry = QtWidgets.QCheckBox("")
+        self.checkRetailExpiry.setObjectName("checkRetailExpiry")
+        self.checkRetailExpiry.setFixedWidth(18)
+
+        self.dateRetailExpiry = QtWidgets.QDateEdit()
+        self.dateRetailExpiry.setCalendarPopup(True)
+        self.dateRetailExpiry.setDate(QtCore.QDate.currentDate())
+        self.dateRetailExpiry.setEnabled(False)
+        self.dateRetailExpiry.setObjectName("dateRetailExpiry")
+        self.dateRetailExpiry.setFixedHeight(40)
+
+        self.checkRetailExpiry.toggled.connect(self.dateRetailExpiry.setEnabled)
+
         expire_widget = QtWidgets.QWidget()
         expire_h = QtWidgets.QHBoxLayout(expire_widget)
         expire_h.setContentsMargins(0, 0, 0, 0)
         expire_h.setSpacing(4)
-        expire_h.addWidget(self.stock_expiry_checkbox)
-        expire_h.addWidget(self.stock_expiry_date)
+        expire_h.addWidget(self.checkRetailExpiry)
+        expire_h.addWidget(self.dateRetailExpiry)
 
-        self.stock_expiry_date.setObjectName("dateRetailExpiry")
         form_layout.addWidget(vfield("Expire Date:", expire_widget), 1, 2)
 
         # Category
-        self.stock_category_input = QtWidgets.QComboBox()
-        self.stock_category_input.setObjectName("inputRetailCategory")
-        self.stock_category_input.setFixedHeight(40)
-        self.stock_category_input.addItems(["Retail", "Wholesale"])
-        form_layout.addWidget(vfield("Category:", self.stock_category_input), 2, 0)
+        self.inputRetailCategory = QtWidgets.QComboBox()
+        self.inputRetailCategory.setObjectName("inputRetailCategory")
+        self.inputRetailCategory.setFixedHeight(40)
+        self.inputRetailCategory.addItems(["Retail", "Wholesale"])
+        form_layout.addWidget(vfield("Category:", self.inputRetailCategory), 2, 0)
 
         # --- Action Buttons ---
         btn_container = QtWidgets.QWidget()
@@ -101,23 +100,23 @@ class Ui_Stock(object):
         btn_h.setContentsMargins(0, 0, 0, 0)
         btn_h.setSpacing(10)
 
-        self.btn_add_stock = QtWidgets.QPushButton("ADD")
-        self.btn_add_stock.setObjectName("btnRetailAdd")
+        self.btnRetailAdd = QtWidgets.QPushButton("ADD")
+        self.btnRetailAdd.setObjectName("btnRetailAdd")
 
-        self.btn_edit_stock = QtWidgets.QPushButton("EDIT")
-        self.btn_edit_stock.setObjectName("btnRetailEdit")
+        self.btnRetailEdit = QtWidgets.QPushButton("EDIT")
+        self.btnRetailEdit.setObjectName("btnRetailEdit")
 
-        self.btn_delete_stock = QtWidgets.QPushButton("DELETE")
-        self.btn_delete_stock.setObjectName("btnRetailDelete")
+        self.btnRetailDelete = QtWidgets.QPushButton("DELETE")
+        self.btnRetailDelete.setObjectName("btnRetailDelete")
 
-        self.btn_clear_stock = QtWidgets.QPushButton("CLEAR")
-        self.btn_clear_stock.setObjectName("btnRetailClear")
+        self.btnRetailClear = QtWidgets.QPushButton("CLEAR")
+        self.btnRetailClear.setObjectName("btnRetailClear")
 
         for btn in [
-            self.btn_add_stock,
-            self.btn_edit_stock,
-            self.btn_delete_stock,
-            self.btn_clear_stock,
+            self.btnRetailAdd,
+            self.btnRetailEdit,
+            self.btnRetailDelete,
+            self.btnRetailClear,
         ]:
             btn.setMinimumWidth(90)
             btn_h.addWidget(btn)
@@ -130,122 +129,105 @@ class Ui_Stock(object):
         content_v.setContentsMargins(0, 0, 0, 0)
         content_v.setSpacing(6)
 
-        # --- Left side: Filter on top, Table below ---
-        left_container = QtWidgets.QWidget()
-        left_v = QtWidgets.QVBoxLayout(left_container)
-        left_v.setContentsMargins(0, 0, 0, 0)
-        left_v.setSpacing(6)
-
-        # Filter aligned top-right
+        # --- Filter ---
         filter_h = QtWidgets.QHBoxLayout()
-        filter_h.setContentsMargins(0, 0, 0, 0)
-        filter_h.setSpacing(6)
+        filter_h.addStretch()
+        self.inputRetailFilter = QtWidgets.QLineEdit()
+        self.inputRetailFilter.setPlaceholderText("Filter by item name...")
+        self.inputRetailFilter.setObjectName("inputRetailFilter")
+        self.inputRetailFilter.setFixedHeight(40)
+        filter_h.addWidget(self.inputRetailFilter)
 
-        filter_h.addStretch()  # pushes filter to the right
-        self.stock_filter_input = QtWidgets.QLineEdit()
-        self.stock_filter_input.setPlaceholderText("Filter by item name...")
-        self.stock_filter_input.setObjectName("inputRetailFilter")
-        self.stock_filter_input.setFixedHeight(40)
-        self.stock_filter_input.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
-        filter_h.addWidget(self.stock_filter_input)
+        self.btnRetailFilter = QtWidgets.QPushButton("Search")
+        self.btnRetailFilter.setObjectName("btnRetailFilter")
+        self.btnRetailFilter.setFixedHeight(40)
+        self.btnRetailFilter.setMinimumWidth(120)
+        filter_h.addWidget(self.btnRetailFilter)
 
-        self.btn_filter_stock = QtWidgets.QPushButton("Search")
-        self.btn_filter_stock.setObjectName("btnRetailFilter")
-        self.btn_filter_stock.setFixedHeight(40)
-        self.btn_filter_stock.setMinimumWidth(120)
-        filter_h.addWidget(self.btn_filter_stock)
+        content_v.addLayout(filter_h)
 
-        left_v.addLayout(filter_h)
-
-        # Table below filter
-        self.table_stock = QtWidgets.QTableView()
-        self.table_stock.setObjectName("RetailTable")
-        self.table_stock.horizontalHeader().setStretchLastSection(True)
-        self.table_stock.horizontalHeader().setSectionResizeMode(
+        # --- Table ---
+        self.RetailTable = QtWidgets.QTableView()
+        self.RetailTable.setObjectName("RetailTable")
+        self.RetailTable.horizontalHeader().setStretchLastSection(True)
+        self.RetailTable.horizontalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.Stretch
         )
-        self.table_stock.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.table_stock.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table_stock.setAlternatingRowColors(True)
-        self.table_stock.setMinimumHeight(300)
-        self.table_stock.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
-        )
-        left_v.addWidget(self.table_stock, stretch=1)
+        self.RetailTable.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.RetailTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.RetailTable.setAlternatingRowColors(True)
+        self.RetailTable.verticalHeader().setVisible(False)
+        self.RetailTable.setMinimumHeight(300)
 
-        # --- LCDs in 4x2 Grid ---
+        content_v.addWidget(self.RetailTable, stretch=1)
+
+        # --- LCDs ---
         lcds_container = QtWidgets.QWidget()
         lcds_grid = QtWidgets.QGridLayout(lcds_container)
-        lcds_grid.setContentsMargins(0, 0, 0, 0)
-        lcds_grid.setHorizontalSpacing(6)
-        lcds_grid.setVerticalSpacing(12)
 
-        # List of LCD configurations
-        lcd_configs = [
-            ("Wholesale Items", "lcdsWholesaleItems", 0, 0),
-            ("Wholesale Costs", "lcdsWholesaleCosts", 1, 0),
-            ("Wholesale Value", "lcdsWholesaleValues", 2, 0),
-            ("Wholesale Profit", "lcdsWholesaleProfits", 3, 0),
-            ("Retail Items", "lcdRetailItems", 0, 1),
-            ("Retail Costs", "lcdRetailCosts", 1, 1),
-            ("Retail Value", "lcdRetailValues", 2, 1),
-            ("Retail Profit", "lcdRetailProfits", 3, 1),
-        ]
+        self.lcdsWholesaleItemsWrapper, self.lcdsWholesaleItems = self._make_lcd(
+            "Wholesale Items", "lcdsWholesaleItems"
+        )
+        lcds_grid.addWidget(self.lcdsWholesaleItemsWrapper, 0, 0)
 
-        self.lcds = {}
-        for title, obj_name, row, col in lcd_configs:
-            box, lcd = self.make_lcd(title, obj_name)
-            lcds_grid.addWidget(box, row, col)
-            self.lcds[obj_name] = lcd
+        self.lcdsWholesaleCostsWrapper, self.lcdsWholesaleCosts = self._make_lcd(
+            "Wholesale Costs", "lcdsWholesaleCosts"
+        )
+        lcds_grid.addWidget(self.lcdsWholesaleCostsWrapper, 1, 0)
 
-        # Assign to self.lcd1 etc. for backward compatibility if needed
-        self.lcd1 = self.lcds["lcdsWholesaleItems"]
-        self.lcd2 = self.lcds["lcdsWholesaleCosts"]
-        self.lcd3 = self.lcds["lcdsWholesaleValues"]
-        self.lcd4 = self.lcds["lcdsWholesaleProfits"]
-        self.lcd5 = self.lcds["lcdRetailItems"]
-        self.lcd6 = self.lcds["lcdRetailCosts"]
-        self.lcd7 = self.lcds["lcdRetailValues"]
-        self.lcd8 = self.lcds["lcdRetailProfits"]
+        self.lcdsWholesaleValuesWrapper, self.lcdsWholesaleValues = self._make_lcd(
+            "Wholesale Value", "lcdsWholesaleValues"
+        )
+        lcds_grid.addWidget(self.lcdsWholesaleValuesWrapper, 2, 0)
 
-        # --- Table + LCDs side by side ---
+        self.lcdsWholesaleProfitsWrapper, self.lcdsWholesaleProfits = self._make_lcd(
+            "Wholesale Profit", "lcdsWholesaleProfits"
+        )
+        lcds_grid.addWidget(self.lcdsWholesaleProfitsWrapper, 3, 0)
+
+        self.lcdRetailItemsWrapper, self.lcdRetailItems = self._make_lcd(
+            "Retail Items", "lcdRetailItems"
+        )
+        lcds_grid.addWidget(self.lcdRetailItemsWrapper, 0, 1)
+
+        self.lcdRetailCostsWrapper, self.lcdRetailCosts = self._make_lcd(
+            "Retail Costs", "lcdRetailCosts"
+        )
+        lcds_grid.addWidget(self.lcdRetailCostsWrapper, 1, 1)
+
+        self.lcdRetailValuesWrapper, self.lcdRetailValues = self._make_lcd(
+            "Retail Value", "lcdRetailValues"
+        )
+        lcds_grid.addWidget(self.lcdRetailValuesWrapper, 2, 1)
+
+        self.lcdRetailProfitsWrapper, self.lcdRetailProfits = self._make_lcd(
+            "Retail Profit", "lcdRetailProfits"
+        )
+        lcds_grid.addWidget(self.lcdRetailProfitsWrapper, 3, 1)
+
+        # Combine
         table_lcd_h = QtWidgets.QHBoxLayout()
-        table_lcd_h.setContentsMargins(0, 0, 0, 0)
-        table_lcd_h.setSpacing(10)
-
-        table_lcd_h.addWidget(left_container, stretch=4)
+        table_lcd_h.addWidget(content_container, stretch=4)
         table_lcd_h.addWidget(
-            lcds_container,
-            stretch=1,
-            alignment=QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight,
+            lcds_container, stretch=1, alignment=QtCore.Qt.AlignBottom
         )
 
-        content_v.addLayout(table_lcd_h)
-        content_v.addSpacing(2)
-
         stock_layout.addWidget(form_container, stretch=0, alignment=QtCore.Qt.AlignTop)
-        stock_layout.addWidget(content_container, stretch=1)
+        stock_layout.addLayout(table_lcd_h)
 
-    def make_lcd(self, title, obj_name):
+    def _make_lcd(self, title, obj_name):
         wrapper = QtWidgets.QWidget()
         vbox = QtWidgets.QVBoxLayout(wrapper)
-        vbox.setContentsMargins(0, 0, 0, 0)
-        vbox.setSpacing(3)
-
         lbl = QtWidgets.QLabel(title)
-        lbl.setAlignment(QtCore.Qt.AlignLeft)
         lbl.setStyleSheet("font-size: 10pt; font-weight: bold; color: black")
-
         lcd = QtWidgets.QLCDNumber()
         lcd.setObjectName(obj_name)
-        lcd.setDigitCount(7)
+        lcd.setDigitCount(10)
+        lcd.setSmallDecimalPoint(True)
+        lcd.setMode(QtWidgets.QLCDNumber.Dec)  # <-- add this line
         lcd.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         lcd.setMinimumWidth(150)
         lcd.setMinimumHeight(40)
-
         vbox.addWidget(lbl)
         vbox.addWidget(lcd)
-
         return wrapper, lcd
