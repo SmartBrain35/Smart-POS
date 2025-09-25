@@ -244,6 +244,8 @@ class AccountAPI:
 class EmployeeAPI:
     """CRUD operations for Employee management"""
 
+    # ------------------- CREATE -------------------
+
     @staticmethod
     def create_employee(
         name: str,
@@ -264,13 +266,12 @@ class EmployeeAPI:
                         "error": f"Invalid designation: {designation}",
                     }
 
-                # Check for existing phone/ghana_card
+                # Check duplicates
                 existing = session.exec(
                     select(Employee).where(
                         or_(Employee.phone == phone, Employee.ghana_card == ghana_card)
                     )
                 ).first()
-
                 if existing:
                     field = "phone" if existing.phone == phone else "ghana_card"
                     return {
@@ -288,19 +289,22 @@ class EmployeeAPI:
                 )
 
                 session.add(employee)
-                session.flush()
+                session.commit()
                 session.refresh(employee)
 
                 return {
                     "success": True,
                     "employee": EmployeeRead.model_validate(employee).model_dump(),
                 }
+
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # ------------------- READ -------------------
+
     @staticmethod
     def get_all_employees() -> dict[str, Any]:
-        """Get all employees"""
+        """Fetch all employees"""
         try:
             with get_session() as session:
                 employees = session.exec(select(Employee)).all()
@@ -324,7 +328,6 @@ class EmployeeAPI:
                         )
                     )
                 ).all()
-
                 return {
                     "success": True,
                     "employees": [emp.model_dump() for emp in employees],
@@ -332,22 +335,23 @@ class EmployeeAPI:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # ------------------- UPDATE (Inline Field) -------------------
+
     @staticmethod
     def update_employee_field(
         employee_id: int, field: str, value: Any
     ) -> dict[str, Any]:
-        """Update a specific field of an employee (for double-click editing)"""
+        """Update a specific field of an employee (inline editing)"""
         try:
             with get_session() as session:
                 employee = session.get(Employee, employee_id)
                 if not employee:
                     return {"success": False, "error": "Employee not found"}
 
-                # Validate field and set value
                 if field == "name":
                     employee.name = str(value)
+
                 elif field == "phone":
-                    # Check for duplicate phone
                     existing = session.exec(
                         select(Employee).where(
                             and_(Employee.id != employee_id, Employee.phone == value)
@@ -359,8 +363,8 @@ class EmployeeAPI:
                             "error": "Phone number already exists",
                         }
                     employee.phone = str(value)
+
                 elif field == "ghana_card":
-                    # Check for duplicate ghana_card
                     existing = session.exec(
                         select(Employee).where(
                             and_(
@@ -371,10 +375,13 @@ class EmployeeAPI:
                     if existing:
                         return {"success": False, "error": "Ghana card already exists"}
                     employee.ghana_card = str(value)
+
                 elif field == "address":
                     employee.address = str(value) if value else None
+
                 elif field == "salary":
                     employee.salary = float(value) if value else None
+
                 elif field == "designation":
                     try:
                         employee.designation = EmployeeDesignation(value)
@@ -383,6 +390,7 @@ class EmployeeAPI:
                             "success": False,
                             "error": f"Invalid designation: {value}",
                         }
+
                 else:
                     return {
                         "success": False,
@@ -390,16 +398,97 @@ class EmployeeAPI:
                     }
 
                 employee.updated_at = datetime.now()
+                session.commit()
+                session.refresh(employee)
+
                 return {
                     "success": True,
-                    "employee": Employee.model_validate(employee).model_dump(),
+                    "employee": EmployeeRead.model_validate(employee).model_dump(),
                 }
+
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # ------------------- UPDATE (Full Update) -------------------
+
+    @staticmethod
+    def update_employee(
+        employee_id: int,
+        name: str | None = None,
+        phone: str | None = None,
+        ghana_card: str | None = None,
+        address: str | None = None,
+        salary: float | None = None,
+        designation: str | None = None,
+    ) -> dict[str, Any]:
+        """Update multiple fields of an employee (form-based editing)"""
+        try:
+            with get_session() as session:
+                employee = session.get(Employee, employee_id)
+                if not employee:
+                    return {"success": False, "error": "Employee not found"}
+
+                if name:
+                    employee.name = name
+
+                if phone:
+                    existing = session.exec(
+                        select(Employee).where(
+                            and_(Employee.id != employee_id, Employee.phone == phone)
+                        )
+                    ).first()
+                    if existing:
+                        return {
+                            "success": False,
+                            "error": "Phone number already exists",
+                        }
+                    employee.phone = phone
+
+                if ghana_card:
+                    existing = session.exec(
+                        select(Employee).where(
+                            and_(
+                                Employee.id != employee_id,
+                                Employee.ghana_card == ghana_card,
+                            )
+                        )
+                    ).first()
+                    if existing:
+                        return {"success": False, "error": "Ghana card already exists"}
+                    employee.ghana_card = ghana_card
+
+                if address is not None:
+                    employee.address = address
+
+                if salary is not None:
+                    employee.salary = salary
+
+                if designation:
+                    try:
+                        employee.designation = EmployeeDesignation(designation)
+                    except ValueError:
+                        return {
+                            "success": False,
+                            "error": f"Invalid designation: {designation}",
+                        }
+
+                employee.updated_at = datetime.now()
+                session.commit()
+                session.refresh(employee)
+
+                return {
+                    "success": True,
+                    "employee": EmployeeRead.model_validate(employee).model_dump(),
+                }
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # ------------------- DELETE -------------------
+
     @staticmethod
     def delete_employee(employee_id: int) -> dict[str, Any]:
-        """Delete an employee"""
+        """Delete an employee by ID"""
         try:
             with get_session() as session:
                 employee = session.get(Employee, employee_id)
@@ -407,7 +496,10 @@ class EmployeeAPI:
                     return {"success": False, "error": "Employee not found"}
 
                 session.delete(employee)
+                session.commit()
+
                 return {"success": True, "message": "Employee deleted successfully"}
+
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -703,6 +795,7 @@ class SaleAPI:
 # ==========================
 # DAMAGE API
 # ==========================
+
 
 class DamageAPI:
     """Damage management API with stock sync for production use."""

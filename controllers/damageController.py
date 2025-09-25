@@ -15,7 +15,7 @@ class DamageController:
         self.page = page
         self.selected_damage_id: Optional[int] = None
         self._completer = None
-        self._stock_items = []  # latest active stock items
+        self._stock_items = []
 
         self.setup_validators()
         self.setup_connections()
@@ -23,8 +23,8 @@ class DamageController:
         self.load_damage_table()
 
         # set default UI state
-        self.ui.btn_edit_damage.setEnabled(False)  # disable Edit until row selected
-        self.ui.btn_save_damage.setEnabled(True)  # Add enabled by default
+        self.ui.btn_edit_damage.setEnabled(False)
+        self.ui.btn_save_damage.setEnabled(True)
 
     # ---------------- Validators ----------------
     def setup_validators(self):
@@ -34,8 +34,8 @@ class DamageController:
     # ---------------- Connections ----------------
     def setup_connections(self):
         # Buttons
-        self.ui.btn_save_damage.clicked.connect(self.save_damage)  # always new
-        self.ui.btn_edit_damage.clicked.connect(self.update_damage)  # always update
+        self.ui.btn_save_damage.clicked.connect(self.save_damage)
+        self.ui.btn_edit_damage.clicked.connect(self.update_damage)
         self.ui.btn_delete_damage.clicked.connect(self.delete_selected_damage)
         self.ui.btn_clear_damage.clicked.connect(self.clear_inputs)
 

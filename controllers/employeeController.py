@@ -2,7 +2,7 @@
 import logging
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QComboBox
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 
 from backend.apis import EmployeeAPI
 
@@ -10,6 +10,18 @@ logger = logging.getLogger("EmployeesController")
 
 
 class EmployeesController:
+    HEADERS = [
+        "ID",
+        "Name",
+        "Phone",
+        "Ghana Card",
+        "Address",
+        "Designation",
+        "Salary",
+        "Created At",
+        "Action",
+    ]
+
     def __init__(self, ui, page):
         self.ui = ui
         self.page = page
@@ -17,28 +29,37 @@ class EmployeesController:
 
         logger.debug("EmployeesController initialized")
 
+        # Configure table
+        self.setup_table()
+
         # Connect signals
-        self.ui.btn_add_employee.clicked.connect(self.handle_add_employee)
+        self.ui.btn_add_employee.clicked.connect(self.handle_add_or_update)
         self.ui.btn_clear_employee.clicked.connect(self.handle_clear_form)
         self.ui.filter_input.textChanged.connect(self.handle_filter)
-
-        # Setup table behaviour
         self.ui.table_employees.cellDoubleClicked.connect(self.handle_cell_double_click)
 
-        # Sorting control
-        header = self.ui.table_employees.horizontalHeader()
-        header.setSectionResizeMode(
-            8, QtWidgets.QHeaderView.Fixed
-        )  # Action column fixed
-        header.resizeSection(8, 70)
-        header.sectionClicked.connect(self.handle_sort)
-
-        # Load employees at startup
+        # Load employees
         self.load_employees()
+
+    # ------------------- Table Setup -------------------
+
+    def setup_table(self):
+        table = self.ui.table_employees
+        table.setColumnCount(len(self.HEADERS))
+        table.setHorizontalHeaderLabels(self.HEADERS)
+        table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        table.verticalHeader().setVisible(False)
+
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(len(self.HEADERS) - 1, QtWidgets.QHeaderView.Fixed)
+        header.resizeSection(len(self.HEADERS) - 1, 70)
 
     # ------------------- CRUD -------------------
 
-    def handle_add_employee(self):
+    def handle_add_or_update(self):
         name = self.ui.emp_name.text().strip()
         phone = self.ui.emp_phone.text().strip()
         ghana_card = self.ui.emp_card.text().strip()
@@ -55,21 +76,41 @@ class EmployeesController:
             )
             return
 
-        result = EmployeeAPI.create_employee(
-            name=name,
-            phone=phone,
-            ghana_card=ghana_card,
-            address=address,
-            salary=salary,
-            designation=designation,
-        )
-
-        if result["success"]:
-            QMessageBox.information(self.page, "Success", "Employee added successfully")
-            self.load_employees()
-            self.handle_clear_form()
-        else:
-            QMessageBox.warning(self.page, "Error", result["error"])
+        if self.current_employee_id:  # Update existing
+            result = EmployeeAPI.update_employee(
+                self.current_employee_id,
+                name=name,
+                phone=phone,
+                ghana_card=ghana_card,
+                address=address,
+                salary=salary,
+                designation=designation,
+            )
+            if result["success"]:
+                QMessageBox.information(
+                    self.page, "Updated", "Employee updated successfully"
+                )
+                self.load_employees()
+                self.handle_clear_form()
+            else:
+                QMessageBox.warning(self.page, "Error", result["error"])
+        else:  # Create new
+            result = EmployeeAPI.create_employee(
+                name=name,
+                phone=phone,
+                ghana_card=ghana_card,
+                address=address,
+                salary=salary,
+                designation=designation,
+            )
+            if result["success"]:
+                QMessageBox.information(
+                    self.page, "Success", "Employee added successfully"
+                )
+                self.load_employees()
+                self.handle_clear_form()
+            else:
+                QMessageBox.warning(self.page, "Error", result["error"])
 
     def handle_clear_form(self):
         self.ui.emp_name.clear()
@@ -79,6 +120,7 @@ class EmployeesController:
         self.ui.emp_salary.clear()
         self.ui.emp_designation.setCurrentIndex(0)
         self.current_employee_id = None
+        self.ui.btn_add_employee.setText("Add Employee")
 
     def handle_filter(self, text: str):
         text = text.strip()
@@ -96,6 +138,7 @@ class EmployeesController:
 
     def load_employees(self):
         result = EmployeeAPI.get_all_employees()
+        logger.debug(f"Employees API result: {result}")
         if result["success"]:
             self.populate_table(result["employees"])
         else:
@@ -103,7 +146,6 @@ class EmployeesController:
 
     def populate_table(self, employees: list[dict]):
         table = self.ui.table_employees
-        table.clearContents()
         table.setRowCount(0)
 
         for row_idx, emp in enumerate(employees):
@@ -115,47 +157,24 @@ class EmployeesController:
             table.setItem(row_idx, 4, self._make_item(emp.get("address") or ""))
             table.setItem(row_idx, 5, self._make_item(emp["designation"]))
             table.setItem(row_idx, 6, self._make_item(str(emp.get("salary") or "")))
-            # Date Added (read-only)
-            item_date = self._make_item(str(emp.get("created_at", "")))
-            item_date.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            table.setItem(row_idx, 7, item_date)
+            table.setItem(row_idx, 7, self._make_item(str(emp.get("created_at", ""))))
 
-            # === Action column (Delete only) ===
-            action_widget = QtWidgets.QWidget()
-            layout = QtWidgets.QHBoxLayout(action_widget)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
-            layout.setAlignment(QtCore.Qt.AlignCenter)
-
+            # Action column (Delete button)
             btn_delete = QtWidgets.QPushButton()
-            btn_delete.setObjectName(f"btnDeleteEmployee_{emp['id']}")
             btn_delete.setIcon(QtGui.QIcon("assets/icons/delete.png"))
-            btn_delete.setIconSize(QtCore.QSize(19, 19))
-            btn_delete.setFixedSize(20, 20)
+            btn_delete.setIconSize(QSize(18, 18))
+            btn_delete.setFixedSize(24, 24)
             btn_delete.setStyleSheet(
-                """
-                QPushButton {
-                    border: none;
-                    background: transparent;
-                    padding: 3px;
-                }
-                QPushButton:hover {
-                    background-color: rgba(255, 0, 0, 40);
-                    border-radius: 6px;
-                }
-                QPushButton:pressed {
-                    background-color: rgba(255, 0, 0, 80);
-                    border-radius: 6px;
-                }
-            """
+                "QPushButton { border: none; background: transparent; }"
             )
             btn_delete.clicked.connect(lambda _, id=emp["id"]: self.delete_employee(id))
-
-            layout.addWidget(btn_delete)
+            action_widget = QtWidgets.QWidget()
+            layout = QtWidgets.QHBoxLayout(action_widget)
+            layout.addWidget(btn_delete, alignment=Qt.AlignCenter)
+            layout.setContentsMargins(0, 0, 0, 0)
             table.setCellWidget(row_idx, 8, action_widget)
 
-        # Default sort by ID ascending
-        table.sortItems(0, Qt.AscendingOrder)
+        table.resizeRowsToContents()
 
     def _make_item(self, text):
         item = QTableWidgetItem(text)
@@ -165,30 +184,39 @@ class EmployeesController:
     # ------------------- Row Interactions -------------------
 
     def handle_cell_double_click(self, row, col):
-        """Allow inline editing with API update"""
-        # Prevent editing ID (0), Date Added (7), and Action (8)
-        if col in (0, 7, 8):
+        """Dual behavior:
+        - If clicking ID/Created/Action → ignore
+        - If clicking editable cell → inline edit
+        - If clicking row (col 1–6) → load form for editing
+        """
+        if col in (0, 7, 8):  # non-editable columns
             return
 
         employee_id = int(self.ui.table_employees.item(row, 0).text())
-        column_name = self.ui.table_employees.horizontalHeaderItem(col).text().lower()
+        column_name = (
+            self.ui.table_employees.horizontalHeaderItem(col)
+            .text()
+            .lower()
+            .replace(" ", "_")
+        )
 
-        # Special case: designation -> use dropdown
-        if column_name == "designation":
+        # === Option 1: Inline edit in table ===
+        if column_name == "designation":  # dropdown
             combo = QComboBox()
             combo.addItems(["admin", "manager", "sales_rep"])
             current_val = self.ui.table_employees.item(row, col).text()
             combo.setCurrentText(current_val)
-
             self.ui.table_employees.setCellWidget(row, col, combo)
 
             def commit_combo():
-                new_value = combo.currentText()
+                new_val = combo.currentText()
                 result = EmployeeAPI.update_employee_field(
-                    employee_id, "designation", new_value
+                    employee_id, "designation", new_val
                 )
                 if result["success"]:
-                    QMessageBox.information(self.page, "Success", "Designation updated")
+                    QMessageBox.information(
+                        self.page, "Updated", "Designation updated successfully"
+                    )
                     self.load_employees()
                 else:
                     QMessageBox.warning(self.page, "Error", result["error"])
@@ -203,17 +231,28 @@ class EmployeesController:
             f"Enter new value for {column_name}:",
             text=old_value,
         )
-        if not ok or new_value.strip() == old_value:
+        if ok and new_value.strip() != old_value:
+            result = EmployeeAPI.update_employee_field(
+                employee_id, column_name, new_value.strip()
+            )
+            if result["success"]:
+                QMessageBox.information(self.page, "Updated", f"{column_name} updated")
+                self.load_employees()
+            else:
+                QMessageBox.warning(self.page, "Error", result["error"])
             return
 
-        result = EmployeeAPI.update_employee_field(
-            employee_id, column_name.replace(" ", "_"), new_value.strip()
+        # === Option 2: Load full row into form for editing ===
+        self.current_employee_id = employee_id
+        self.ui.btn_add_employee.setText("Update Employee")
+        self.ui.emp_name.setText(self.ui.table_employees.item(row, 1).text())
+        self.ui.emp_phone.setText(self.ui.table_employees.item(row, 2).text())
+        self.ui.emp_card.setText(self.ui.table_employees.item(row, 3).text())
+        self.ui.emp_address.setText(self.ui.table_employees.item(row, 4).text())
+        self.ui.emp_designation.setCurrentText(
+            self.ui.table_employees.item(row, 5).text()
         )
-        if result["success"]:
-            QMessageBox.information(self.page, "Success", f"{column_name} updated")
-            self.load_employees()
-        else:
-            QMessageBox.warning(self.page, "Error", result["error"])
+        self.ui.emp_salary.setText(self.ui.table_employees.item(row, 6).text())
 
     def delete_employee(self, employee_id):
         confirm = QMessageBox.question(
@@ -231,11 +270,3 @@ class EmployeesController:
             self.load_employees()
         else:
             QMessageBox.warning(self.page, "Error", result["error"])
-
-    # ------------------- Sorting Control -------------------
-
-    def handle_sort(self, logicalIndex):
-        """Disable sorting on ID column"""
-        if logicalIndex == 0:  # prevent sorting ID
-            return
-        self.ui.table_employees.sortItems(logicalIndex, Qt.AscendingOrder)
