@@ -24,6 +24,7 @@ from backend.storage.models import (
     DamageStatus,
     ExpenditureCategory,
     ReturnReason,
+    ExpenditureTotal,
 )
 from backend.storage.models import Account, UserRole, Sale
 
@@ -993,50 +994,231 @@ class DamageAPI:
 # ==========================
 # Expenditure API
 # ==========================
-class ExpenditureAPI:
-    """Expenditure management API aligned with Expenditure UI."""
 
+class ExpenditureAPI:
+    # ---------- Helpers ----------
+    @staticmethod
+    def _ensure_totals(session):
+        total = session.exec(select(ExpenditureTotal)).first()
+        if not total:
+            total = ExpenditureTotal()
+            session.add(total)
+            session.commit()
+            total = session.exec(select(ExpenditureTotal)).first()
+        return total
+
+    @staticmethod
+    def _rollover_totals(total: ExpenditureTotal, today: date, session) -> None:
+        """Roll over weekly → monthly → yearly totals when dates change."""
+        last = total.last_rollover_date or today
+        last_iso = last.isocalendar()
+        today_iso = today.isocalendar()
+        week_changed = (today_iso[1] != last_iso[1]) or (today.year != last.year)
+
+        if week_changed:
+            total.monthly_total += total.weekly_total
+            total.weekly_total = 0.0
+
+        if today.month != last.month or today.year != last.year:
+            total.yearly_total += total.monthly_total
+            total.monthly_total = 0.0
+
+        total.last_rollover_date = today
+        session.add(total)
+        session.commit()
+
+    @staticmethod
+    def _expenditure_to_dict(e: Expenditure) -> Dict[str, Any]:
+        cat = e.category.value if isinstance(e.category, Enum) else str(e.category)
+        return {
+            "id": e.id,
+            "description": e.description,
+            "amount": float(e.amount),
+            "category": cat,
+            "expense_date": e.expense_date.isoformat(),
+        }
+
+    @staticmethod
+    def _normalize_category(category: str) -> ExpenditureCategory:
+        """Convert user input (any case, friendly label) to ExpenditureCategory."""
+        if not category:
+            return ExpenditureCategory.UTILITIES
+
+        key = category.strip().lower()
+        mapping = {
+            "utilities": ExpenditureCategory.UTILITIES,
+            "supplies": ExpenditureCategory.SUPPLIES,
+            "salaries": ExpenditureCategory.SALARIES,
+            "other": ExpenditureCategory.UTILITIES,  # default fallback
+        }
+
+        if key in mapping:
+            return mapping[key]
+
+        try:
+            return ExpenditureCategory(key)
+        except Exception:
+            raise ValueError(f"Unknown category: {category}")
+
+    # ---------- Create ----------
     @staticmethod
     def create_expenditure(
         description: str, amount: float, category: str, expense_date: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict:
         try:
             with get_session() as session:
-                parsed_date = date.today()
-                if expense_date:
-                    parsed_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
+                exp_date = (
+                    date.today()
+                    if not expense_date
+                    else datetime.strptime(expense_date, "%Y-%m-%d").date()
+                )
+                total = ExpenditureAPI._ensure_totals(session)
+                ExpenditureAPI._rollover_totals(total, date.today(), session)
 
                 expenditure = Expenditure(
                     description=description,
                     amount=amount,
-                    category=ExpenditureCategory(category),
-                    expense_date=parsed_date,
+                    category=ExpenditureAPI._normalize_category(category),
+                    expense_date=exp_date,
                 )
                 session.add(expenditure)
+
+                today = date.today()
+                if exp_date.year == today.year:
+                    if exp_date.isocalendar()[1] == today.isocalendar()[1]:
+                        total.weekly_total += amount
+                    if exp_date.month == today.month:
+                        total.monthly_total += amount
+                    total.yearly_total += amount
+
+                session.add(total)
                 session.commit()
+                session.refresh(expenditure)
+
                 return {
                     "success": True,
-                    "expenditure": ExpenditureRead.model_validate(
-                        expenditure
-                    ).model_dump(),
+                    "expenditure": ExpenditureAPI._expenditure_to_dict(expenditure),
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # ---------- Update ----------
     @staticmethod
-    def get_all_expenditures() -> dict[str, Any]:
+    def update_expenditure(
+        exp_id: int, description: str, amount: float, category: str, expense_date: str
+    ) -> dict:
         try:
             with get_session() as session:
-                expenditures = session.exec(select(Expenditure)).all()
+                exp = session.get(Expenditure, exp_id)
+                if not exp:
+                    return {"success": False, "error": "Expenditure not found"}
+
+                total = ExpenditureAPI._ensure_totals(session)
+                ExpenditureAPI._rollover_totals(total, date.today(), session)
+
+                old_amount = float(exp.amount)
+                old_date = exp.expense_date
+
+                exp.description = description
+                exp.amount = amount
+                exp.category = ExpenditureAPI._normalize_category(category)
+                exp.expense_date = datetime.strptime(expense_date, "%Y-%m-%d").date()
+
+                today = date.today()
+                if old_date.year == today.year:
+                    if old_date.isocalendar()[1] == today.isocalendar()[1]:
+                        total.weekly_total = max(0.0, total.weekly_total - old_amount)
+                    if old_date.month == today.month:
+                        total.monthly_total = max(0.0, total.monthly_total - old_amount)
+                    total.yearly_total = max(0.0, total.yearly_total - old_amount)
+
+                new_date = exp.expense_date
+                if new_date.year == today.year:
+                    if new_date.isocalendar()[1] == today.isocalendar()[1]:
+                        total.weekly_total += amount
+                    if new_date.month == today.month:
+                        total.monthly_total += amount
+                    total.yearly_total += amount
+
+                session.add(total)
+                session.add(exp)
+                session.commit()
+                session.refresh(exp)
+
                 return {
                     "success": True,
-                    "expenditures": [
-                        ExpenditureRead.model_validate(e).model_dump()
-                        for e in expenditures
-                    ],
+                    "expenditure": ExpenditureAPI._expenditure_to_dict(exp),
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    # ---------- Delete ----------
+    @staticmethod
+    def delete_expenditure(exp_id: int) -> dict:
+        try:
+            with get_session() as session:
+                exp = session.get(Expenditure, exp_id)
+                if not exp:
+                    return {"success": False, "error": "Expenditure not found"}
+
+                total = ExpenditureAPI._ensure_totals(session)
+                ExpenditureAPI._rollover_totals(total, date.today(), session)
+
+                today = date.today()
+                if exp.expense_date.year == today.year:
+                    if exp.expense_date.isocalendar()[1] == today.isocalendar()[1]:
+                        total.weekly_total = max(
+                            0.0, total.weekly_total - float(exp.amount)
+                        )
+                    if exp.expense_date.month == today.month:
+                        total.monthly_total = max(
+                            0.0, total.monthly_total - float(exp.amount)
+                        )
+                    total.yearly_total = max(
+                        0.0, total.yearly_total - float(exp.amount)
+                    )
+
+                session.add(total)
+                session.delete(exp)
+                session.commit()
+                return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # ---------- Get all ----------
+    @staticmethod
+    def get_all_expenditures() -> dict:
+        try:
+            with get_session() as session:
+                rows = session.exec(
+                    select(Expenditure).order_by(Expenditure.expense_date.desc())
+                ).all()
+                expenditures = [ExpenditureAPI._expenditure_to_dict(e) for e in rows]
+                return {"success": True, "expenditures": expenditures}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # ---------- Get LCD totals ----------
+    @staticmethod
+    def get_lcd_totals() -> dict:
+        try:
+            with get_session() as session:
+                total = ExpenditureAPI._ensure_totals(session)
+                ExpenditureAPI._rollover_totals(total, date.today(), session)
+                return {
+                    "success": True,
+                    "weekly": float(total.weekly_total),
+                    "monthly": float(total.monthly_total),
+                    "yearly": float(total.yearly_total),
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "weekly": 0.0,
+                "monthly": 0.0,
+                "yearly": 0.0,
+                "error": str(e),
+            }
 
 
 # ==========================

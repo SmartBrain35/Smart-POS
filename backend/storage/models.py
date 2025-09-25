@@ -148,6 +148,14 @@ class Expenditure(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
+class ExpenditureTotal(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    weekly_total: float = 0.0
+    monthly_total: float = 0.0
+    yearly_total: float = 0.0
+    last_rollover_date: date = Field(default_factory=date.today)
+
+
 class SaleItem(SQLModel, table=True):
     __tablename__ = "sale_items"
 
