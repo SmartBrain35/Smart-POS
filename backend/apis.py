@@ -641,6 +641,8 @@ class StockAPI:
 # ==========================
 # SALE API
 # ==========================
+
+
 class SaleAPI:
     """Sales management API aligned with Sales UI."""
 
@@ -707,14 +709,6 @@ class SaleAPI:
 
                 session.commit()
 
-                lcd_summary = {
-                    "gross": gross_total,
-                    "discount": discount_amount,
-                    "total": total,
-                    "items_sold": items_sold,
-                    "daily_profit": profit_total,
-                }
-
                 return {
                     "success": True,
                     "sale": SaleRead.model_validate(sale).model_dump(),
@@ -722,7 +716,35 @@ class SaleAPI:
                         SaleItemRead.model_validate(si).model_dump()
                         for si in sale_items_models
                     ],
-                    "lcd": lcd_summary,
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_today_totals() -> dict[str, Any]:
+        """Return cumulative daily sales and profit for today."""
+        try:
+            with get_session() as session:
+                today = date.today()
+                sales_today = session.exec(
+                    select(Sale).where(Sale.sale_date == today)
+                ).all()
+
+                gross_total = 0.0
+                profit_total = 0.0
+                for s in sales_today:
+                    for si in s.items:  # assuming relationship Sale -> SaleItem
+                        stock = session.get(Stock, si.stock_id)
+                        if stock:
+                            gross_total += stock.selling_price * si.quantity_sold
+                            profit_total += (
+                                stock.selling_price - stock.cost_price
+                            ) * si.quantity_sold
+
+                return {
+                    "success": True,
+                    "gross": gross_total,
+                    "profit": profit_total,
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -790,6 +812,51 @@ class SaleAPI:
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def get_today_totals() -> dict[str, float | bool]:
+        """Return cumulative gross, profit, and items sold for today in a single query."""
+        try:
+            with get_session() as session:
+                today_str = date.today().strftime("%Y-%m-%d")
+
+                # Single query: join SaleItem -> Sale -> Stock and sum totals
+                result = session.exec(
+                    select(
+                        func.coalesce(
+                            func.sum(Stock.selling_price * SaleItem.quantity_sold), 0
+                        ),
+                        func.coalesce(
+                            func.sum(
+                                (Stock.selling_price - Stock.cost_price)
+                                * SaleItem.quantity_sold
+                            ),
+                            0,
+                        ),
+                        func.coalesce(func.sum(SaleItem.quantity_sold), 0),
+                    )
+                    .join(Sale, Sale.id == SaleItem.sale_id)
+                    .join(Stock, Stock.id == SaleItem.stock_id)
+                    .where(Sale.sale_date == today_str)
+                ).one()
+
+                gross_total, profit_total, items_sold_total = result
+
+                return {
+                    "success": True,
+                    "gross": gross_total,
+                    "profit": profit_total,
+                    "items_sold": items_sold_total,
+                }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "gross": 0.0,
+                "profit": 0.0,
+                "items_sold": 0,
+                "error": str(e),
+            }
 
 
 # ==========================

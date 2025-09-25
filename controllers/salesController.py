@@ -49,6 +49,10 @@ class SalesController:
 
         self.ui.tableCheckoutCart.cellChanged.connect(self.on_cart_cell_changed)
 
+        # --- DAILY LCDS: load today's accumulated totals from DB on startup ---
+        # This will show 0 if no invoices have been saved today, or the DB totals if they exist.
+        self.load_today_totals()
+
     # ------------------ Validators ------------------
     def setup_validators(self):
         double_validator = QDoubleValidator(0.0, 99999999.99, 2)
@@ -149,7 +153,8 @@ class SalesController:
             return
 
         for r in range(self.ui.tableCheckoutCart.rowCount()):
-            if self.ui.tableCheckoutCart.item(r, 0).text() == name:
+            cell_item = self.ui.tableCheckoutCart.item(r, 0)
+            if cell_item and cell_item.text() == name:
                 existing_qty = int(self.ui.tableCheckoutCart.item(r, 2).text())
                 new_qty = existing_qty + qty_to_add
                 if new_qty > item["quantity"]:
@@ -246,48 +251,45 @@ class SalesController:
         QtCore.QTimer.singleShot(0, self.update_lcds)
 
     # ------------------ LCD Updates ------------------
+    def load_today_totals(self):
+        """Fetch today's cumulative totals from DB and update daily LCDs."""
+        resp = SaleAPI.get_today_totals()  # includes gross, profit, items_sold
+        if resp.get("success"):
+            gross = resp.get("gross", 0.0)
+            profit = resp.get("profit", 0.0)
+            items_sold = resp.get("items_sold", 0)  # now DB-based
+        else:
+            gross = 0.0
+            profit = 0.0
+            items_sold = 0
 
+        try:
+            self.ui.lcdDailySales.display(gross)
+            self.ui.lcdDailyProfit.display(profit)
+            self.ui.lcdItemsSold.display(items_sold)
+        except Exception:
+            pass
 
     def update_lcds(self):
+        """Update cart totals (gross, discount, total, change) only."""
         gross = 0.0
-        items_sold = 0
-        total_cost = 0.0  # cost for all items in cart
 
         for r in range(self.ui.tableCheckoutCart.rowCount()):
             try:
-                name = self.ui.tableCheckoutCart.item(r, 0).text()
-                qty = int(self.ui.tableCheckoutCart.item(r, 2).text())
                 total = float(self.ui.tableCheckoutCart.item(r, 4).text())
             except Exception:
-                qty = 0
                 total = 0.0
-
-            items_sold += qty
             gross += total
-
-            # sum cost prices from stock
-            stock_item = next((i for i in self.items if i["item_name"] == name), None)
-            if stock_item:
-                total_cost += stock_item.get("cost_price", 0.0) * qty
-
-        profit = gross - total_cost  # precise profit from stock
 
         discount = self.to_float(self.ui.inputDiscount.text())
         total_after_discount = max(0.0, gross - discount)
         amount_paid = self.to_float(self.ui.inputAmountPaid.text())
-        change = (
-            amount_paid - total_after_discount
-            if amount_paid >= total_after_discount
-            else 0.0
-        )
+        change = max(0.0, amount_paid - total_after_discount)
 
         try:
             self.ui.lcdGross.display(gross)
             self.ui.lcdDiscount.display(discount)
             self.ui.lcdTotal.display(total_after_discount)
-            self.ui.lcdItemsSold.display(items_sold)
-            self.ui.lcdDailySales.display(gross)
-            self.ui.lcdDailyProfit.display(profit)  # <-- fixed profit calculation
             self.ui.inputChange.setText(f"{change:.2f}")
         except Exception:
             pass
@@ -334,15 +336,12 @@ class SalesController:
         QtCore.QTimer.singleShot(0, self.update_lcds)
         self.generate_invoice_id()
 
-    # ------------------ Create Sale ------------------
     def create_sale(self, print_receipt=False):
         sale_items = []
         for r in range(self.ui.tableCheckoutCart.rowCount()):
             name = self.ui.tableCheckoutCart.item(r, 0).text()
             qty = int(self.ui.tableCheckoutCart.item(r, 2).text())
-            stock_id = next(
-                (i["id"] for i in self.items if i["item_name"] == name), None
-            )
+            stock_id = next((i["id"] for i in self.items if i["item_name"] == name), None)
             if stock_id:
                 sale_items.append({"stock_id": stock_id, "quantity_sold": qty})
 
@@ -368,6 +367,9 @@ class SalesController:
         if not resp.get("success"):
             QMessageBox.warning(self.page, "Error", resp.get("error", "Sale failed"))
             return
+
+        # --- REFRESH DAILY TOTALS FROM DATABASE ---
+        self.load_today_totals()  # now lcdItemsSold, lcdDailySales, lcdDailyProfit are all DB-based
 
         stock_events.stock_changed.emit()
 
