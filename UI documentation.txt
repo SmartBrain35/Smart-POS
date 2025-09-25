@@ -70,16 +70,17 @@ Note: quantity columns have progressBar to visually display item quantity
 
        ====== Expenditure UI Page======
 1. all inputs are mandatory to fill out
-2. click a row to fill back datasets into their respective inputs for Update
-3. click delete "icon" to delete a particular row
-4. save button save records
+2. click a row to fill back datasets into their respective inputs for Update & delete
+3. click delete "icon" in action column to delete a particular row
+4. save button save records and reset all inputs
 5. clear button clear and set all the inputs to default
-6. LCDs display overall sun up of expenditures in weekly monthly & yearly
+6. LCDs display overall sum up of expenditures in weekly monthly & yearly
 7. auto filter input as you type
 Note for rollover:
        8. when the week is over, add the weekly LCD value to the monthly LCD and reset it to 0 
        9. when the month is over add monthly LCD value to yearly LCD and reset to week when weekly accomulated
        10. do same for the yearly LCD
+       automatic rollover save to DB at week/month/year boundaries, so that historical totals are permanently recorded
 
 
        ======Return UI Page======

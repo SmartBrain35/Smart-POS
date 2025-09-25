@@ -137,6 +137,7 @@ class Ui_Employees(object):
         )
         self.table_employees.setAlternatingRowColors(True)
         self.table_employees.verticalHeader().setVisible(False)
+        self.table_employees.setShowGrid(False)
 
         # Let the table take all leftover space
         self.table_employees.setSizePolicy(

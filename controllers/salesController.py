@@ -8,6 +8,7 @@ from backend.apis import StockAPI, SaleAPI
 
 # Import the global stock_events from stockController to listen for changes
 from controllers.stockController import stock_events
+from controllers.sales_history_controller import HistoryController
 
 
 class SalesController:
@@ -50,8 +51,10 @@ class SalesController:
         self.ui.tableCheckoutCart.cellChanged.connect(self.on_cart_cell_changed)
 
         # --- DAILY LCDS: load today's accumulated totals from DB on startup ---
-        # This will show 0 if no invoices have been saved today, or the DB totals if they exist.
         self.load_today_totals()
+
+        # sales history view button
+        self.ui.btnSalesHistory.clicked.connect(self.open_history)
 
     # ------------------ Validators ------------------
     def setup_validators(self):
@@ -341,7 +344,9 @@ class SalesController:
         for r in range(self.ui.tableCheckoutCart.rowCount()):
             name = self.ui.tableCheckoutCart.item(r, 0).text()
             qty = int(self.ui.tableCheckoutCart.item(r, 2).text())
-            stock_id = next((i["id"] for i in self.items if i["item_name"] == name), None)
+            stock_id = next(
+                (i["id"] for i in self.items if i["item_name"] == name), None
+            )
             if stock_id:
                 sale_items.append({"stock_id": stock_id, "quantity_sold": qty})
 
@@ -386,3 +391,12 @@ class SalesController:
     def on_cart_cell_changed(self, row, column):
         if column in (2, 3):
             QtCore.QTimer.singleShot(0, self.update_lcds)
+
+    # sales history page
+    def open_history(self):
+        if not hasattr(self, "history_window"):
+            # Use the page QWidget as the parent
+            self.history_window = HistoryController(parent=self.page)
+        self.history_window.show()
+        self.history_window.raise_()
+        self.history_window.activateWindow()

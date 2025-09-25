@@ -1,5 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
+
 class Ui_Expenditure(object):
     def setupUi(self, Expenditure):
         expenditure_layout = QtWidgets.QVBoxLayout(Expenditure)
@@ -25,21 +26,78 @@ class Ui_Expenditure(object):
             vbox.setContentsMargins(0, 0, 0, 0)
             vbox.setSpacing(4)
             lbl = QtWidgets.QLabel(label_text + (" *" if compulsory else ""))
-            lbl.setStyleSheet("color: red; font-weight: bold;" if compulsory else label_style)
+            lbl.setStyleSheet(
+                "color: red; font-weight: bold;" if compulsory else label_style
+            )
             vbox.addWidget(lbl)
             vbox.addWidget(widget)
             return wrapper
 
         # Field configurations
         field_configs = [
-            ("Date:", "expenditureDateInput", QtWidgets.QDateEdit, QtCore.QDate.currentDate(), True, 0, 0, 1, 2, {"calendarPopup": True}),
-            ("Description:", "expenditureDescriptionInput", QtWidgets.QLineEdit, "Enter expenditure description", True, 0, 2, 1, 2, {}),
-            ("Amount:", "expenditureAmountInput", QtWidgets.QLineEdit, "Enter amount", True, 1, 0, 1, 2, {}),
-            ("Category:", "expenditureCategoryInput", QtWidgets.QComboBox, ["Utilities", "Supplies", "Salaries", "Other"], True, 1, 2, 1, 2, {}),
+            (
+                "Date:",
+                "expenditureDateInput",
+                QtWidgets.QDateEdit,
+                QtCore.QDate.currentDate(),
+                True,
+                0,
+                0,
+                1,
+                2,
+                {"calendarPopup": True},
+            ),
+            (
+                "Description:",
+                "expenditureDescriptionInput",
+                QtWidgets.QLineEdit,
+                "Enter expenditure description",
+                True,
+                0,
+                2,
+                1,
+                2,
+                {},
+            ),
+            (
+                "Amount:",
+                "expenditureAmountInput",
+                QtWidgets.QLineEdit,
+                "Enter amount",
+                True,
+                1,
+                0,
+                1,
+                2,
+                {},
+            ),
+            (
+                "Category:",
+                "expenditureCategoryInput",
+                QtWidgets.QComboBox,
+                ["Utilities", "Supplies", "Salaries", "Other"],
+                True,
+                1,
+                2,
+                1,
+                2,
+                {},
+            ),
         ]
 
         self.fields = {}
-        for label_text, obj_name, widget_type, default, compulsory, row, col, rowspan, colspan, props in field_configs:
+        for (
+            label_text,
+            obj_name,
+            widget_type,
+            default,
+            compulsory,
+            row,
+            col,
+            rowspan,
+            colspan,
+            props,
+        ) in field_configs:
             if widget_type == QtWidgets.QDateEdit:
                 widget = QtWidgets.QDateEdit(default)
                 for prop, value in props.items():
@@ -52,8 +110,12 @@ class Ui_Expenditure(object):
                 widget.setPlaceholderText(default)
             widget.setObjectName(obj_name)
             widget.setMinimumHeight(40)
-            widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-            form_layout.addWidget(create_field(label_text, widget, compulsory), row, col, rowspan, colspan)
+            widget.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            )
+            form_layout.addWidget(
+                create_field(label_text, widget, compulsory), row, col, rowspan, colspan
+            )
             self.fields[obj_name] = widget
 
         self.expenditure_date = self.fields["expenditureDateInput"]
@@ -79,7 +141,9 @@ class Ui_Expenditure(object):
             btn.setObjectName(obj_name)
             btn.setMinimumHeight(40)
             btn.setMinimumWidth(100)
-            btn.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+            btn.setSizePolicy(
+                QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed
+            )
             btn_row.addWidget(btn)
             self.buttons[attr_name] = btn
 
@@ -105,9 +169,13 @@ class Ui_Expenditure(object):
 
         self.filter_input_expenditure = QtWidgets.QLineEdit()
         self.filter_input_expenditure.setObjectName("filterInputExpenditure")
-        self.filter_input_expenditure.setPlaceholderText("Filter by Description or Category...")
+        self.filter_input_expenditure.setPlaceholderText(
+            "Filter by Description or Category..."
+        )
         self.filter_input_expenditure.setMinimumHeight(40)
-        self.filter_input_expenditure.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.filter_input_expenditure.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
         filter_container.addWidget(self.filter_input_expenditure)
         filter_container.addStretch()
 
@@ -121,16 +189,27 @@ class Ui_Expenditure(object):
         self.table_expenditure = QtWidgets.QTableWidget()
         self.table_expenditure.setObjectName("tableExpenditure")
         self.table_expenditure.setColumnCount(6)
-        self.table_expenditure.setHorizontalHeaderLabels(["ID", "Date", "Description", "Amount", "Category", "Action"])
+        self.table_expenditure.setHorizontalHeaderLabels(
+            ["ID", "Date", "Description", "Amount", "Category", "Action"]
+        )
         header = self.table_expenditure.horizontalHeader()
-        header.setStretchLastSection(True)
+        header.setStretchLastSection(False)
         header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.table_expenditure.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.table_expenditure.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table_expenditure.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table_expenditure.setEditTriggers(
+            QtWidgets.QAbstractItemView.NoEditTriggers
+        )
+        self.table_expenditure.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectRows
+        )
+        self.table_expenditure.setSelectionMode(
+            QtWidgets.QAbstractItemView.SingleSelection
+        )
         self.table_expenditure.setAlternatingRowColors(True)
         self.table_expenditure.verticalHeader().setVisible(False)
-        self.table_expenditure.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.table_expenditure.setShowGrid(True)
+        self.table_expenditure.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         table_lcds_h.addWidget(self.table_expenditure, stretch=9)
 
         # === LCDs Section ===

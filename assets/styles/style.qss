@@ -457,12 +457,12 @@ QComboBox QAbstractItemView{
 }
 
 /* Table */
-#tableItemList, #tableCheckoutCart, #table_stock {
+#tableItemList, #tableCheckoutCart, #table_stock{
     border: 1px solid #0a0404ff;
     selection-background-color: #00aaff;
     alternate-background-color: #cccccc;
     color: black;
-    font-size: 15px;
+    font-size: 14px;
 }
 /* Fix header styling */
 QHeaderView::section {

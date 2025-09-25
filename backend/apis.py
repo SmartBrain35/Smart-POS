@@ -773,16 +773,25 @@ class SaleAPI:
                 sale_items = session.exec(
                     select(SaleItem).where(SaleItem.sale_id == sale_id)
                 ).all()
+
+                # --- Join with Stock to get item_name and price ---
+                items_data = []
+                for si in sale_items:
+                    stock = session.get(Stock, si.stock_id)
+                    items_data.append({
+                        "item_name": stock.item_name if stock else f"Item-{si.stock_id}",
+                        "quantity_sold": si.quantity_sold,
+                        "price": stock.selling_price if stock else 0.0
+                    })
+
                 return {
                     "success": True,
                     "sale": SaleRead.model_validate(sale).model_dump(),
-                    "items": [
-                        SaleItemRead.model_validate(si).model_dump()
-                        for si in sale_items
-                    ],
+                    "items": items_data,
                 }
         except Exception as e:
             return {"success": False, "error": str(e)}
+
 
     @staticmethod
     def delete_sale(sale_id: int, rollback_stock: bool = True) -> dict[str, Any]:
@@ -859,6 +868,84 @@ class SaleAPI:
                 "error": str(e),
             }
 
+    @staticmethod
+    def get_sales_history(
+        start_date: str | None = None, end_date: str | None = None
+    ) -> list[dict]:
+        """
+        Return a list of sales for history display, optionally filtered by date range.
+        Each dict should include: invoice_no, customer_name, date, amount, payment_method
+        """
+        try:
+            with get_session() as session:
+                query = select(Sale)
+                if start_date:
+                    query = query.where(Sale.sale_date >= start_date)
+                if end_date:
+                    query = query.where(Sale.sale_date <= end_date)
+
+                sales = session.exec(query).all()
+
+                history = []
+                for s in sales:
+                    total_amount = (
+                        sum(
+                            si.quantity_sold
+                            * session.get(Stock, si.stock_id).selling_price
+                            for si in s.items
+                        )
+                        - s.discount_amount
+                    )
+                    history.append(
+                        {
+                            "invoice_no": s.id,  # or s.invoice_no if you store it
+                            "customer_name": getattr(s, "customer_name", "N/A"),
+                            "date": s.sale_date.strftime("%Y-%m-%d"),
+                            "amount": total_amount,
+                            "payment_method": (
+                                s.payment_method.value
+                                if hasattr(s.payment_method, "value")
+                                else str(s.payment_method)
+                            ),
+                        }
+                    )
+                return history
+        except Exception as e:
+            return []
+
+    @staticmethod
+    def get_totals_by_date(sale_date: str | date) -> dict[str, float | int]:
+        """
+        Return cumulative gross, profit, and items sold for a given date.
+        sale_date: either a date object or "YYYY-MM-DD" string
+        """
+        try:
+            if isinstance(sale_date, str):
+                sale_date = datetime.strptime(sale_date, "%Y-%m-%d").date()
+
+            with get_session() as session:
+                result = session.exec(
+                    select(
+                        func.coalesce(func.sum(Stock.selling_price * SaleItem.quantity_sold), 0),
+                        func.coalesce(
+                            func.sum((Stock.selling_price - Stock.cost_price) * SaleItem.quantity_sold), 0
+                        ),
+                        func.coalesce(func.sum(SaleItem.quantity_sold), 0),
+                    )
+                    .join(Sale, Sale.id == SaleItem.sale_id)
+                    .join(Stock, Stock.id == SaleItem.stock_id)
+                    .where(Sale.sale_date == sale_date)
+                ).one()
+
+                gross_total, profit_total, items_sold_total = result
+
+                return {
+                    "gross": float(gross_total),
+                    "profit": float(profit_total),
+                    "items_sold": int(items_sold_total),
+                }
+        except Exception as e:
+            return {"gross": 0.0, "profit": 0.0, "items_sold": 0, "error": str(e)}
 
 # ==========================
 # DAMAGE API
@@ -994,6 +1081,7 @@ class DamageAPI:
 # ==========================
 # Expenditure API
 # ==========================
+
 
 class ExpenditureAPI:
     # ---------- Helpers ----------

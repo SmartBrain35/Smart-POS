@@ -1,4 +1,5 @@
 from PySide6 import QtCore, QtGui, QtWidgets
+from controllers.sales_history_controller import HistoryController
 
 
 class Ui_Sales(object):
@@ -31,7 +32,7 @@ class Ui_Sales(object):
         self.tableItemList.setHorizontalHeaderLabels(["Stock Items"])
         self.tableItemList.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableItemList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableItemList.setAlternatingRowColors(True)
+        self.tableItemList.setAlternatingRowColors(False)
         self.tableItemList.verticalHeader().setVisible(False)
         self.tableItemList.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch
@@ -149,6 +150,33 @@ class Ui_Sales(object):
         invoice_h = QtWidgets.QHBoxLayout()
         invoice_h.setSpacing(8)
 
+        # Receipt Button (icon-only, flat, hover/pressed effects)
+        self.btnSalesHistory = QtWidgets.QPushButton()
+        self.btnSalesHistory.setObjectName("btnSalesHistory")
+        self.btnSalesHistory.setIcon(QtGui.QIcon("assets/icons/invoice.png"))
+        self.btnSalesHistory.setIconSize(QtCore.QSize(28, 28))
+        self.btnSalesHistory.setFlat(True)
+        self.btnSalesHistory.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btnSalesHistory.setFixedSize(40, 40)
+
+        # Add hover/pressed effects
+        self.btnSalesHistory.setStyleSheet(
+            """
+            QPushButton {
+                background: green;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: black;
+                border-radius: 6px;
+            }
+            QPushButton:pressed {
+                background-color: rgba(0, 0, 0, 0.18);
+                border-radius: 6px;
+            }
+        """
+        )
+
         lbl_invoice = QtWidgets.QLabel("Invoice ID:")
         lbl_invoice.setObjectName("labelInvoiceID")
         lbl_invoice.setStyleSheet("color: black; font-weight: bold;")
@@ -161,6 +189,8 @@ class Ui_Sales(object):
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
 
+        # Add widgets in order: [Receipt Icon] → [Invoice Label] → [Invoice Field]
+        invoice_h.addWidget(self.btnSalesHistory)
         invoice_h.addWidget(lbl_invoice)
         invoice_h.addWidget(self.inputInvoiceID)
 
@@ -173,6 +203,8 @@ class Ui_Sales(object):
         self.tableCheckoutCart = QtWidgets.QTableWidget()
         self.tableCheckoutCart.setObjectName("tableCheckoutCart")
         self.tableCheckoutCart.setColumnCount(6)
+        self.tableCheckoutCart.setShowGrid(False)
+
         self.tableCheckoutCart.setHorizontalHeaderLabels(
             ["Item Name", "Category", "Quantity", "Price (GHS)", "Total", "Action"]
         )
@@ -182,6 +214,7 @@ class Ui_Sales(object):
         self.tableCheckoutCart.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows
         )
+        self.tableCheckoutCart.setShowGrid(False)
         self.tableCheckoutCart.setAlternatingRowColors(False)
         self.tableCheckoutCart.verticalHeader().setVisible(False)
         header = self.tableCheckoutCart.horizontalHeader()

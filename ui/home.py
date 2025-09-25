@@ -15,6 +15,8 @@ from controllers.employeeController import EmployeesController
 from controllers.stockController import StockController
 from controllers.salesController import SalesController
 from controllers.damageController import DamageController
+from controllers.expenditureController import ExpenditureController
+
 import logging
 
 home_logger = logging.getLogger("HomePage")
@@ -49,11 +51,13 @@ class HomePage(QtWidgets.QMainWindow):
         self.stock_controller = None
         self.sales_controller = None
         self.damage_controller = None
+        self.expenditure_controller = None
 
         self.setupUi(self)
         self.setup_connections()
         home_logger.debug("HomePage initialized, switching to Dashboard")
         self.switch_page(0, "Dashboard")
+
 
     def setupUi(self, Home):
         Home.setObjectName("home")
@@ -313,6 +317,16 @@ class HomePage(QtWidgets.QMainWindow):
                     if hasattr(self.damage_controller, "refresh_table"):
                         self.damage_controller.refresh_table()
                         home_logger.debug("DamageController refreshed")
+
+            # Expenditure controller
+            if attr_name == "page_expenditure":
+                if self.expenditure_controller is None:
+                    self.expenditure_controller = ExpenditureController(ui_instance, page)
+                    home_logger.debug("ExpenditureController instantiated")
+                else:
+                    if hasattr(self.expenditure_controller, "refresh_table"):
+                        self.expenditure_controller.refresh_table()
+                        home_logger.debug("ExpenditureController refreshed")
 
             # Highlight buttons
             if self.current_button:
